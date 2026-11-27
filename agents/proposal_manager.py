@@ -47,8 +47,8 @@ def describe(step: StepRecord, claims: list[Claim], retagged: int) -> StepRecord
     sections = len({c.section for c in claims})
     summary = (
         f"Wrote draft 1 as {plural(len(claims), 'short claim')} in "
-        f"{plural(sections, 'section')}. Every claim carries a tag, and calculated claims "
-        "are locked."
+        f"{plural(sections, 'section')}. Facts carry a tag, recommendations do not, and "
+        "calculated claims are locked."
     )
     if retagged:
         summary += f" Code re-tagged {plural(retagged, 'claim')} TO CONFIRM."
