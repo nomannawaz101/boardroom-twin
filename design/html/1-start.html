@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Start</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.label{display:block;font-size:13px;font-weight:600;color:#344054;margin-bottom:6px}
+.field{width:100%;box-sizing:border-box;min-height:44px;padding:10px 12px;font:inherit;font-size:15px;color:#101828;background:#FFFFFF;border:1px solid #C9CED8;border-radius:8px}
+.hint{font-size:12.5px;color:#5D6675;margin-top:4px}
+.step{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:13.5px;text-decoration:none;color:#475467}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.sample{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;min-height:44px;padding:8px 14px;border-radius:10px;background:#FFFFFF;border:1.5px solid #C9CED8;font:inherit;font-size:14px;font-weight:600;color:#101828;cursor:pointer;text-align:left}
+.sample small{font-size:12px;font-weight:500;color:#5D6675}
+.sample.on{border-color:#5B3CC4;background:#EFEBFC;color:#36238A}
+.codechk{display:flex;flex-wrap:wrap;gap:6px 14px;font-size:13px;color:#344054}
+.codechk b{color:#0B6B3A}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px; letter-spacing: 0.01em">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">by Lumen Works</span>
+      </div>
+      <span style="font-size: 12.5px; color: #D0D5DD; border: 1px solid #3A4456; padding: 4px 10px; border-radius: 999px">Simulation, not a prediction</span>
+    </div>
+  </header>
+
+  <nav aria-label="Run stages" style="background: #FFFFFF; border-bottom: 1px solid #E4E7EC">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="step" href="Main.dc.html" aria-current="step" style="background: #EFEBFC; color: #36238A; font-weight: 600"><span class="num">1</span> Brief</a>
+      <a class="step" href="Team.dc.html"><span class="num">2</span> Proposal team</a>
+      <a class="step" href="Board.dc.html"><span class="num">3</span> Client board</a>
+      <a class="step" href="Revision.dc.html"><span class="num">4</span> Revisions</a>
+      <a class="step" href="Report.dc.html"><span class="num">5</span> Report</a>
+    </div>
+  </nav>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 36px 24px 56px; display: flex; flex-direction: column; gap: 28px">
+    <section style="display: flex; flex-direction: column; gap: 10px; max-width: 780px">
+      <h1 style="margin: 0; font-size: 34px; line-height: 1.15; letter-spacing: -0.01em">Rehearse your proposal in front of the client's board, before you send it.</h1>
+      <p style="margin: 0; font-size: 17px; line-height: 1.55; color: #475467">A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
+    </section>
+
+    <section aria-label="How it works" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 6px">
+        <span class="num" style="font-size: 12px; color: #6D4FE0; font-weight: 700">STEP 1</span>
+        <strong style="font-size: 15px">Proposal team drafts</strong>
+        <span style="font-size: 13.5px; color: #5D6675; line-height: 1.45">Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Manager hand work to each other</span>
+      </div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 6px">
+        <span class="num" style="font-size: 12px; color: #6D4FE0; font-weight: 700">STEP 2</span>
+        <strong style="font-size: 15px">Client board reviews</strong>
+        <span style="font-size: 13.5px; color: #5D6675; line-height: 1.45">3 to 5 seats chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
+      </div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 6px">
+        <span class="num" style="font-size: 12px; color: #6D4FE0; font-weight: 700">STEP 3</span>
+        <strong style="font-size: 15px">Bid Manager revises</strong>
+        <span style="font-size: 13.5px; color: #5D6675; line-height: 1.45">Up to two rounds. A QA Reviewer blocks invented claims. The board votes again</span>
+      </div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 6px">
+        <span class="num" style="font-size: 12px; color: #6D4FE0; font-weight: 700">STEP 4</span>
+        <strong style="font-size: 15px">Board-ready report</strong>
+        <span style="font-size: 13.5px; color: #5D6675; line-height: 1.45">Proposal, board decision memo, meeting prep, optional prototype</span>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section class="card" aria-labelledby="brief-h" style="flex: 999 1 560px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 18px">
+        <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px">
+          <h2 id="brief-h" style="margin: 0; font-size: 20px">Client brief</h2>
+          <span style="font-size: 13px; color: #5D6675">Paste text, pick a sample, or upload a document</span>
+        </div>
+
+        <div role="group" aria-label="Sample briefs" style="display: flex; flex-direction: column; gap: 8px">
+          <span class="label" style="margin: 0">Try a sample brief</span>
+          <div style="display: flex; flex-wrap: wrap; gap: 8px">
+            <button type="button" class="sample on" aria-pressed="true">Northwind Insurance · claim status page<small>Time and materials · personal data</small></button>
+            <button type="button" class="sample" aria-pressed="false">Harbor Freight · support extension<small>Time and materials · $450 per day</small></button>
+            <button type="button" class="sample" aria-pressed="false">Summit Ridge Credit Union · change request<small>Fixed price · $40,000 change budget</small></button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px">
+          <div><label class="label" for="client">Client name</label><input class="field" id="client" value="Northwind Insurance"></div>
+          <div><label class="label" for="country">Client's country</label>
+            <select class="field" id="country"><option>Germany</option><option>United Kingdom</option><option>United States</option><option>Pakistan</option></select>
+            <div class="hint">Used for public holidays and currency</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="brief">Client brief</label>
+          <textarea class="field" id="brief" rows="8" style="resize: vertical; line-height: 1.5">Northwind Insurance (Germany). Customers phone the contact centre to ask where their home-insurance claim is. We want an online claim status page. Planned: 2 engineers for 4 weeks, starting Dec 7, billed time-and-materials at $600 per engineer-day. Budget is tight this year. The claims system had a six-hour outage last month. Claim calls peak in early January. Customers identify themselves today by claim number.</textarea>
+          <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 12px; margin-top: 4px">
+            <span class="hint" style="margin: 0; flex: 1 1 320px">Free text is fine: an email, meeting notes or bullet points. Agents use only what is written here. Missing details are marked "to confirm", never invented.</span>
+            <span class="num" style="font-size: 12.5px; color: #5D6675">452 / 15,000 characters</span>
+          </div>
+        </div>
+
+        <div style="border: 1.5px dashed #C9CED8; border-radius: 10px; padding: 16px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px; background: #FAFBFC">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5D6675" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+          <div style="flex: 1 1 260px; min-width: 0">
+            <label for="file" style="font-weight: 600; font-size: 14.5px">Or upload a client document</label>
+            <div class="hint">PDF with selectable text (first 20 pages), Word .docx, or .txt. Up to 3.5 MB. The text appears in the box above, so you can check and edit it before you start.</div>
+          </div>
+          <input id="file" type="file" accept=".pdf,.docx,.txt,.md" style="font: inherit; font-size: 14px; min-height: 44px">
+        </div>
+
+        <label style="display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; color: #8A3B12; background: #FEF3E2; border-radius: 8px; padding: 10px 12px; cursor: pointer">
+          <input type="checkbox" checked style="width: 20px; height: 20px; margin: 0; flex-shrink: 0">
+          <span>This is public or made-up information. It is not real client, customer or company data.</span>
+        </label>
+
+        <div class="codechk" aria-label="Checks that run before any AI call">
+          <span style="font-weight: 600">Code checks before any AI call:</span>
+          <span><b>✓</b> real-data scan</span><span><b>✓</b> hidden-instruction scan</span><span><b>✓</b> "is this a client brief?"</span>
+          <span style="color: #5D6675; flex-basis: 100%">Text inside a document is treated as data, never as instructions.</span>
+        </div>
+
+        <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #5D6675">Boardroom Twin is designed for fictional or publicly available information only. Automated checks find some common patterns of sensitive information but cannot guarantee complete detection. Do not submit confidential, customer or internal company information. The app does not intentionally save or log brief content.</p>
+      </section>
+
+      <aside class="card" aria-labelledby="start-h" style="flex: 1 1 300px; min-width: 0; padding: 24px; display: flex; flex-direction: column; gap: 16px">
+        <h2 id="start-h" style="margin: 0; font-size: 20px">Start</h2>
+
+        <a href="Team.dc.html" style="display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 10px; background: #5B3CC4; color: #FFFFFF; text-decoration: none; font-weight: 600; font-size: 15.5px">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="#FFFFFF"><path d="M8 5v14l11-7z"></path></svg>
+          Watch the sample run
+        </a>
+        <span style="font-size: 13px; color: #5D6675; margin-top: -8px">A real run, recorded on Claude. Instant, uses no AI budget.</span>
+
+        <div style="height: 1px; background: #E4E7EC"></div>
+
+        <div>
+          <label class="label" for="pass">Passcode for live runs</label>
+          <input class="field" id="pass" type="password" placeholder="From the submission summary">
+        </div>
+        <a href="Team.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 10px; background: #FFFFFF; color: #36238A; border: 1.5px solid #5B3CC4; text-decoration: none; font-weight: 600; font-size: 15.5px">Start a live run with my brief</a>
+
+        <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; font-size: 13.5px">
+          <dt style="color: #5D6675">Agent roles</dt><dd style="margin: 0">14, with 5 tools</dd>
+          <dt style="color: #5D6675">Board</dt><dd style="margin: 0">3 to 5 seats, chosen from your brief</dd>
+          <dt style="color: #5D6675">Time</dt><dd style="margin: 0">About 2 to 3 minutes</dd>
+          <dt style="color: #5D6675">Cost</dt><dd class="num" style="margin: 0">≈ $0.16 per run (estimate)</dd>
+          <dt style="color: #5D6675">Mode</dt><dd style="margin: 0"><span style="font-size: 12px; font-weight: 700; color: #0B6B3A; background: #E3F4EA; padding: 2px 8px; border-radius: 999px">Full</span> Sonnet and Haiku</dd>
+        </dl>
+      </aside>
+    </div>
+  </main>
+
+  <footer style="margin-top: auto; border-top: 1px solid #E4E7EC; background: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-size: 12.5px; color: #5D6675">
+      <span>Lumen Works is a fictional firm. Northwind Insurance is a made-up client.</span>
+      <a href="States.dc.html">What happens when something fails</a>
+    </div>
+  </footer>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1580}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

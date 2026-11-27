@@ -1,0 +1,102 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Prototype preview</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.m-sonnet{font-size:11.5px;font-weight:600;color:#36238A;background:#EFEBFC;padding:2px 8px;border-radius:999px}
+.st{display:flex;flex-direction:column;align-items:center;gap:6px;flex:1;min-width:80px;font-size:12.5px;text-align:center;color:#5D6675}
+.st b{width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">Northwind Insurance · Prototype preview</span>
+      </div>
+      <a href="Report.dc.html" style="color: #FFFFFF; font-size: 14px; min-height: 44px; display: inline-flex; align-items: center">← Back to the report</a>
+    </div>
+  </header>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 28px 24px 56px; display: flex; flex-direction: column; gap: 18px">
+    <section style="display: flex; flex-wrap: wrap; align-items: center; gap: 10px">
+      <h1 style="margin: 0; font-size: 24px; flex: 1 1 360px">Concept: Phase 1 claim status page</h1>
+      <span class="m-sonnet">UX Designer · Sonnet</span>
+      <span class="num" style="font-size: 12.5px; color: #5D6675">6.8 s · $0.01</span>
+    </section>
+    <p style="margin: 0; font-size: 14px; color: #8A3B12; background: #FEF3E2; border-radius: 8px; padding: 10px 12px">Concept preview, not a working product. Sample data only. Drawn from what the proposal's Phase 1 scope promises; anything beyond the brief is marked "Proposed addition".</p>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <figure aria-label="Concept screen in a browser frame" style="flex: 999 1 620px; min-width: 0; margin: 0; border-radius: 12px; overflow: hidden; border: 1px solid #C9CED8; background: #FFFFFF; box-shadow: 0 8px 24px rgba(16, 24, 40, 0.08)">
+        <div style="display: flex; align-items: center; gap: 10px; padding: 10px 14px; background: #EEF1F6; border-bottom: 1px solid #D9DDE5">
+          <span aria-hidden="true" style="display: inline-flex; gap: 6px"><span style="width: 10px; height: 10px; border-radius: 50%; background: #C9CED8"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #C9CED8"></span><span style="width: 10px; height: 10px; border-radius: 50%; background: #C9CED8"></span></span>
+          <span class="num" style="flex: 1; font-size: 12.5px; color: #475467; background: #FFFFFF; border-radius: 6px; padding: 5px 10px">northwind.example/claims/status</span>
+        </div>
+        <div style="padding: 28px; display: flex; flex-direction: column; gap: 20px; background: #FBFCFE">
+          <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px"><strong style="font-size: 18px; color: #0F3D6E">Northwind Insurance</strong><span style="font-size: 13px; color: #5D6675">Claim status</span></div>
+          <div style="display: flex; flex-direction: column; gap: 8px">
+            <span style="font-size: 22px; font-weight: 700">Where is my claim?</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 8px">
+              <span style="flex: 1 1 220px; min-height: 44px; box-sizing: border-box; display: flex; align-items: center; padding: 0 12px; border: 1px solid #C9CED8; border-radius: 8px; background: #FFFFFF; color: #101828" class="num">CLM-2026-48213</span>
+              <span style="min-height: 44px; display: inline-flex; align-items: center; padding: 0 18px; border-radius: 8px; background: #0F3D6E; color: #FFFFFF; font-weight: 600">Check status</span>
+            </div>
+          </div>
+          <div style="border: 1px solid #E4E7EC; border-radius: 10px; background: #FFFFFF; padding: 18px; display: flex; flex-direction: column; gap: 16px">
+            <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px"><strong>Water damage, kitchen</strong><span style="font-size: 13px; color: #5D6675">Updated 12 minutes ago <em style="font-style: normal; font-size: 11.5px; background: #FEF3E2; color: #8A3B12; border-radius: 6px; padding: 2px 6px; margin-left: 4px">Sample data</em></span></div>
+            <div style="display: flex; gap: 6px; align-items: flex-start">
+              <div class="st"><b style="background: #0F3D6E; color: #FFFFFF">✓</b>Received</div>
+              <div class="st"><b style="background: #0F3D6E; color: #FFFFFF">✓</b>Assessed</div>
+              <div class="st" style="color: #0F3D6E; font-weight: 700"><b style="background: #FFFFFF; color: #0F3D6E; border: 2px solid #0F3D6E">3</b>Approved</div>
+              <div class="st"><b style="background: #EEF1F6; color: #5D6675">4</b>Paid</div>
+            </div>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 10px; font-size: 14px">
+              <div style="background: #F4F7FB; border-radius: 8px; padding: 10px"><span style="color: #5D6675">Expected payment</span><br><strong class="num">by Feb 3, 2027</strong></div>
+              <div style="background: #F4F7FB; border-radius: 8px; padding: 10px"><span style="color: #5D6675">Next step</span><br><strong>Payment to your bank</strong></div>
+            </div>
+          </div>
+          <span style="font-size: 13px; color: #5D6675">Questions? Your claim handler will contact you. You don't need to call.</span>
+        </div>
+      </figure>
+
+      <aside class="card" aria-labelledby="trace-h" style="flex: 1 1 300px; min-width: 0; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <h2 id="trace-h" style="margin: 0; font-size: 17px">Traced to the proposal</h2>
+        <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #344054">
+          <li>Claim lookup → Scope: in</li>
+          <li>Status steps → Scope: in</li>
+          <li>Expected payment date → Scope: in</li>
+          <li>"Updated 12 minutes ago" → 15-minute copy (example time, proposed addition)</li>
+        </ul>
+        <strong style="font-size: 14px; margin-top: 4px">Left out on purpose</strong>
+        <ul style="margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.6; color: #344054">
+          <li>Email and SMS updates (Phase 2)</li>
+          <li>Live chat (out of scope)</li>
+        </ul>
+        <span style="font-size: 12.5px; color: #5D6675">The agent returns a screen description as data; our code draws it. No AI-written HTML runs on the page.</span>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1060}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+target-version = "py312"
+line-length = 100
+
+[lint]
+# E/F errors, I imports, UP modern syntax, B likely bugs, ANN type hints on every function,
+# BLE blind excepts, T20 no print.
+select = ["E", "F", "I", "UP", "B", "ANN", "BLE", "T20"]

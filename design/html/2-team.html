@@ -1,0 +1,167 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Proposal team</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.step{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:13.5px;text-decoration:none;color:#475467}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.m-sonnet{font-size:11.5px;font-weight:600;color:#36238A;background:#EFEBFC;padding:2px 8px;border-radius:999px}
+.m-haiku{font-size:11.5px;font-weight:600;color:#344054;background:#EEF1F6;padding:2px 8px;border-radius:999px}
+.m-code{font-size:11.5px;font-weight:600;color:#344054;border:1px solid #C9CED8;padding:1px 8px;border-radius:999px}
+.tool{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:9px 12px;border-radius:8px;background:#F7F8FA;border:1px solid #E4E7EC;font-size:13.5px}
+.tname{font-weight:600;color:#344054}
+.api{font-size:10.5px;font-weight:700;letter-spacing:.05em;color:#0B6B3A;background:#E3F4EA;padding:1px 6px;border-radius:4px}
+.dot{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:13px;color:#FFFFFF;background:#5B3CC4}
+.hand{display:block;line-height:1.5;font-size:12.5px;color:#5D6675;border-top:1px dashed #D9DDE5;padding-top:8px}
+.hand b{color:#36238A;font-weight:600}
+.flag{font-size:12.5px;background:#F7F8FA;border:1px solid #E4E7EC;border-radius:6px;padding:3px 8px;color:#344054}
+.flag b{font-weight:600}
+.hand svg{vertical-align:-2px;margin-right:6px}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">Northwind Insurance · Claim status page</span>
+      </div>
+      <span style="font-size: 12.5px; color: #101828; background: #FFD66B; padding: 4px 10px; border-radius: 999px; font-weight: 600">Sample run</span>
+    </div>
+  </header>
+  <nav aria-label="Run stages" style="background: #FFFFFF; border-bottom: 1px solid #E4E7EC">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="step" href="Main.dc.html"><span class="num">1</span> Brief ✓</a>
+      <a class="step" href="Team.dc.html" aria-current="step" style="background: #EFEBFC; color: #36238A; font-weight: 600"><span class="num">2</span> Proposal team</a>
+      <a class="step" href="Board.dc.html"><span class="num">3</span> Client board</a>
+      <a class="step" href="Revision.dc.html"><span class="num">4</span> Revisions</a>
+      <a class="step" href="Report.dc.html"><span class="num">5</span> Report</a>
+    </div>
+  </nav>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 32px 24px 56px; display: flex; flex-direction: column; gap: 22px">
+    <section style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 700px">
+        <span class="num" style="font-size: 12px; font-weight: 700; color: #6D4FE0">STAGE 2 OF 5</span>
+        <h1 style="margin: 0; font-size: 28px">The proposal team wrote draft 1</h1>
+        <p style="margin: 0; color: #475467; font-size: 15.5px; line-height: 1.5">Five agents work like a real pre-sales team. Each hands its work to the next, and two work at the same time. Tools are plain code: the agent asks, code answers exactly.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px">
+        <span style="background: #FFFFFF; border: 1px solid #E4E7EC; padding: 5px 10px; border-radius: 999px">5 agents</span>
+        <span style="background: #FFFFFF; border: 1px solid #E4E7EC; padding: 5px 10px; border-radius: 999px">5 tool calls</span>
+        <span class="num" style="background: #FFFFFF; border: 1px solid #E4E7EC; padding: 5px 10px; border-radius: 999px">35 s · $0.06</span>
+      </div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <ol aria-label="Agent steps" style="flex: 999 1 600px; min-width: 0; list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 0">
+
+        <li style="display: flex; gap: 14px">
+          <div style="display: flex; flex-direction: column; align-items: center"><span class="dot">1</span><span aria-hidden="true" style="flex: 1; width: 2px; background: #D9DDE5; min-height: 14px"></span></div>
+          <div class="card" style="flex: 1; min-width: 0; padding: 14px 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 16px">Business Analyst</strong><span class="m-haiku">Haiku</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">3.1 s</span></div>
+            <span style="font-size: 14.5px; color: #344054; line-height: 1.45">Read the brief once. Wrote a case file with 2 goals and 3 warning signs, each backed by an exact quote, and set 5 context flags.</span>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px">
+              <span style="background: #F0F7FF; color: #1D4F91; padding: 3px 9px; border-radius: 6px">Goal: fewer status calls</span>
+              <span style="background: #F0F7FF; color: #1D4F91; padding: 3px 9px; border-radius: 6px">Goal: status online any time</span>
+              <span style="background: #FEF3E2; color: #8A3B12; padding: 3px 9px; border-radius: 6px">Warning: tight budget</span>
+              <span style="background: #FEF3E2; color: #8A3B12; padding: 3px 9px; border-radius: 6px">Warning: outage last month</span>
+              <span style="background: #FEF3E2; color: #8A3B12; padding: 3px 9px; border-radius: 6px">Warning: early-January call peak</span>
+            </div>
+            <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center">
+              <span style="font-size: 12.5px; font-weight: 600; color: #344054">Context flags</span>
+              <span class="flag"><b>Personal data:</b> yes</span><span class="flag"><b>Existing systems:</b> yes</span><span class="flag"><b>Contract:</b> time and materials</span><span class="flag"><b>Function:</b> claims</span><span class="flag"><b>Level:</b> VP (mid-size deal)</span>
+            </div>
+            <div class="tool"><span class="tname">Input checks</span><span class="m-code">Code, no AI</span><span style="color: #0B6B3A; font-weight: 600">No real personal data · no hidden instructions · looks like a client brief</span></div>
+            <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands to <b>Solution Architect</b>: the case file. Flags are kept for the board.</div>
+          </div>
+        </li>
+
+        <li style="display: flex; gap: 14px">
+          <div style="display: flex; flex-direction: column; align-items: center"><span class="dot">2</span><span aria-hidden="true" style="flex: 1; width: 2px; background: #D9DDE5; min-height: 14px"></span></div>
+          <div class="card" style="flex: 1; min-width: 0; padding: 14px 16px; margin-bottom: 14px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 16px">Solution Architect</strong><span class="m-sonnet">Sonnet</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">7.4 s</span></div>
+            <span style="font-size: 14.5px; color: #344054; line-height: 1.45">Designed the solution in 3 parts, so the page never touches the live claims system.</span>
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 8px; font-size: 13.5px">
+              <div style="border: 1px solid #E4E7EC; border-radius: 8px; padding: 8px 10px"><strong>Status page</strong><br><span style="color: #5D6675">Customer looks up a claim</span></div>
+              <div style="border: 1px solid #E4E7EC; border-radius: 8px; padding: 8px 10px"><strong>Read-only copy</strong><br><span style="color: #5D6675">Claim data, refreshed every 15 min</span></div>
+              <div style="border: 1px solid #E4E7EC; border-radius: 8px; padding: 8px 10px"><strong>Secure link</strong><br><span style="color: #5D6675">Sent by email or SMS</span></div>
+            </div>
+            <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands the 3-part design to <b>Delivery Manager</b> and <b>Risk &amp; Compliance Analyst</b> at the same time.</div>
+          </div>
+        </li>
+
+        <li style="display: flex; gap: 14px">
+          <div style="display: flex; flex-direction: column; align-items: center"><span class="dot">3</span><span aria-hidden="true" style="flex: 1; width: 2px; background: #D9DDE5; min-height: 14px"></span></div>
+          <div style="flex: 1; min-width: 0; margin-bottom: 14px; border: 1.5px dashed #B9A8F0; border-radius: 14px; padding: 12px; display: flex; flex-direction: column; gap: 12px; background: #FBFAFF">
+            <span style="font-size: 12.5px; font-weight: 700; color: #36238A; letter-spacing: .03em">RAN AT THE SAME TIME</span>
+
+            <div class="card" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 16px">Delivery Manager</strong><span class="m-sonnet">Sonnet</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">6.2 s · 2 tools</span></div>
+              <span style="font-size: 14.5px; color: #344054; line-height: 1.45">Sized the three parts: 2 engineers for 4 weeks. Code has the final word on the cost.</span>
+              <div class="tool"><span class="tname">Cost calculator</span><span class="m-code">Code, no AI</span><span class="num">2 engineers × 4 weeks × 5 days × $600</span><strong class="num" style="margin-left: auto">= $24,000</strong></div>
+              <div class="tool"><span class="tname">Currency converter</span><span class="api">PUBLIC API</span><span class="num">USD → EUR, ECB rate of the day</span><strong class="num" style="margin-left: auto">≈ €22,100</strong></div>
+              <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands the <b>locked cost</b> to <b>Proposal Manager</b>.</div>
+            </div>
+
+            <div class="card" style="padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+              <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 16px">Risk &amp; Compliance Analyst</strong><span class="m-sonnet">Sonnet</span><span style="font-size: 11.5px; font-weight: 600; color: #0B6B3A">chose its own tools</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">12.8 s · 3 tools</span></div>
+              <span style="font-size: 14.5px; color: #344054; line-height: 1.45">Found one timing risk: the 4 weeks run through the holiday season.</span>
+              <div class="tool"><span class="tname">Quote checker</span><span class="m-code">Code, no AI</span><span>"Six-hour outage of the claims system last month"</span><strong style="margin-left: auto; color: #0B6B3A">Found in brief</strong></div>
+              <div class="tool"><span class="tname">Public holidays</span><span class="api">PUBLIC API</span><span>Germany, Dec 2026 – Jan 2027</span><strong class="num" style="margin-left: auto">Dec 25 · Dec 26 · Jan 1</strong></div>
+              <div class="tool"><span class="tname">Working days</span><span class="m-code">Code, no AI</span><span class="num">Dec 7 + 20 working days, skipping holidays</span><strong class="num" style="margin-left: auto">→ Jan 5</strong></div>
+              <span style="font-size: 13.5px; color: #8A3B12; background: #FEF3E2; padding: 8px 10px; border-radius: 8px">Risk: go-live on Jan 5 lands in the early-January claim peak named in the brief.</span>
+              <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands the <b>verified risk and dates</b> to <b>Proposal Manager</b>.</div>
+            </div>
+          </div>
+        </li>
+
+        <li style="display: flex; gap: 14px">
+          <div style="display: flex; flex-direction: column; align-items: center"><span class="dot">4</span></div>
+          <div class="card" style="flex: 1; min-width: 0; padding: 14px 16px; display: flex; flex-direction: column; gap: 10px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 16px">Proposal Manager</strong><span class="m-sonnet">Sonnet</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">11.5 s</span></div>
+            <span style="font-size: 14.5px; color: #344054; line-height: 1.45">Wrote draft 1 as 24 short claims in 9 standard sections, using only the case file, the design, the locked cost and the verified risks. Every claim carries a tag, and calculated claims are locked.</span>
+            <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands draft 1 and the context flags to the <b>client board</b>.</div>
+          </div>
+        </li>
+      </ol>
+
+      <aside class="card" aria-labelledby="draft-h" style="flex: 1 1 320px; min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 14px">
+        <div style="display: flex; justify-content: space-between; align-items: baseline; gap: 8px"><h2 id="draft-h" style="margin: 0; font-size: 18px">Proposal, draft 1</h2><span style="font-size: 12.5px; color: #5D6675">9 sections · 24 claims</span></div>
+        <strong style="font-size: 16px; line-height: 1.35">Online claim status page for Northwind Insurance</strong>
+        <dl style="margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; font-size: 14px">
+          <dt style="color: #5D6675">Cost</dt><dd class="num" style="margin: 0; font-weight: 600">$24,000 (≈ €22,100)</dd>
+          <dt style="color: #5D6675">Team</dt><dd style="margin: 0">2 engineers, 4 weeks</dd>
+          <dt style="color: #5D6675">Start</dt><dd class="num" style="margin: 0">Mon Dec 7, 2026</dd>
+          <dt style="color: #5D6675">Go-live</dt><dd class="num" style="margin: 0">Tue Jan 5, 2027</dd>
+        </dl>
+        <ol style="margin: 0; padding-left: 20px; font-size: 13.5px; color: #344054; line-height: 1.7">
+          <li>Executive summary</li><li>Client situation</li><li>Proposed solution</li><li>Scope: in and out</li><li>Timeline and milestones</li><li>Team and cost</li><li>Risks and mitigations</li><li>Assumptions</li><li>Next steps</li>
+        </ol>
+        <a href="Board.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 10px; background: #5B3CC4; color: #FFFFFF; text-decoration: none; font-weight: 600">Next: send it to the client board →</a>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1700}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
