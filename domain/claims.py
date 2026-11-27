@@ -4,19 +4,26 @@ A model can never edit a calculated claim; every rebuild recreates them from the
 """
 
 from dataclasses import dataclass
+from datetime import date
 from typing import Literal
 
 import config
 from schemas.answers import Change
 from schemas.claims import Claim, DraftClaim, Section
 from schemas.cost import CostEstimate
+from schemas.timeline import Schedule
 
 CLAIM_PREFIX = "C"
 ASSUMPTION_PREFIX = "Confirm with the client: "
 COST_SECTION: Section = "team_cost"
+TIMELINE_SECTION: Section = "timeline"
 DEFAULT_ADD_SECTION: Section = "proposed_solution"
+MISSING_COST = "the day rate and team size, so the cost can be calculated."
+MISSING_START = "the start date, so the dates can be calculated."
+HOLIDAYS_NOT_CHECKED = "the dates count weekends only; local public holidays are not checked yet."
 
 RefusalReason = Literal["locked", "unknown_claim"]
+CalculatedText = tuple[Section, str]
 
 
 @dataclass(frozen=True)
@@ -44,27 +51,79 @@ def next_claim_id(claims: list[Claim]) -> str:
     return f"{CLAIM_PREFIX}{max((claim_number(c.id) for c in claims), default=0) + 1}"
 
 
-def calculated_texts(estimate: CostEstimate) -> list[str]:
+def format_date(day: date) -> str:
+    return f"{day:%a %b} {day.day}, {day.year}"
+
+
+def cost_texts(estimate: CostEstimate) -> list[CalculatedText]:
     """One sentence per phase plus the total, all built from code-computed numbers."""
     money = estimate.currency
-    texts = [
-        f"Phase {p.no}: {p.engineers} engineers x {format_number(p.days)} days x "
-        f"{format_money(p.rate, money)} = {format_money(p.cost, money)}."
+    texts: list[CalculatedText] = [
+        (
+            COST_SECTION,
+            f"Phase {p.no}: {p.engineers} engineers x {format_number(p.days)} days x "
+            f"{format_money(p.rate, money)} = {format_money(p.cost, money)}.",
+        )
         for p in estimate.phases
     ]
-    texts.append(
+    total = (
         f"Total: {format_number(estimate.engineer_days)} engineer-days, "
-        f"{format_money(estimate.total, estimate.currency)}."
+        f"{format_money(estimate.total, money)}."
     )
-    return texts
+    return [*texts, (COST_SECTION, total)]
 
 
-def locked_claim(claim_id: str, text: str) -> Claim:
-    return Claim(id=claim_id, section=COST_SECTION, text=text, origin="calculated", locked=True)
+def schedule_texts(schedule: Schedule) -> list[CalculatedText]:
+    texts: list[CalculatedText] = [
+        (
+            TIMELINE_SECTION,
+            f"Phase {p.no}: {format_date(p.start)} to {format_date(p.end)} "
+            f"({p.working_days} working days).",
+        )
+        for p in schedule.phases
+    ]
+    working_days = sum(p.working_days for p in schedule.phases)
+    go_live = (
+        f"Go-live: {format_date(schedule.go_live)}, "
+        f"{working_days} working days after the start on {format_date(schedule.start)}."
+    )
+    return [*texts, (TIMELINE_SECTION, go_live)]
 
 
-def assemble_claims(drafts: list[DraftClaim], estimate: CostEstimate | None) -> list[Claim]:
-    """Number the model's claims, then add the locked calculated claims.
+def calculated_texts(
+    estimate: CostEstimate | None, schedule: Schedule | None
+) -> list[CalculatedText]:
+    cost = cost_texts(estimate) if estimate is not None else []
+    dates = schedule_texts(schedule) if schedule is not None else []
+    return [*cost, *dates]
+
+
+def code_assumptions(estimate: CostEstimate | None, schedule: Schedule | None) -> list[str]:
+    """Gaps that code knows about, so they appear as TO CONFIRM instead of being guessed."""
+    gaps = []
+    if estimate is None:
+        gaps.append(MISSING_COST)
+    if schedule is None:
+        gaps.append(MISSING_START)
+    elif not schedule.holidays_checked:
+        gaps.append(HOLIDAYS_NOT_CHECKED)
+    return gaps
+
+
+def locked_claim(claim_id: str, section: Section, text: str) -> Claim:
+    return Claim(id=claim_id, section=section, text=text, origin="calculated", locked=True)
+
+
+def assumption_claim(claim_id: str, text: str) -> Claim:
+    return Claim(
+        id=claim_id, section="assumptions", text=ASSUMPTION_PREFIX + text, origin="assumption"
+    )
+
+
+def assemble_claims(
+    drafts: list[DraftClaim], estimate: CostEstimate | None, schedule: Schedule | None = None
+) -> list[Claim]:
+    """Number the model's claims, then add code's assumptions and the locked calculated claims.
 
     A model cannot mark its own text as calculated, so such a claim becomes `derived`.
     """
@@ -79,25 +138,28 @@ def assemble_claims(drafts: list[DraftClaim], estimate: CostEstimate | None) -> 
             quote=draft.quote,
         )
         claims.append(claim)
-    if estimate is not None:
-        for text in calculated_texts(estimate):
-            claims.append(locked_claim(next_claim_id(claims), text))
+    for gap in code_assumptions(estimate, schedule):
+        claims.append(assumption_claim(next_claim_id(claims), gap))
+    for section, text in calculated_texts(estimate, schedule):
+        claims.append(locked_claim(next_claim_id(claims), section, text))
     return claims
 
 
-def rebuild_calculated(claims: list[Claim], estimate: CostEstimate) -> list[Claim]:
+def rebuild_calculated(
+    claims: list[Claim], estimate: CostEstimate | None, schedule: Schedule | None = None
+) -> list[Claim]:
     """Recreate every calculated claim from the numbers, keeping existing ids where possible."""
-    texts = iter(calculated_texts(estimate))
+    texts = iter(calculated_texts(estimate, schedule))
     rebuilt: list[Claim] = []
     for claim in claims:
         if claim.origin != "calculated":
             rebuilt.append(claim)
             continue
-        text = next(texts, None)
-        if text is not None:
-            rebuilt.append(locked_claim(claim.id, text))
-    for text in texts:
-        rebuilt.append(locked_claim(next_claim_id(rebuilt), text))
+        item = next(texts, None)
+        if item is not None:
+            rebuilt.append(locked_claim(claim.id, *item))
+    for section, text in texts:
+        rebuilt.append(locked_claim(next_claim_id(rebuilt), section, text))
     return rebuilt
 
 
