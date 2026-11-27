@@ -300,3 +300,12 @@ def test_a_failed_architect_fails_the_stage_with_a_retry(scripted: Scripted) -> 
     state = state_from(discover_northwind(scripted))
     scripted.load([fail("server")] * 3)
     assert client.post("/api/draft", json=state).json()["error"] == "step_failed"
+
+
+def test_not_a_brief_with_null_lists_still_stops_cleanly(scripted: Scripted) -> None:
+    # Seen live: a model answers a non-brief with "goals": null instead of an empty list.
+    reply = {"is_brief": False, "goals": None, "warnings": None, "rate": None, "flags": {}}
+    model = scripted.load([reply_json(reply)])
+    body = client.post("/api/discover", json=form(briefs.NOT_A_BRIEF)).json()
+    assert body["error"] == "not_a_brief"
+    assert len(model.requests) == 1
