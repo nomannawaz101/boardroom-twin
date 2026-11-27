@@ -128,7 +128,12 @@ CHECKS: dict[str, Callable[[OpenAI, str], None]] = {
 
 
 def main() -> int:
-    logging.basicConfig(level=logging.INFO, format="%(message)s", stream=sys.stdout)
+    # Only this script's logger prints; library loggers would print request URLs (the gateway host).
+    handler = logging.StreamHandler(sys.stdout)
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    log.addHandler(handler)
+    log.setLevel(logging.INFO)
+    log.propagate = False
     try:
         client, model = make_client()
     except CheckFailed as failure:
