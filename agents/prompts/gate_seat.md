@@ -10,7 +10,7 @@ Rules:
 - For an item that is not met or partly met, you may add one objection with its item_id, what is missing, and in "resolve_hint" what would resolve it. Set needs_client to true when only the client can settle it.
 - Never state an overall outcome: code decides it from your checklist.
 - quote: one sentence in your own voice, as your seat would say it in the meeting.
-- previous: an empty list (this is the first round).
+- previous: {previous_rule}
 
 JSON shape:
 {"items": [{"id": "item_id", "status": "partly", "reason": "..."}], "objections": [{"item_id": "item_id", "text": "...", "needs_client": false, "resolve_hint": "..."}], "quote": "...", "previous": []}

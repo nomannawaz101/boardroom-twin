@@ -3,18 +3,15 @@
 With the fake model, seat calls run in board-plan order, so each script line maps to a seat.
 """
 
-from collections.abc import Iterator
 from typing import Any
 
-import pytest
 from fastapi.testclient import TestClient
 
 from app import app
 from domain.board_composer import compose_board
-from llm.client import Runtime
-from llm.fake import FakeChatModel, FakeStep, fail, reply_json, reply_text
+from llm.fake import FakeStep, fail, reply_json, reply_text
 from schemas.case_file import BoardFlags
-from services import runtime as wiring
+from tests.integration.conftest import Scripted
 
 client = TestClient(app)
 
@@ -88,29 +85,6 @@ SECURITY = {
     "quote": "Who can see a claim?",
 }
 NORTHWIND_ANSWERS = [CFO, VP, ARCHITECT, PROCUREMENT, SECURITY]  # board-plan order
-
-
-class Scripted:
-    def __init__(self) -> None:
-        self.model = FakeChatModel([])
-
-    def load(self, script: list[FakeStep]) -> FakeChatModel:
-        self.model = FakeChatModel(script)
-        return self.model
-
-
-async def no_wait(seconds: float) -> None:
-    return None
-
-
-@pytest.fixture
-def scripted() -> Iterator[Scripted]:
-    holder = Scripted()
-    app.dependency_overrides[wiring.make_runtime] = lambda: Runtime(
-        model=holder.model, sleep=no_wait
-    )
-    yield holder
-    app.dependency_overrides.clear()
 
 
 def state(flags: dict[str, Any] = NORTHWIND_FLAGS, **changes: object) -> dict[str, Any]:

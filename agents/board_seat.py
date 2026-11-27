@@ -4,6 +4,7 @@ A scoring seat rates its criteria; a gate seat answers its checklist. Neither re
 a vote or an outcome: code computes those (domain/scoring.py, domain/gates.py).
 """
 
+from dataclasses import dataclass, field
 from typing import Any
 
 from agents.common import inputs_block, plural, system_prompt
@@ -17,6 +18,8 @@ from schemas.board import PlannedSeat, SeatResult
 from schemas.case_file import CaseFile
 from schemas.claims import Claim
 from schemas.common import REQUIRED_ITEMS, match_key
+from schemas.revision import AppliedChange
+from schemas.state import TrackerItem
 from schemas.step import StepRecord
 
 SeatAnswer = ScoringSeatAnswer | GateSeatAnswer
@@ -42,30 +45,72 @@ def proposal_lines(claims: list[Claim]) -> list[dict[str, str]]:
     ]
 
 
-def seat_inputs(seat: PlannedSeat, claims: list[Claim], case_file: CaseFile, draft_no: int) -> str:
+FIRST_ROUND_RULE = "an empty list (this is the first round)."
+REVOTE_RULE = (
+    'for every item in "your_open_items", re-read the new proposal and give its id with '
+    '"resolved", "partly" or "open". Only "resolved" closes it, so say resolved only if the new '
+    "text really answers it. Raise new objections only for problems not already in that list."
+)
+
+
+@dataclass(frozen=True)
+class Review:
+    """What a seat reviews: the draft, and in a re-vote its own open items and the changes."""
+
+    claims: list[Claim]
+    case_file: CaseFile
+    draft_no: int
+    open_items: list[TrackerItem] = field(default_factory=list)
+    changes: list[AppliedChange] = field(default_factory=list)
+
+    @property
+    def revote(self) -> bool:
+        return self.draft_no > 1
+
+
+def seat_inputs(seat: PlannedSeat, review: Review) -> str:
     """The seat title (built from the brief) and the client name travel as data, never in the
     system prompt."""
-    payload = {
+    payload: dict[str, Any] = {
         "your_seat": seat.title,
-        "client": case_file.client,
-        "draft": draft_no,
+        "client": review.case_file.client,
+        "draft": review.draft_no,
         **seat_terms(SEATS_BY_ID[seat.id]),
         "client_context": {
-            "goals": case_file.goals,
-            "warnings": [w.text for w in case_file.warnings],
+            "goals": review.case_file.goals,
+            "warnings": [w.text for w in review.case_file.warnings],
         },
-        "proposal": proposal_lines(claims),
+        "proposal": proposal_lines(review.claims),
     }
+    if review.revote:
+        payload["your_open_items"] = [
+            {"id": t.id, "text": t.text, "claim_ids": t.claim_ids} for t in review.open_items
+        ]
+        payload["changes_since_last_draft"] = [
+            {
+                "objection_id": c.objection_id,
+                "action": c.action,
+                "old": c.old_text,
+                "new": c.new_text,
+            }
+            for c in review.changes
+            if c.outcome == "applied"
+        ]
     return inputs_block(payload)
 
 
 async def run(
-    seat: PlannedSeat, claims: list[Claim], case_file: CaseFile, draft_no: int, runtime: Runtime
+    seat: PlannedSeat, review: Review, runtime: Runtime
 ) -> AgentResult[ScoringSeatAnswer] | AgentResult[GateSeatAnswer]:
     """No safe default: a seat that cannot answer is Not reviewed, never given made-up votes."""
     spec = SEATS_BY_ID[seat.id]
-    system = system_prompt(PROMPTS[spec.kind], lens=spec.lens, max_objections=SEAT_MAX_OBJECTIONS)
-    user = seat_inputs(seat, claims, case_file, draft_no)
+    system = system_prompt(
+        PROMPTS[spec.kind],
+        lens=spec.lens,
+        max_objections=SEAT_MAX_OBJECTIONS,
+        previous_rule=REVOTE_RULE if review.revote else FIRST_ROUND_RULE,
+    )
+    user = seat_inputs(seat, review)
     return await run_agent(
         seat.id, system, user, SCHEMAS[spec.kind], runtime=runtime, check=reply_check(spec)
     )

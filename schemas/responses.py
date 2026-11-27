@@ -10,6 +10,7 @@ from schemas.board import BoardPlan, BoardRound, Verdict
 from schemas.case_file import BoardFlags, CaseFile, Signal
 from schemas.claims import Claim
 from schemas.cost import CostEstimate, PhaseEffort
+from schemas.revision import BidRound, Report, StopDecision
 from schemas.state import TrackerItem
 from schemas.step import StepRecord
 from schemas.timeline import Schedule
@@ -41,6 +42,7 @@ class BoardResponse(BaseModel):
     round: BoardRound
     tracker: list[TrackerItem]
     verdict: Verdict  # the verdict so far, by section 4.7; final after the last round
+    stop: StopDecision  # whether code stops the loop here, and why
     steps: list[StepRecord]
 
 
@@ -53,3 +55,20 @@ class DraftResponse(BaseModel):
     draft_no: int
     retagged: list[str]
     steps: list[StepRecord]
+
+
+class RevisionResponse(BaseModel):
+    """One Bid Manager round and one re-vote of every selected seat (plan section 7.1)."""
+
+    bid_round: BidRound
+    round: BoardRound
+    claims: list[Claim]
+    draft_no: int
+    tracker: list[TrackerItem]
+    verdict: Verdict
+    stop: StopDecision
+    steps: list[StepRecord]
+
+
+class ReportResponse(BaseModel):
+    report: Report
