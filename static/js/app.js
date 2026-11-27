@@ -1,9 +1,12 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, deliveryCard, draftSummary, h, managerCard, message, proposal,
-  retryCard, stats, workingCard,
+  analystCard, architectCard, boardPlan, boardStats, deliveryCard, draftSummary, gateCard, h,
+  managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
-import { BRIEF_MAX_CHARS, addDraft, hasDraft, run, startRun, stateForServer } from "./state.js";
+import {
+  BRIEF_MAX_CHARS, addBoard, addDraft, addRetriedSeat, hasBoard, hasDraft, run, startRun,
+  stateForServer,
+} from "./state.js";
 
 // Errors the user fixes by changing the brief, so they are shown on the brief screen.
 const INPUT_ERRORS = new Set(["input_blocked", "too_long", "not_a_brief"]);
@@ -25,29 +28,46 @@ function modeNote(label) {
 
 const $ = (id) => document.getElementById(id);
 const els = {
-  viewBrief: $("view-brief"), viewTeam: $("view-team"), nav: $("stage-nav"),
+  nav: $("stage-nav"),
   client: $("client"), country: $("country"), brief: $("brief"), counter: $("brief-counter"),
   confirmed: $("confirmed"), start: $("start-live"), startMessage: $("start-message"),
   samples: $("sample-row"), modeChip: $("mode-chip"), brandSub: $("brand-sub"),
   relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"),
   stats: $("team-stats"), notices: $("team-notices"), title: $("team-title"),
   factAgents: $("fact-agents"), factMode: $("fact-mode"),
+  boardTitle: $("board-title"), boardIntro: $("board-intro"), boardStats: $("board-stats"),
+  boardPlan: $("board-plan"), boardStatus: $("board-status"),
+  scoreBlock: $("score-block"), scoreCards: $("score-cards"),
+  gateBlock: $("gate-block"), gateCards: $("gate-cards"), objections: $("objections"),
 };
+const VIEWS = { 1: $("view-brief"), 2: $("view-team"), 3: $("view-board") };
 
 // --- Views and stage bar ---
 
+function stageOpen(n) {
+  return n === 1 || (n === 2 && Boolean(run.data)) || (n === 3 && hasDraft());
+}
+
+function stageDone(n) {
+  return (n === 1 && Boolean(run.data)) || (n === 2 && hasDraft()) || (n === 3 && hasBoard());
+}
+
+function brandLine(stage) {
+  if (stage === 1 || !run.data) return "by Lumen Works";
+  const where = stage === 3 ? "board round 1" : "draft 1";
+  return `${run.data.case_file.client} · ${where}`;
+}
+
 function showView(stage) {
-  els.viewBrief.hidden = stage !== 1;
-  els.viewTeam.hidden = stage !== 2;
+  for (const [n, view] of Object.entries(VIEWS)) view.hidden = Number(n) !== stage;
   for (const step of els.nav.querySelectorAll(".step")) {
     const n = Number(step.dataset.stage);
-    const done = (n === 1 && run.data) || (n === 2 && hasDraft());
-    step.disabled = !(n === 1 || (n === 2 && run.data));
+    step.disabled = !stageOpen(n);
     if (n === stage) step.setAttribute("aria-current", "step");
     else step.removeAttribute("aria-current");
-    step.lastChild.textContent = step.lastChild.textContent.replace(" ✓", "") + (done ? " ✓" : "");
+    step.lastChild.textContent = step.lastChild.textContent.replace(" ✓", "") + (stageDone(n) ? " ✓" : "");
   }
-  els.brandSub.textContent = stage === 1 || !run.data ? "by Lumen Works" : `${run.data.case_file.client} · draft 1`;
+  els.brandSub.textContent = brandLine(stage);
   window.scrollTo({ top: 0 });
 }
 
@@ -185,12 +205,94 @@ function showDraft(result) {
     managerCard(4, manager, true),
   );
   els.title.textContent = "The proposal team wrote draft 1";
-  els.stats.replaceChildren(...stats(run.data.steps));
-  els.summary.replaceChildren(...draftSummary(run.data));
+  els.stats.replaceChildren(...stats(run.data.steps.filter((s) => s.stage <= 2)));
+  els.summary.replaceChildren(...draftSummary(run.data, board));
   els.summary.hidden = false;
   els.proposal.replaceChildren(...proposal(run.data.claims));
   els.proposal.hidden = false;
   showView(2);
+}
+
+// --- Stage 3: the client board ---
+
+function boardSteps() {
+  return run.data.steps.filter((s) => s.stage === 3);
+}
+
+function countWords(count, one, many) {
+  return `${count} ${count === 1 ? one : many}`;
+}
+
+function boardIntro(round) {
+  const scoring = round.seats.filter((s) => s.kind === "scoring").length;
+  const gates = round.seats.length - scoring;
+  const checked = gates ? ` and ${countWords(gates, "gatekeeper", "gatekeepers")} checked it` : "";
+  return `Code picked the board from the brief. ${countWords(scoring, "executive", "executives")} scored the proposal${checked}, all at the same time. Code turned their answers into votes.`;
+}
+
+function setBoardLoading() {
+  els.boardTitle.textContent = "The client's board is reviewing draft 1";
+  els.boardStats.replaceChildren();
+  els.scoreBlock.hidden = true;
+  els.gateBlock.hidden = true;
+  els.objections.hidden = true;
+}
+
+async function board() {
+  if (run.busy) return;
+  setBusy(true);
+  setBoardLoading();
+  els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan));
+  showView(3);
+  const seats = run.data.board_plan.seats.length;
+  const working = workingCard(1, `${countWords(seats, "seat is", "seats are")} reviewing draft 1 at the same time.`);
+  els.boardStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  const result = await callApi("/api/board", stateForServer());
+  working.stop();
+  setBusy(false);
+  if (result.error) {
+    els.boardStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, board, () => showView(2))));
+    return;
+  }
+  addBoard(result);
+  showBoard();
+}
+
+function showBoard() {
+  const round = run.data.rounds.at(-1);
+  const steps = Object.fromEntries(boardSteps().map((s) => [s.agent, s]));
+  const card = (seat) => (seat.kind === "scoring" ? scoreCard : gateCard)(seat, steps[seat.seat_id], (event) => retrySeat(seat.seat_id, event));
+  const scoring = round.seats.filter((s) => s.kind === "scoring");
+  const gates = round.seats.filter((s) => s.kind === "gate");
+  els.boardStatus.replaceChildren();
+  els.boardTitle.textContent = "The client's board reviewed draft 1";
+  els.boardIntro.textContent = boardIntro(round);
+  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress));
+  els.scoreCards.replaceChildren(...scoring.map(card));
+  els.gateCards.replaceChildren(...gates.map(card));
+  els.scoreBlock.hidden = scoring.length === 0;
+  els.gateBlock.hidden = gates.length === 0;
+  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats));
+  els.objections.hidden = false;
+  showView(3);
+}
+
+async function retrySeat(seatId, event) {
+  if (run.busy) return;
+  const trigger = event.currentTarget;
+  trigger.disabled = true;
+  trigger.textContent = "Retrying this seat…";
+  setBusy(true);
+  const result = await callApi("/api/board/retry", { state: stateForServer(), seat_id: seatId });
+  setBusy(false);
+  if (result.error) {
+    trigger.disabled = false;
+    trigger.textContent = "Retry this seat";
+    trigger.after(message("m-err", null, result.message));
+    return;
+  }
+  addRetriedSeat(result);
+  showBoard();
 }
 
 // --- Start up ---

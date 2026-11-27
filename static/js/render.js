@@ -281,7 +281,7 @@ function teamText(efforts) {
   return `${engineers} ${engineers === 1 ? "engineer" : "engineers"}, ${weeks} weeks`;
 }
 
-export function draftSummary(data) {
+export function draftSummary(data, onNext) {
   const estimate = data.estimate;
   const schedule = data.schedule;
   const facts = [
@@ -298,8 +298,7 @@ export function draftSummary(data) {
     h("dl", { class: "draft-facts" },
       ...facts.flatMap(([label, value, mono]) => [h("dt", {}, label), h("dd", { class: mono ? "num" : null }, value)])),
     h("ol", { class: "section-list" }, ...Object.values(SECTION_TITLES).map((t) => h("li", {}, t))),
-    button("Next: send it to the client board →", "btn btn-primary", null, true),
-    h("span", { class: "muted small tight" }, "The client board arrives in the next build."),
+    button("Next: send it to the client board →", "btn btn-primary", onNext),
   ];
 }
 
@@ -333,5 +332,168 @@ export function stats(steps) {
       { class: "num", title: "Estimated from token counts at list prices. It is not a bill." },
       `${Math.round(ms / 1000)} s · $${cost.toFixed(2)} est.`,
     ),
+  ];
+}
+
+// --- Stage 3: the client board ---
+
+const AVATARS = {
+  cfo: ["CFO", "#0F766E"],
+  vp_director: ["VP", "#B45309"],
+  enterprise_architect: ["EA", "#5B3CC4"],
+  procurement: ["PC", "#1E4E8C"],
+  security: ["SO", "#8C1D13"],
+};
+const DECISION_PILLS = {
+  approved: "pill-good", yes_with_condition: "pill-cond", rejected: "pill-bad",
+  pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad",
+};
+const FILLS = { approved: "fill-good", yes_with_condition: "fill-cond", rejected: "fill-bad" };
+const ITEM_ICONS = { met: ["✓", "ic-m", "Met"], partly: ["~", "ic-p", "Partly"], not_met: ["✕", "ic-n", "Not met"] };
+
+function avatar(seatId) {
+  const [text, color] = AVATARS[seatId] || ["?", "#344054"];
+  return h("span", { class: "av", style: `background: ${color}`, "aria-hidden": "true" }, text);
+}
+
+export function scoreText(score) {
+  const fixed = score.toFixed(2);
+  return fixed.endsWith("0") ? score.toFixed(1) : fixed;
+}
+
+function decisionPill(result) {
+  const key = result.vote || result.outcome;
+  return h("span", { class: `pill ${DECISION_PILLS[key] || "pill-none"}` }, result.decision);
+}
+
+function seatHead(result, step) {
+  const meta = step
+    ? h("span", { class: "seat-meta" }, modelChip(step), h("span", { class: "num" }, seconds(step.duration_ms)))
+    : null;
+  return h("div", { class: "seat-head" },
+    avatar(result.seat_id),
+    h("div", { class: "seat-name" }, h("strong", {}, result.title), meta),
+    decisionPill(result));
+}
+
+export function boardPlan(plan) {
+  const joined = plan.seats.map((s) => h("div", { class: "plan-seat" },
+    h("strong", {}, s.title),
+    h("span", { class: "muted" }, s.kind === "scoring" ? "Scores the proposal" : "Passes or blocks it"),
+    h("span", {}, `Why: ${s.why}`)));
+  const skipped = plan.skipped.map((s) => h("div", { class: "plan-seat skipped" },
+    h("strong", {}, s.title),
+    h("span", { class: "muted" }, "Not invited"),
+    h("span", {}, `Why not: ${s.why_not}`)));
+  return [
+    h("div", { class: "card-title-row" },
+      h("div", { class: "stack-8" },
+        h("h2", { id: "plan-h" }, "Board for this brief"),
+        h("span", { class: "muted small" }, "Chosen by code from the 5 flags the Business Analyst set.")),
+      h("span", { class: "m-code" }, "Code, no AI")),
+    h("div", { class: "plan-grid" }, ...joined, ...skipped),
+    h("span", { class: "muted small" }, "Code chooses 3 to 5 seats per brief. Unclear facts make a seat join rather than skip."),
+  ];
+}
+
+function notReviewedBody(result, onRetry) {
+  const text = result.kind === "scoring"
+    ? `The ${result.title} couldn't answer, so it is shown as not reviewed. The other seats' votes still count.`
+    : `The ${result.title} couldn't answer, so this gate is not reviewed. Until it answers, this gate cannot pass.`;
+  return [
+    h("p", { class: "msg m-warn" }, h("strong", {}, "Not reviewed. "), text),
+    button("Retry this seat", "btn btn-outline small-btn retry-seat", onRetry),
+  ];
+}
+
+function scoreBar(result) {
+  const fill = h("span", { class: `bar-fill ${FILLS[result.vote]}`, style: `width: ${result.score * 10}%` });
+  const tick = h("span", { class: "bar-tick", style: `left: ${result.needed * 10}%` });
+  const label = `Score ${scoreText(result.score)} of 10, needs ${result.needed.toFixed(1)}`;
+  return h("div", { class: "bar", role: "img", "aria-label": label }, fill, tick);
+}
+
+function quoteLine(result) {
+  return result.quote ? h("p", { class: "seat-quote" }, `"${result.quote}"`) : null;
+}
+
+export function scoreCard(result, step, onRetry) {
+  const head = seatHead(result, step);
+  if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
+  const criteria = result.criteria.map((c) => h("div", { class: "crit", title: c.reason || null },
+    h("span", {}, `${c.label} ×${c.weight.toFixed(2)}`),
+    h("span", { class: "num" }, c.rating === null ? "not rated (0)" : scoreText(c.rating))));
+  return h("article", { class: "card seat-card" },
+    head,
+    h("div", { class: "score-row" },
+      h("span", { class: "num score-big" }, scoreText(result.score)),
+      h("span", { class: "num muted" }, `needs ${result.needed.toFixed(1)}`)),
+    scoreBar(result),
+    h("div", { class: "crit-list" }, ...criteria),
+    result.condition ? h("p", { class: "seat-note" }, `Condition: ${result.condition}`) : null,
+    result.partial ? h("p", { class: "seat-note" }, "Partial answer: a criterion was not rated, so code counted it as 0.") : null,
+    quoteLine(result));
+}
+
+export function gateCard(result, step, onRetry) {
+  const head = seatHead(result, step);
+  if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
+  const items = result.items.map((item) => {
+    const [icon, cls, word] = ITEM_ICONS[item.status];
+    const reason = item.status === "met" ? item.reason : `${word}: ${item.reason}`;
+    return h("div", { class: "chk" },
+      h("span", { class: `ic ${cls}`, role: "img", "aria-label": word }, icon),
+      h("div", {}, h("strong", {}, item.label), item.must ? h("span", { class: "must" }, "MUST") : null),
+      h("span", {}),
+      h("span", {}, reason));
+  });
+  return h("article", { class: "card seat-card" },
+    head,
+    h("div", { class: "chk-list" }, ...items),
+    result.partial ? h("p", { class: "seat-note" }, "Partial answer: an item was not answered, so code counted it as not met.") : null,
+    quoteLine(result));
+}
+
+function trackerPill(item) {
+  if (item.kind === "C") return h("span", { class: "pill pill-cond" }, "Client to confirm");
+  return item.severity === "blocker"
+    ? h("span", { class: "pill pill-bad" }, "Blocker")
+    : h("span", { class: "pill pill-cond" }, "Condition");
+}
+
+export function objectionsLog(tracker, seats) {
+  const titles = Object.fromEntries(seats.map((s) => [s.seat_id, s.title]));
+  const open = tracker.filter((t) => t.status === "open");
+  const rows = tracker.map((t) => h("tr", {},
+    h("td", { class: "num" }, t.id),
+    h("td", {}, titles[t.seat] || t.seat),
+    h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.join(", ")})`) : null),
+    h("td", {}, trackerPill(t))));
+  const table = rows.length
+    ? h("div", { class: "table-wrap" }, h("table", {},
+        h("thead", {}, h("tr", {}, ...["ID", "Raised by", "Objection", "Status"].map((c) => h("th", { scope: "col" }, c)))),
+        h("tbody", {}, ...rows)))
+    : h("p", { class: "log-foot muted" }, "No objections were raised.");
+  return [
+    h("div", { class: "log-head" },
+      h("h2", { id: "obj-h" }, "Objections log"),
+      h("span", { class: "muted small" }, `${open.length} open · O items the proposal can fix, C items only the client can confirm`)),
+    table,
+    h("div", { class: "log-foot next-row" },
+      h("span", { class: "muted small" }, "The Bid Manager, who answers each objection by its ID, arrives in the next build."),
+      button("Next: the Bid Manager answers the objections →", "btn btn-primary", null, true)),
+  ];
+}
+
+export function boardStats(steps, progress) {
+  const starts = steps.map((s) => s.start_ms);
+  const ends = steps.map((s) => s.start_ms + s.duration_ms);
+  const spanMs = steps.length ? Math.max(...ends) - Math.min(...starts) : 0;
+  const cost = steps.reduce((n, s) => n + s.cost_usd, 0);
+  return [
+    h("span", {}, `${steps.length} seats`),
+    h("span", {}, `${progress.able} of ${progress.total} can proceed`),
+    h("span", { class: "num", title: "Time from the first seat starting to the last one finishing. Cost is estimated from token counts at list prices; it is not a bill." },
+      `${Math.round(spanMs / 1000)} s · $${cost.toFixed(2)} est.`),
   ];
 }
