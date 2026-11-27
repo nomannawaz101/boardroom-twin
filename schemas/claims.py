@@ -4,6 +4,9 @@ from typing import Annotated, Literal, get_args
 
 from pydantic import BaseModel, BeforeValidator
 
+from config import CLAIM_MAX_WORDS
+from schemas.common import max_words
+
 Section = Literal[
     "executive_summary",
     "client_situation",
@@ -40,6 +43,6 @@ class DraftClaim(BaseModel):
     """A claim as the Proposal Manager writes it; code assigns the id and the lock."""
 
     section: Section
-    text: str
+    text: Annotated[str, max_words(CLAIM_MAX_WORDS)]
     origin: SafeOrigin = DEFAULT_ORIGIN
     quote: str | None = None

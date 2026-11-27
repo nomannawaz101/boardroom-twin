@@ -22,7 +22,10 @@ RunMode = Literal["auto", "full", "lite", "sample"]
 DEFAULT_RUN_MODE: RunMode = "auto"
 
 # Extras are switched on in later phases (plan section 3); all off until built.
+# `risk_analyst` is core, not an extra: it stays off only until Phase 5 builds it, so handoff
+# lines never name an agent that did not run.
 FEATURES: dict[str, bool] = {
+    "risk_analyst": False,
     "qa_reviewer": False,
     "run_details": False,
     "upload": False,
@@ -49,6 +52,8 @@ CHECK_MAX_TOKENS = 1024
 # --- Model routing (plan section 3): one table. Lite mode sends every agent to the fast tier. ---
 Tier = Literal["sonnet", "haiku"]
 FAST_TIER: Tier = "haiku"
+# Badge labels: shown only when the answering model's name contains the family word.
+TIER_LABELS: dict[str, str] = {"sonnet": "Sonnet", "haiku": "Haiku"}
 TIER_MODEL_VARS: dict[Tier, str] = {"sonnet": LLM_MODEL_VAR, "haiku": LLM_MODEL_FAST_VAR}
 MODEL_ROUTING: dict[str, Tier] = {
     "business_analyst": "haiku",
@@ -79,6 +84,7 @@ RATE_LIMIT_BASE_WAIT_S = 2.0  # doubles on each retry
 MODEL_ERROR_RETRIES = 1  # on the routed model, before one last try on the fast model
 MODEL_ERROR_BASE_WAIT_S = 1.0
 MAX_TOOL_ROUNDS = 5
+MAX_REPLY_PROBLEMS = 5  # shape problems named in the retry message
 
 # --- Prices in USD per million tokens (plan section 9.1, published 27 Nov 2026). Placeholders:
 # the gateway's own spend figure is the truth. ---
@@ -90,6 +96,7 @@ MONEY_DECIMALS = 2
 # --- Tools (plan section 5). ---
 OUTSIDE_CALL_TIMEOUT_S = 5.0
 WORKING_DAYS_PER_WEEK = 5
+WEEKS_DECIMALS = 1
 
 # --- Input limits (plan section 6.1, guard G2). ---
 BRIEF_MAX_CHARS = 15_000
@@ -131,6 +138,17 @@ LIST_CAP_MEDIUM = 12
 LIST_CAP_LONG = 40
 
 CURRENCY_SYMBOLS: dict[str, str] = {"USD": "$", "EUR": "€", "GBP": "£"}
+DEFAULT_CURRENCY = "USD"
+
+# --- Proposal drafting (plan sections 7.2 and 8). ---
+PROPOSAL_SECTION_COUNT = 9
+CLAIM_MAX_WORDS = 20
+# (minimum, maximum) asked in each prompt. A reply below the minimum fails its check and is
+# retried; a reply above the maximum is cut to it, like every other capped list.
+SA_PARTS = (2, 5)
+SA_PHASES = (1, 3)
+DM_MIN_PHASES = 1
+PM_TARGET_CLAIMS = (10, 24)  # live Gemini drafts held 9 to 14 claims (Phase 2 gate)
 
 
 def run_mode() -> RunMode:

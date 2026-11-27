@@ -3,6 +3,7 @@
 import json
 from collections import deque
 from collections.abc import Iterable
+from dataclasses import replace
 from typing import Any
 
 from llm.client import ChatReply, ChatRequest, ErrorKind, ModelCallError, ToolCall
@@ -29,7 +30,9 @@ class FakeChatModel:
         step = self._script.popleft()
         if isinstance(step, ModelCallError):
             raise step
-        return step
+        # Like a real service, the reply names the model that answered (the one asked for,
+        # unless the script says otherwise).
+        return step if step.model else replace(step, model=request.model)
 
 
 def reply_text(text: str, finish_reason: str = "stop") -> ChatReply:

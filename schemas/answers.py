@@ -6,11 +6,11 @@ Models never return a total, a vote, a cost or a verdict: code computes those.
 from datetime import date
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 import config
 from schemas.claims import DraftClaim
-from schemas.common import capped
+from schemas.common import at_least, capped
 
 Short = capped(config.LIST_CAP_SHORT)
 Medium = capped(config.LIST_CAP_MEDIUM)
@@ -35,20 +35,22 @@ class DesignPhase(BaseModel):
 
 
 class SolutionArchitectAnswer(BaseModel):
-    parts: Annotated[list[Part], Medium] = []
+    parts: Annotated[list[Part], capped(config.SA_PARTS[1]), at_least(config.SA_PARTS[0])] = []
     integrations: Annotated[list[Integration], Medium] = []
-    phases: Annotated[list[DesignPhase], Short] = []
+    phases: Annotated[
+        list[DesignPhase], capped(config.SA_PHASES[1]), at_least(config.SA_PHASES[0])
+    ] = []
     out_of_scope: Annotated[list[str], Medium] = []
 
 
 class EffortPhase(BaseModel):
     no: int
-    engineers: int
-    weeks: float
+    engineers: int = Field(ge=1)
+    weeks: float = Field(gt=0)
 
 
 class DeliveryManagerAnswer(BaseModel):
-    phases: Annotated[list[EffortPhase], Short] = []
+    phases: Annotated[list[EffortPhase], Short, at_least(config.DM_MIN_PHASES)] = []
     day_rate: float | None = None
     start: date | None = None
     notes: str = ""
@@ -70,7 +72,9 @@ class RiskAnalystAnswer(BaseModel):
 
 
 class ProposalManagerAnswer(BaseModel):
-    claims: Annotated[list[DraftClaim], Long] = []
+    claims: Annotated[
+        list[DraftClaim], capped(config.PM_TARGET_CLAIMS[1]), at_least(config.PM_TARGET_CLAIMS[0])
+    ] = []
 
 
 class Change(BaseModel):

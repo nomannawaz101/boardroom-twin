@@ -65,6 +65,7 @@ PROPOSAL_AGENTS: tuple[AgentSpec, ...] = (
         2,
         ("solution_architect",),
         ("proposal_manager",),
+        feature="risk_analyst",
     ),
     AgentSpec(
         "proposal_manager",
@@ -102,3 +103,25 @@ def node_label(node_id: str) -> str:
 
 def registered_count() -> int:
     return len(AGENTS)
+
+
+def is_active(node_id: str) -> bool:
+    """Non-agent nodes are always active; an agent behind a switch is active only when it is on."""
+    agent = AGENTS.get(node_id)
+    return agent is None or agent.feature is None or config.FEATURES.get(agent.feature, False)
+
+
+def join_labels(node_ids: list[str]) -> str:
+    labels = [node_label(n) for n in node_ids]
+    return labels[0] if len(labels) == 1 else f"{', '.join(labels[:-1])} and {labels[-1]}"
+
+
+def received_line(agent_id: str, detail: str) -> str:
+    """Handoff lines are built by code from the registry, never written by a model."""
+    sources = [n for n in AGENTS[agent_id].receives_from if is_active(n)]
+    return f"Received from {join_labels(sources)}: {detail}"
+
+
+def passed_line(agent_id: str, detail: str) -> str:
+    targets = [n for n in AGENTS[agent_id].passes_to if is_active(n)]
+    return f"Hands to {join_labels(targets)}: {detail}"

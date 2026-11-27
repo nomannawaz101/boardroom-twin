@@ -5,19 +5,184 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Boardroom Twin</title>
   <link rel="stylesheet" href="/static/css/style.css">
+  <script type="module" src="/static/js/app.js"></script>
 </head>
 <body>
+<div class="page">
   <header class="site-header">
-    <div class="wrap">
-      <h1 class="brand">Boardroom Twin</h1>
-      <span class="tagline">Simulation, not a prediction</span>
+    <div class="wrap header-row">
+      <div class="brand-row">
+        <span class="logo" aria-hidden="true">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong class="brand">Boardroom Twin</strong>
+        <span class="brand-sub" id="brand-sub">by Lumen Works</span>
+      </div>
+      <div class="header-chips">
+        <span class="mode-chip" id="mode-chip" hidden></span>
+        <span class="tagline">Simulation, not a prediction</span>
+      </div>
     </div>
   </header>
-  <main class="wrap">
-    <section class="card">
-      <h2>Coming soon</h2>
-      <p class="muted">A proposal team writes the draft, then a simulated client board reviews it before the real meeting.</p>
+
+  <nav class="stage-nav" aria-label="Run stages">
+    <div class="wrap stage-row" id="stage-nav">
+      <button type="button" class="step" data-stage="1"><span class="num">1</span> Brief</button>
+      <button type="button" class="step" data-stage="2"><span class="num">2</span> Proposal team</button>
+      <button type="button" class="step" data-stage="3"><span class="num">3</span> Client board</button>
+      <button type="button" class="step" data-stage="4"><span class="num">4</span> Revisions</button>
+      <button type="button" class="step" data-stage="5"><span class="num">5</span> Report</button>
+    </div>
+  </nav>
+
+  <main class="wrap main" id="view-brief">
+    <section class="hero">
+      <h1>Rehearse your proposal in front of the client's board, before you send it.</h1>
+      <p>A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
     </section>
+
+    <section class="how" aria-label="How it works">
+      <div class="card how-card">
+        <span class="num eyebrow">STEP 1</span>
+        <strong>Proposal team drafts</strong>
+        <span>Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Manager hand work to each other</span>
+      </div>
+      <div class="card how-card">
+        <span class="num eyebrow">STEP 2</span>
+        <strong>Client board reviews</strong>
+        <span>3 to 5 seats chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
+      </div>
+      <div class="card how-card">
+        <span class="num eyebrow">STEP 3</span>
+        <strong>Bid Manager revises</strong>
+        <span>Up to two rounds. A QA Reviewer blocks invented claims. The board votes again</span>
+      </div>
+      <div class="card how-card">
+        <span class="num eyebrow">STEP 4</span>
+        <strong>Board-ready report</strong>
+        <span>Proposal, board decision memo, meeting prep, optional prototype</span>
+      </div>
+    </section>
+
+    <div class="two-col">
+      <section class="card brief-card" aria-labelledby="brief-h">
+        <div class="card-title-row">
+          <h2 id="brief-h">Client brief</h2>
+          <span class="muted small">Paste text or pick a sample</span>
+        </div>
+
+        <div role="group" aria-label="Sample briefs" class="stack-8">
+          <span class="label">Try a sample brief</span>
+          <div class="sample-row" id="sample-row"></div>
+        </div>
+
+        <div class="field-grid">
+          <div>
+            <label class="label" for="client">Client name</label>
+            <input class="field" id="client" maxlength="200" autocomplete="off">
+          </div>
+          <div>
+            <label class="label" for="country">Client's country</label>
+            <select class="field" id="country">
+              <option>Australia</option>
+              <option>Austria</option>
+              <option>Belgium</option>
+              <option>Canada</option>
+              <option>Denmark</option>
+              <option>France</option>
+              <option selected>Germany</option>
+              <option>Ireland</option>
+              <option>Italy</option>
+              <option>Netherlands</option>
+              <option>Pakistan</option>
+              <option>Poland</option>
+              <option>Spain</option>
+              <option>Sweden</option>
+              <option>Switzerland</option>
+              <option>United Arab Emirates</option>
+              <option>United Kingdom</option>
+              <option>United States</option>
+            </select>
+            <div class="hint">Used for public holidays and currency</div>
+          </div>
+        </div>
+
+        <div>
+          <label class="label" for="brief">Client brief</label>
+          <textarea class="field brief-box" id="brief" rows="8"></textarea>
+          <div class="brief-foot">
+            <span class="hint">Free text is fine: an email, meeting notes or bullet points. Agents use only what is written here. Missing details are marked "to confirm", never invented.</span>
+            <span class="num counter" id="brief-counter" aria-live="polite">0 / 15,000 characters</span>
+          </div>
+        </div>
+
+        <div class="upload-box" aria-disabled="true">
+          <svg aria-hidden="true" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#5D6675" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8z"></path><path d="M14 3v5h5M12 18v-6M9 15l3-3 3 3"></path></svg>
+          <div class="upload-text">
+            <label for="file" class="upload-title">Or upload a client document</label>
+            <div class="hint">PDF, Word and text upload arrives in a later build. For now, paste the text into the box above.</div>
+          </div>
+          <input id="file" type="file" disabled>
+        </div>
+
+        <label class="confirm-box">
+          <input type="checkbox" id="confirmed">
+          <span>This is public or made-up information. It is not real client, customer or company data.</span>
+        </label>
+
+        <div class="codechk" aria-label="Checks that run before any AI call">
+          <span class="strong">Code checks before any AI call:</span>
+          <span><b aria-hidden="true">✓</b> real-data scan</span><span><b aria-hidden="true">✓</b> hidden-instruction scan</span><span><b aria-hidden="true">✓</b> "is this a client brief?"</span>
+          <span class="muted full">Text inside a document is treated as data, never as instructions.</span>
+        </div>
+
+        <p class="privacy">Boardroom Twin is designed for fictional or publicly available information only. Automated checks find some common patterns of sensitive information but cannot guarantee complete detection. Do not submit confidential, customer or internal company information. The app does not intentionally save or log brief content.</p>
+      </section>
+
+      <aside class="card start-card" aria-labelledby="start-h">
+        <h2 id="start-h">Start</h2>
+        <button type="button" class="btn btn-primary" disabled aria-describedby="sample-note">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          Watch the sample run
+        </button>
+        <span class="muted small tight" id="sample-note">The recorded sample run arrives in a later build.</span>
+        <div class="rule"></div>
+        <button type="button" class="btn btn-outline" id="start-live">Start a live run with my brief</button>
+        <div id="start-message" role="alert"></div>
+        <dl class="facts">
+          <dt>Agent roles</dt><dd id="fact-agents">14</dd>
+          <dt>Board</dt><dd>3 to 5 seats, chosen from your brief</dd>
+          <dt>Time</dt><dd>About 2 to 3 minutes for a full run</dd>
+          <dt>Cost</dt><dd class="num">≈ $0.16 per run (estimate)</dd>
+          <dt>Mode</dt><dd id="fact-mode">Full</dd>
+        </dl>
+      </aside>
+    </div>
   </main>
+
+  <main class="wrap main" id="view-team" hidden>
+    <section class="stage-head">
+      <div class="stage-intro">
+        <span class="num eyebrow">STAGE 2 OF 5</span>
+        <h1 id="team-title">The proposal team is writing draft 1</h1>
+        <p id="team-intro">Each agent hands its work to the next. Tools are plain code: the agent asks, code answers exactly.</p>
+      </div>
+      <div class="stat-chips" id="team-stats"></div>
+    </section>
+    <div id="team-notices"></div>
+    <div class="two-col">
+      <ol class="relay" id="relay" aria-label="Agent steps"></ol>
+      <aside class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></aside>
+    </div>
+    <section class="card proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
+  </main>
+
+  <footer class="site-footer">
+    <div class="wrap footer-row">
+      <span>Lumen Works is a fictional firm. All client names and briefs are made up.</span>
+      <span>Every number is decided by code, not by AI.</span>
+    </div>
+  </footer>
+</div>
 </body>
 </html>

@@ -11,8 +11,10 @@ import openai
 from openai import AsyncOpenAI
 
 import config
+from domain.errors import BudgetUsedUp
 from llm.client import ChatReply, ChatRequest, ErrorKind, ModelCallError, ToolCall
 
+NOT_CONFIGURED = "Live runs are not available right now. The sample run is still available."
 BUDGET_WORDS = ("budget", "spend", "credit")
 AUTH_STATUSES = (401, 403)
 PAYMENT_STATUS = 402
@@ -48,6 +50,7 @@ def to_reply(response: Any) -> ChatReply:  # noqa: ANN401 - the SDK's response o
         tokens_out=(usage.completion_tokens or 0) if usage else 0,
         # Kept whole so provider-specific fields (such as reasoning signatures) go back unchanged.
         assistant_message=message.model_dump(exclude_none=True),
+        model=response.model or "",
     )
 
 
@@ -57,9 +60,14 @@ class GatewayModel:
 
     @classmethod
     def from_env(cls) -> "GatewayModel":
+        """Refuses to start without settings, so no request ever goes to a default address."""
+        base_url = os.getenv(config.LLM_BASE_URL_VAR)
+        api_key = os.getenv(config.LLM_API_KEY_VAR)
+        if not base_url or not api_key:
+            raise BudgetUsedUp(NOT_CONFIGURED)
         client = AsyncOpenAI(
-            base_url=os.getenv(config.LLM_BASE_URL_VAR),
-            api_key=os.getenv(config.LLM_API_KEY_VAR),
+            base_url=base_url,
+            api_key=api_key,
             timeout=config.LLM_TIMEOUT_S,
             max_retries=0,  # run_agent owns the retry policy
         )

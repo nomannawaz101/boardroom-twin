@@ -23,6 +23,7 @@ import config
 from agents.registry import get_agent
 from domain.errors import BudgetUsedUp
 from llm.usage import cost_usd
+from schemas.common import FROM_MODEL
 from schemas.step import StepFlag, StepRecord, StepStatus, ToolCallRecord
 from tools.registry import TOOLS, ToolContext, ToolOutcome, run_tool
 
@@ -58,6 +59,7 @@ class ChatReply:
     tokens_in: int
     tokens_out: int
     assistant_message: dict[str, Any]
+    model: str = ""  # the model the service says answered; empty if it did not say
 
 
 class ModelCallError(Exception):
@@ -112,6 +114,7 @@ class CallState:
     tokens_out: int = 0
     cost: float = 0.0
     on_fallback: bool = False
+    answered_by: str = ""
     flags: list[StepFlag] = field(default_factory=list)
     tool_records: list[ToolCallRecord] = field(default_factory=list)
 
@@ -119,10 +122,21 @@ class CallState:
         if name not in self.flags:
             self.flags.append(name)
 
-    def add_usage(self, reply: ChatReply) -> None:
+    def add_reply(self, reply: ChatReply, requested: str) -> None:
+        """Usage at the price of the tier that answered, and which model it was."""
         self.tokens_in += reply.tokens_in
         self.tokens_out += reply.tokens_out
         self.cost += cost_usd(self.tier, reply.tokens_in, reply.tokens_out)
+        self.answered_by = reply.model or requested
+
+
+def model_badge(model: str) -> str:
+    """The badge on an agent card: a tier name only when the model really is one of that family
+    (the judged gateway); otherwise the model's own name, so a development model is never
+    shown as Sonnet or Haiku."""
+    lowered = model.lower()
+    family = next((label for word, label in config.TIER_LABELS.items() if word in lowered), None)
+    return family or model
 
 
 def extract_json(text: str) -> object | None:
@@ -140,14 +154,35 @@ def extract_json(text: str) -> object | None:
     return value
 
 
-def parse_answer[T: BaseModel](text: str, schema: type[T]) -> T | None:
+def problem_list(error: ValidationError) -> list[str]:
+    """Where the reply broke the shape, for the retry message. Field paths and rule messages
+    only; the reply's own values are never repeated."""
+    problems = [".".join(str(part) for part in e["loc"]) + ": " + e["msg"] for e in error.errors()]
+    return problems[: config.MAX_REPLY_PROBLEMS]
+
+
+def parse_answer[T: BaseModel](text: str, schema: type[T]) -> tuple[T | None, list[str]]:
+    """Check a model's reply. FROM_MODEL turns on the count and length rules of the answer
+    shapes, which code-built objects and the stored run state do not have to meet."""
     value = extract_json(text)
     if not isinstance(value, dict):
-        return None
+        return None, []
     try:
-        return schema.model_validate(value)
-    except ValidationError:
-        return None
+        return schema.model_validate(value, context={FROM_MODEL: True}), []
+    except ValidationError as error:
+        return None, problem_list(error)
+
+
+def reminder(problems: list[str]) -> dict[str, Any]:
+    content = JSON_REMINDER if not problems else f"{JSON_REMINDER} Fix: {'; '.join(problems)}."
+    return {"role": "user", "content": content}
+
+
+def with_reminder(messages: list[dict[str, Any]], problems: list[str]) -> list[dict[str, Any]]:
+    """One reminder at a time: a newer one replaces the last, so retries do not pile up."""
+    last = messages[-1] if messages else {}
+    keep = messages[:-1] if str(last.get("content", "")).startswith(JSON_REMINDER) else messages
+    return [*keep, reminder(problems)]
 
 
 def tool_message(call: ToolCall, outcome: ToolOutcome) -> dict[str, Any]:
@@ -216,7 +251,7 @@ async def call_model(
                 raise AllCallsFailed() from error
             state.flag("retried")
             continue
-        state.add_usage(reply)
+        state.add_reply(reply, request.model)
         return reply
 
 
@@ -245,14 +280,13 @@ async def answer_loop[T: BaseModel](
             state.cap *= config.TRUNCATION_CAP_FACTOR
             state.flag("retried")
             continue
-        answer = parse_answer(reply.content, schema)
+        answer, problems = parse_answer(reply.content, schema)
         if answer is not None:
             return answer, "retried" if "retried" in state.flags else "ok"
         json_failures += 1
         if json_failures > config.JSON_RETRIES:
             return None, "skipped"
-        if json_failures == 1:
-            messages = [*messages, {"role": "user", "content": JSON_REMINDER}]
+        messages = with_reminder(messages, problems)
         state.flag("retried")
 
 
@@ -286,11 +320,14 @@ async def run_agent[T: BaseModel](
     if status == "skipped":
         answer = default
         state.flag("skipped")
+    # If no call answered at all, name the model that was tried last.
+    answered = state.answered_by or config.model_for_tier(state.tier)
     step = StepRecord(
         agent=spec.id,
         label=spec.label,
         tier=state.tier,
-        model=config.model_for_tier(state.tier),
+        model=answered,
+        badge=model_badge(answered),
         stage=spec.stage,
         start_ms=start_ms,
         duration_ms=runtime.elapsed_ms() - start_ms,

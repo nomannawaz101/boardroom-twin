@@ -4,6 +4,8 @@ from dataclasses import dataclass
 from decimal import ROUND_HALF_UP, Decimal
 
 import config
+from schemas.answers import DeliveryManagerAnswer
+from schemas.case_file import Rate, Team
 from schemas.cost import CostEstimate, PhaseCost, PhaseEffort
 
 CENT = Decimal(1).scaleb(-config.MONEY_DECIMALS)
@@ -52,3 +54,30 @@ def estimate_cost(efforts: list[PhaseEffort], day_rate: float, currency: str) ->
     """Price the Delivery Manager's phases, given in weeks."""
     days = [PhaseDays(e.no, e.engineers, weeks_to_days(e.weeks)) for e in efforts]
     return price_phases(days, day_rate, currency)
+
+
+def choose_efforts(answer: DeliveryManagerAnswer, team: Team | None) -> list[PhaseEffort]:
+    """The Delivery Manager's phases, numbered by code; else the brief's own team.
+
+    The answer's checks already refuse zero engineers or weeks, so every phase can be priced.
+    """
+    if answer.phases:
+        return [
+            PhaseEffort(no=i, engineers=p.engineers, weeks=p.weeks)
+            for i, p in enumerate(answer.phases, start=1)
+        ]
+    if team is not None and team.engineers > 0 and team.weeks > 0:
+        return [PhaseEffort(no=1, engineers=team.engineers, weeks=team.weeks)]
+    return []
+
+
+def choose_rate(
+    proposed: float | None, stated: Rate | None, brief_numbers: set[float]
+) -> tuple[float | None, str]:
+    """A day rate is used only if the brief states that number (guard G9 applied to money)."""
+    currency = stated.currency if stated is not None else config.DEFAULT_CURRENCY
+    candidates = [proposed, stated.amount if stated is not None else None]
+    for rate in candidates:
+        if rate is not None and rate > 0 and round(rate, config.MONEY_DECIMALS) in brief_numbers:
+            return rate, currency
+    return None, currency

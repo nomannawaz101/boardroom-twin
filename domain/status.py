@@ -3,5 +3,15 @@
 HEALTHY = "ok"
 
 
-def health_summary(mode: str, features: dict[str, bool], version: str) -> dict[str, object]:
-    return {"status": HEALTHY, "mode": mode, "features": dict(features), "version": version}
+def health_summary(
+    mode: str, features: dict[str, bool], version: str, agents: int, tools: int
+) -> dict[str, object]:
+    """Counts come from the registries, so the page can never overstate them."""
+    return {
+        "status": HEALTHY,
+        "mode": mode,
+        "features": dict(features),
+        "version": version,
+        "agents": agents,
+        "tools": tools,
+    }

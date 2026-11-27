@@ -17,6 +17,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from openai import OpenAI  # noqa: E402
 
 import config  # noqa: E402
+from domain.timeline import count_working_days  # noqa: E402
 from tools import working_days  # noqa: E402
 from tools.registry import ToolContext, run_tool  # noqa: E402
 
@@ -24,9 +25,7 @@ log = logging.getLogger("check_llm")
 
 TOOL_START = "2026-12-07"
 TOOL_END = "2026-12-18"
-TOOL_EXPECTED = working_days.count_working_days(
-    date.fromisoformat(TOOL_START), date.fromisoformat(TOOL_END)
-)
+TOOL_EXPECTED = count_working_days(date.fromisoformat(TOOL_START), date.fromisoformat(TOOL_END))
 
 
 class CheckFailed(Exception):

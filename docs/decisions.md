@@ -28,3 +28,59 @@ A short record of each choice, including ones still unconfirmed.
 - **Country list:** a fixed list of 18 countries with ISO codes in `config.COUNTRIES` (the code feeds the holidays tool in Phase 5). Unconfirmed: extend as needed.
 - **Prices:** Sonnet $2 / $10 and Haiku $0.10 / $0.50 per million tokens (section 9.1), placeholders until the gateway's figures are known.
 - **No invisible characters in source:** control, zero-width and bidi characters are written as code points (`chr(0x200B)`), never as literal characters, so reviewers can see everything in the code.
+
+## Phase 2
+
+- **Flow:** `/api/discover` runs guards G1 to G8, the Business Analyst and the board composer; `/api/draft` runs the Solution Architect, Delivery Manager and Proposal Manager in order. The Risk & Compliance Analyst is registered but switched off (`FEATURES["risk_analyst"]`) until Phase 5, so handoff lines never name an agent that did not run.
+- **Only the Business Analyst reads the brief.** Later agents get the case file and quoted signals inside an `<inputs>` block (with `</` escaped so text cannot close the block). The brief returned by the browser is cleaned and checked again (G2, G3, G6) before stage 2.
+- **Code decides what to trust:** a day rate is used only if the brief states that number; a start date only if the brief states its day and it is not in the past; effort comes from the Delivery Manager, renumbered by code, or else from the team the brief states. Missing rate or start becomes a TO CONFIRM assumption written by code.
+- **Dates:** `domain/timeline.py` owns working-day maths (moved from `tools/`, which now imports it). Phases run back to back; go-live is start plus total working days. Public holidays join in Phase 5; until then a code-made assumption says so.
+- **Calculated claims** now include the schedule (per-phase dates and go-live) as well as cost; all are locked and rebuilt by code.
+- **Null lists from a model count as empty lists.** Seen live: a non-brief answered `"goals": null`, which failed validation, was retried four times and ended as `step_failed` instead of `not_a_brief`.
+- **Errors:** typed errors return `{error, message}`; malformed requests return `input_blocked`; anything unexpected returns `step_failed` through a middleware (Starlette's own catch-all re-raises and would log the traceback). Only the error type is logged.
+- **`callApi` change:** a typed server error is passed through with its message even on HTTP 422 (the plan's version turned every non-OK reply into `step_failed`, which would hide the exact limit for `too_long`).
+- **`/api/health`** also returns `agents` and `tools`, counted from the registries, so the start panel can never overstate them.
+- **Sample briefs** live once, in `static/sample/briefs.json`; tests read the same file. The Harbor Freight sample uses the client name "Harbor Freight Logistics" and the country United States (the brief states neither; unconfirmed).
+- **Answer shapes are enforced on model replies.** `run_agent` validates each reply with the `FROM_MODEL` context, which turns on count and length rules: Solution Architect 2 to 5 parts and 1 to 3 phases; Delivery Manager at least 1 phase, each with at least 1 engineer and more than 0 weeks; Proposal Manager at least 10 claims of at most 20 words. Too few fails the check, is retried with the problem named (field path and rule only, never the reply's values; one reminder at a time), and after the retries ends as the safe default with the `skipped` flag. Too many is cut to the maximum, like every capped list. Code-built objects and the run state are not held to these rules, so a skipped default (for example a design with no parts) can still travel in the state. The ranges live in `config.py` and the prompts read them from there.
+- **Proposal Manager target lowered from 12–24 to 10–24 claims:** live Gemini drafts held 9 to 14 claims, so a floor of 12 would have retried most runs. In the re-check, 2 of 3 drafts were retried once and then passed.
+- **Email pattern bounded:** the local part is limited to 64 characters (the email standard's maximum). Unbounded, a 15,000-character brief with no spaces took 1.2 s to check because every position was rescanned.
+- **Cost on the stage header is labelled "est."** with a tooltip: it is token counts at list prices (Claude prices applied to Gemini tokens during development), not a bill.
+- **Accepted deviation (decided by the owner): Harbor Freight shows 4 seats on Gemini; re-check on Claude in Phase 10 and re-tune the Business Analyst prompt there if still wrong.** The composer applies section 4.2 exactly; Gemini's Business Analyst sometimes sets `existing_systems: true` for a support engineer on an existing platform, so the Enterprise Architect joins (one later run gave the expected 3 seats, so it varies). No flag is forced in code. Fake-model stage tests pin the rule: `existing_systems: false` gives exactly CFO, VP or Director, and Procurement & Contracts; null flags add the Enterprise Architect and Security Officer.
+- **Rate limit on the free development key:** when the gate runs about 15 calls in 30 seconds, a following call can exhaust the 429 retries and end as `step_failed` after about 17 s; run alone, the same call answers in 2.5 s. Phase 6 adds the "busy, retrying" state for this. It does not affect the judged gateway's 60 requests a minute.
+
+### Differences from the design (Phase 2)
+
+- **Only four agents so far,** one after another: Business Analyst, Solution Architect, Delivery Manager, Proposal Manager. The Risk & Compliance Analyst and the "Ran at the same time" group arrive in Phase 5, with the currency converter and public holidays; the stage header says "Each agent hands its work to the next" instead of "Five agents … two work at the same time".
+- **Upload and the sample run are switched off:** the upload block (Phase 8) and "Watch the sample run" (Phase 6) are shown disabled with a note saying they arrive in a later build. The passcode field is left out until Phase 6. "Next: send it to the client board" is disabled until Phase 3.
+- **Start panel wording:** "Agent roles" shows the registry counts, "14, with 3 tools so far" (the design shows 5 tools); "Time" reads "About 2 to 3 minutes for a full run"; the brief card's subtitle reads "Paste text or pick a sample" (no upload yet).
+- **Footer text:** "Lumen Works is a fictional firm. All client names and briefs are made up." and "Every number is decided by code, not by AI." instead of naming Northwind and linking to "What happens when something fails" (the failure states screen arrives in Phase 6).
+- **Extra on the stage 2 screen:** the full tagged 9-section proposal is shown below the relay (the design shows it on the report screen), and the Business Analyst card also lists the board chosen by code.
+
+### Timeline without a start date (Phase 2 fix)
+
+- **No section of a draft is ever empty.** Without a start date, code adds a calculated, locked timeline claim from the locked phase days: "Duration: 26 weeks (130 working days) from the start date. Start date to confirm.", and the existing TO CONFIRM assumption asks for the start date; the draft summary shows Start and Go-live as "To confirm". With a start date the per-phase dates and go-live stay as before. Part days round up exactly as the schedule does.
+- **Without a day rate**, the cost section gets a calculated, locked effort claim ("Effort: 60 engineer-days over 1 phase. Cost to confirm: no day rate.") instead of being empty.
+- **Any other empty section** (for example when the Proposal Manager skips one, or ends as the safe default) gets a code-written TO CONFIRM line: "Confirm with the client: next steps is not drafted yet." The page therefore no longer needs a "Nothing yet." state.
+- All code-made wording lives in `domain/claims.py`; fake-model stage tests cover a draft with and without a start date, and one where the Proposal Manager is skipped, each checking all 9 sections are present.
+
+### Where every number and label on the page comes from (Phase 2 honesty check)
+
+| Shown | Where | Source |
+| --- | --- | --- |
+| Agent card seconds | agent cards | Measured: `duration_ms` from the run clock for that agent's calls |
+| "· 1 tool" on a card | agent cards | Counted from the step's recorded tool calls |
+| Model badge | agent cards | The model that answered, from the step record (after any fallback); "Sonnet"/"Haiku" only when the model belongs to that family, else the model's own name |
+| "N agents" | stage header | Counted from the step records that ran |
+| "N tool calls" | stage header | Counted from the step records' tool calls |
+| "S s" | stage header | Measured: sum of the agents' `duration_ms` (agent time, not wall-clock time) |
+| "$X est." | stage header | Measured tokens × the price table in `config.py` (list prices; during development Gemini tokens at Claude prices) — an estimate |
+| Tokens | not shown yet | Measured from each reply's usage; on the step record, shown in Phase 7's run details |
+| "14, with 3 tools so far" | start panel | Counted from the agent and tool registries via `/api/health` |
+| Mode chip and "Sonnet and Haiku" | start panel, header | Mode from `RUN_MODE` (config); model names are the badges of the configured models via `/api/health` |
+| "3 to 5 seats, chosen from your brief" | start panel | Fixed text matching the composer's rules (`MIN_SEATS`, `MAX_SEATS`) |
+| "About 2 to 3 minutes for a full run" | start panel | Placeholder from plan section 10; replaced by measured runs in Phase 10 |
+| "≈ $0.16 per run (estimate)" | start panel | Placeholder from plan section 9.1; replaced by measured runs in Phase 10 |
+| "N / 15,000 characters" | brief form | Measured live; the limit is `BRIEF_MAX_CHARS`, kept equal to `config.py` by a test |
+| Cost, team, start, go-live | draft summary | Calculated by code (cost calculator, working-day schedule) |
+
+- **Model badge fix:** the badge used to print the configured tier ("Sonnet"/"Haiku") whatever model answered, so a development model was shown as Sonnet or Haiku. Now each reply's reported model is recorded (`model` on the step record, falling back to the requested model if the service does not say), and code derives `badge` from it. A fallback to the fast tier shows the fast model; with the judged gateway's models the tier names stay. The start panel's model line uses the same rule (`models` added to `/api/health`), and shows one name when both tiers use the same model.

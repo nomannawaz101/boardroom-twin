@@ -76,3 +76,7 @@ def test_request_options_follow_tools_and_json_mode() -> None:
     asyncio.run(model.complete(request))
     assert sent["response_format"] == {"type": "json_object"}
     assert "tools" not in sent and sent["max_tokens"] == 50
+
+
+def test_reply_records_the_model_the_service_reports() -> None:
+    assert to_reply(completion({"role": "assistant", "content": "{}"})).model == "m"

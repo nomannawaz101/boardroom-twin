@@ -21,8 +21,9 @@ class ToolCallRecord(BaseModel):
 class StepRecord(BaseModel):
     agent: str
     label: str
-    tier: Tier
-    model: str
+    tier: Tier  # the tier that answered: the fast tier after a fallback
+    model: str  # the model that answered, as the service reported it
+    badge: str = ""  # what the card shows: "Sonnet"/"Haiku" for those families, else the model
     stage: int
     start_ms: int
     duration_ms: int
