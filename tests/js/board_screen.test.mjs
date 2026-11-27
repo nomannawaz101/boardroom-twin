@@ -4,46 +4,10 @@
 import assert from "node:assert/strict";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import path from "node:path";
-
-class FakeNode {
-  constructor(tag) {
-    this.tag = tag;
-    this.children = [];
-    this.attrs = {};
-    this.className = "";
-    this.listeners = {};
-    this.ownText = null;
-  }
-  append(...children) {
-    for (const child of children) this.children.push(child);
-  }
-  setAttribute(key, value) { this.attrs[key] = value; }
-  addEventListener(type, handler) { this.listeners[type] = handler; }
-  get textContent() { return this.ownText ?? this.children.map((c) => c.textContent).join(""); }
-  set textContent(value) { this.ownText = value; this.children = []; }
-}
-
-class FakeText extends FakeNode {
-  constructor(text) { super("#text"); this.ownText = text; }
-}
-
-globalThis.Node = FakeNode;
-globalThis.document = {
-  createElement: (tag) => new FakeNode(tag),
-  createElementNS: (ns, tag) => new FakeNode(tag),
-  createTextNode: (text) => new FakeText(text),
-};
+import { FakeNode, byClass, byTag } from "./fake-dom.mjs";
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const render = await import(pathToFileURL(path.join(here, "..", "..", "static", "js", "render.js")).href);
-
-function all(node, test, found = []) {
-  if (test(node)) found.push(node);
-  for (const child of node.children || []) all(child, test, found);
-  return found;
-}
-const byClass = (node, cls) => all(node, (n) => (n.className || "").split(" ").includes(cls));
-const byTag = (node, tag) => all(node, (n) => n.tag === tag);
 
 const step = { agent: "cfo", tier: "sonnet", model: "claude-sonnet-5-5", badge: "Sonnet", duration_ms: 8100 };
 const answered = {

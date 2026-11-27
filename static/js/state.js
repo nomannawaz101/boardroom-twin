@@ -5,7 +5,7 @@ export const BRIEF_MAX_CHARS = 15000;
 
 const SERVER_KEYS = [
   "run_id", "mode", "brief", "case_file", "flags", "board_plan", "design", "estimate",
-  "schedule", "claims", "draft_no", "rounds", "tracker", "verdict", "steps",
+  "schedule", "claims", "draft_no", "rounds", "tracker", "verdict", "steps", "revisions", "stop",
 ];
 
 export const run = {
@@ -14,7 +14,7 @@ export const run = {
 };
 
 export function startRun(discovered) {
-  run.data = { ...discovered, claims: [], draft_no: 0, rounds: [], tracker: [] };
+  run.data = { ...discovered, claims: [], draft_no: 0, rounds: [], tracker: [], revisions: [], stop: null, report: null };
 }
 
 export function addDraft(drafted) {
@@ -23,6 +23,9 @@ export function addDraft(drafted) {
     ...drafted,
     rounds: [],
     tracker: [],
+    revisions: [],
+    stop: null,
+    report: null,
     steps: [...run.data.steps.filter((s) => s.stage < 2), ...drafted.steps],
   };
 }
@@ -46,6 +49,9 @@ export function addBoard(board) {
     tracker: board.tracker,
     verdict: board.verdict.code,
     verdictLabel: board.verdict,
+    stop: board.stop,
+    revisions: [],
+    report: null,
     steps: [...run.data.steps.filter((s) => s.stage < 3), ...board.steps],
   };
 }
@@ -58,10 +64,38 @@ export function addRetriedSeat(board) {
     tracker: board.tracker,
     verdict: board.verdict.code,
     verdictLabel: board.verdict,
+    stop: board.stop,
     steps: run.data.steps.map((s) => (s.agent === step.agent ? step : s)),
   };
 }
 
 export function hasBoard() {
   return Boolean(run.data && run.data.rounds && run.data.rounds.length > 0);
+}
+
+export function addRevision(body) {
+  run.data = {
+    ...run.data,
+    rounds: [...run.data.rounds, body.round],
+    revisions: [...run.data.revisions, body.bid_round],
+    claims: body.claims,
+    draft_no: body.draft_no,
+    tracker: body.tracker,
+    verdict: body.verdict.code,
+    verdictLabel: body.verdict,
+    stop: body.stop,
+    steps: [...run.data.steps, ...body.steps],
+  };
+}
+
+export function setReport(report) {
+  run.data = { ...run.data, report };
+}
+
+export function loopStopped() {
+  return Boolean(run.data && run.data.stop && run.data.stop.stopped);
+}
+
+export function hasReport() {
+  return Boolean(run.data && run.data.report);
 }
