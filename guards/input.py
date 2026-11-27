@@ -61,7 +61,9 @@ PHONE_CANDIDATES = re.compile(
     r"|(?<![\w.])\(?0\d{1,4}\)?[\s.-]?\d[\d\s.-]{5,}\d"  # national, leading zero: 07700 900123
     r"|(?<![\w.])\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}(?!\d)"  # North American: (555) 123-4567
 )
-EMAIL = re.compile(r"[A-Za-z0-9._%+-]+@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)")
+# The local part is bounded at 64 characters (the email standard's limit), so a long run of
+# letters is not rescanned from every position: the check stays linear on a 15,000-char brief.
+EMAIL = re.compile(r"[A-Za-z0-9._%+-]{1,64}@([A-Za-z0-9-]+(?:\.[A-Za-z0-9-]+)+)")
 
 # G5: phrases that try to steer the agents. The run continues; the user sees a notice.
 INJECTION_PATTERNS = re.compile(
