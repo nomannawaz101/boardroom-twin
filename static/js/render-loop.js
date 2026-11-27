@@ -16,6 +16,7 @@ const REFUSAL_WORDS = {
   unknown_claim: "no such claim",
   unknown_objection: "no open objection with that id",
   empty: "no text",
+  client_only: "only the client can settle this, so it can only be an assumption",
 };
 
 function plural(count, one, many) {

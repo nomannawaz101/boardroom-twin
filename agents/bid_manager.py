@@ -19,6 +19,13 @@ from schemas.state import TrackerItem
 from schemas.step import StepRecord
 
 AGENT_ID = "bid_manager"
+REFUSALS = {
+    "locked": "a calculated claim is locked",
+    "unknown_claim": "no such claim",
+    "unknown_objection": "no open objection with that id",
+    "empty": "no text",
+    "client_only": "a client item can only be an assumption",
+}
 
 
 def objection_lines(open_items: list[TrackerItem], plan: BoardPlan) -> list[dict[str, object]]:
@@ -70,7 +77,8 @@ def describe(step: StepRecord, changes: list[AppliedChange], bid_round: int) -> 
         f"{plural(len(changes) - len(refused), 'change')}."
     )
     if refused:
-        summary += f" Code refused {plural(len(refused), 'change')} (locked claim or unknown id)."
+        reasons = ", ".join(sorted({REFUSALS[c.outcome] for c in refused}))
+        summary += f" Code refused {plural(len(refused), 'change')}: {reasons}."
     return step.model_copy(
         update={
             "summary": summary,

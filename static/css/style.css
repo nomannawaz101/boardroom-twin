@@ -360,7 +360,10 @@ a:hover { color: var(--primary-ink); }
   .site-header, .stage-nav, .site-footer, .no-print, button, #view-brief, #view-team, #view-board, #view-revisions { display: none !important; }
   #view-report { display: flex !important; padding: 0; gap: 14px; }
   .wrap { max-width: none; padding: 0; }
-  .card, .verdict, .key-number, .sec, .change-line, tr { break-inside: avoid; page-break-inside: avoid; }
+  /* Small blocks stay whole; long cards may break between their rows. */
+  .verdict, .key-number, .side-card, .prototype-card, .sec, .change-line, tr { break-inside: avoid; page-break-inside: avoid; }
+  .key-numbers { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .key-value { font-size: 20px; }
   .card { border-color: #c9ced8; }
   .verdict { color: #101828; background: #fff !important; border: 2px solid #101828; }
   .verdict h1, .verdict-headline { color: #101828; }

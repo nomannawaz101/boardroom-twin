@@ -6,7 +6,9 @@ from typing import Literal
 from pydantic import BaseModel
 
 StopReason = Literal["all_proceed", "no_gain", "max_rounds", "guard"]
-ChangeOutcome = Literal["applied", "locked", "unknown_claim", "unknown_objection", "empty"]
+ChangeOutcome = Literal[
+    "applied", "locked", "unknown_claim", "unknown_objection", "empty", "client_only"
+]
 
 
 class AppliedChange(BaseModel):

@@ -161,3 +161,14 @@ def test_a_line_already_open_gets_no_second_item() -> None:
 def test_mark_answered_records_the_round() -> None:
     marked = mark_answered(TRACKER, {"O2"}, 1)
     assert [t.answered_in for t in marked] == [[], [1], []]
+
+
+def test_a_client_only_item_can_only_be_answered_with_an_assumption() -> None:
+    changes = [
+        change("C1", "replace", "C1", "We already have funding."),
+        change("C1", "assume", None, "Phase 2 funding."),
+    ]
+    claims, applied, tracker = apply_bid_changes(CLAIMS, TRACKER, changes, 1)
+    assert [a.outcome for a in applied] == ["client_only", "applied"]
+    assert claims[0].text == "One payment."
+    assert next(t for t in tracker if t.id == "C1").status == "open"

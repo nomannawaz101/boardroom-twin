@@ -370,6 +370,7 @@ async function nextRound() {
   working.stop();
   setBusy(false);
   if (result.error) {
+    els.loopChips.replaceChildren(...loopChips(run.data.rounds, run.data.stop, false));
     holder.replaceChildren(retryCard(roundNo, result.message, () => { holder.remove(); nextRound(); }, () => showView(3)));
     return;
   }

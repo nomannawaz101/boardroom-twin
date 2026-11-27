@@ -15,10 +15,14 @@ from schemas.state import TrackerItem
 NEEDS_TEXT = ("replace", "add", "assume")
 
 
-def outcome_of(change: Change, open_ids: set[str]) -> ChangeOutcome | None:
-    """Why a change cannot be applied, or None if code may try it."""
-    if change.objection_id not in open_ids:
+def outcome_of(change: Change, open_items: dict[str, TrackerItem]) -> ChangeOutcome | None:
+    """Why a change cannot be applied, or None if code may try it. A C item needs the client,
+    so the proposal can only record it as an assumption ("Confirm with the client: ...")."""
+    item = open_items.get(change.objection_id)
+    if item is None:
         return "unknown_objection"
+    if item.kind == "C" and change.action != "assume":
+        return "client_only"
     if change.action in NEEDS_TEXT and not change.text.strip():
         return "empty"
     return None
@@ -27,11 +31,11 @@ def outcome_of(change: Change, open_ids: set[str]) -> ChangeOutcome | None:
 def apply_bid_changes(
     claims: list[Claim], tracker: list[TrackerItem], changes: list[Change], bid_round: int
 ) -> tuple[list[Claim], list[AppliedChange], list[TrackerItem]]:
-    open_ids = {t.id for t in tracker if t.status == "open"}
+    open_now = {t.id: t for t in tracker if t.status == "open"}
     current = claims
     applied: list[AppliedChange] = []
     for change in changes:
-        refusal = outcome_of(change, open_ids)
+        refusal = outcome_of(change, open_now)
         if refusal is not None:
             applied.append(record(change, None, None, refusal))
             continue

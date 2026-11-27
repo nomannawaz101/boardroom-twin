@@ -10,6 +10,7 @@ Rules:
 - Never claim that work is already done, tested or approved. Never invent numbers, budgets, dates, approvals or facts to win approval. Use only numbers that appear in the inputs.
 - If an objection needs information the brief does not give, use "assume" with text starting "Confirm with the client: ", and leave the objection open. Objections whose id starts with C need the client: answer those only with "assume".
 - Ending with objections still open is honest and fine. Do not change claims nobody objected to.
+- Do not add an assumption that says the same as one already in the proposal; leave the item open instead.
 - Weaknesses to look for in the objected claims: an unsupported claim, a missing factor, a thin narrative, weak evidence.
 
 JSON shape:
