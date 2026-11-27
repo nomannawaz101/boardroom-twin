@@ -111,7 +111,7 @@ A short record of each choice, including ones still unconfirmed.
 - **On a phone** the objections log stacks each row instead of a four-column table.
 - **Model badge** names the model that answered, as in Phase 2 (on Gemini the model's own name; on the judged gateway "Sonnet" or "Haiku").
 
-### Phase 3 gate (local, Gemini, 27 Nov build)
+### Phase 3 gate (local, Gemini, 28 Nov 2026)
 
 - Northwind: discover 2.9 s, draft 5.0 s, board 2.3 s; 5 seats; 1 of 5 can proceed; 8 tracker items.
 - Harbor Freight: discover 1.7 s, draft 4.3 s, board 2.4 s; 4 seats (the accepted Phase 2 deviation; a later run chose the expected 3); 1 of 4; 7 items.
