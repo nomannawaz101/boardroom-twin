@@ -364,3 +364,73 @@ def test_a_one_part_design_is_retried_then_defaulted_and_flagged(scripted: Scrip
         "parts: Value error, needs at least 2 items, got 1"
         in (model.requests[1].messages[-1]["content"])
     )
+
+
+# --- Timeline and empty sections through the whole stage ---
+
+SECTIONS = {
+    "executive_summary",
+    "client_situation",
+    "proposed_solution",
+    "scope",
+    "timeline",
+    "team_cost",
+    "risks",
+    "assumptions",
+    "next_steps",
+}
+
+
+def sections_of(body: dict[str, Any]) -> set[str]:
+    return {c["section"] for c in body["claims"]}
+
+
+def timeline_of(body: dict[str, Any]) -> list[dict[str, Any]]:
+    return [c for c in body["claims"] if c["section"] == "timeline"]
+
+
+def test_with_a_start_date_the_timeline_has_dates_and_no_section_is_empty(
+    scripted: Scripted,
+) -> None:
+    state = state_from(discover_northwind(scripted))
+    scripted.load(draft_script())
+    body = client.post("/api/draft", json=state).json()
+    timeline = timeline_of(body)
+    assert [c["text"] for c in timeline][-1].startswith("Go-live: Mon Jan 4, 2027")
+    assert not any(c["text"].startswith("Duration:") for c in timeline)
+    assert all(c["origin"] == "calculated" and c["locked"] for c in timeline)
+    assert sections_of(body) == SECTIONS
+
+
+def test_without_a_start_date_the_timeline_shows_the_duration_to_confirm(
+    scripted: Scripted,
+) -> None:
+    state = state_from(discover_northwind(scripted))
+    state["case_file"]["start"] = None
+    scripted.load(draft_script(SIZING | {"start": None}))
+    body = client.post("/api/draft", json=state).json()
+    assert body["schedule"] is None
+    assert [(c["text"], c["origin"], c["locked"]) for c in timeline_of(body)] == [
+        (
+            "Duration: 4 weeks (20 working days) from the start date. Start date to confirm.",
+            "calculated",
+            True,
+        )
+    ]
+    assert any(
+        "the start date" in c["text"] and c["origin"] == "assumption" for c in body["claims"]
+    )
+    assert sections_of(body) == SECTIONS
+
+
+def test_no_section_is_empty_even_when_the_proposal_manager_is_skipped(
+    scripted: Scripted,
+) -> None:
+    state = state_from(discover_northwind(scripted))
+    tool_args = {"phases": [{"no": 1, "people": 2, "days": 10}], "rate": 600}
+    script: list[FakeStep] = [reply_json(DESIGN), reply_tool("cost_calculator", tool_args)]
+    script += [reply_json(SIZING)] + [reply_text("not json")] * 4
+    scripted.load(script)
+    body = client.post("/api/draft", json=state).json()
+    assert body["steps"][2]["status"] == "skipped"
+    assert sections_of(body) == SECTIONS

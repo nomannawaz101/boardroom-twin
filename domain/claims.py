@@ -3,14 +3,16 @@
 A model can never edit a calculated claim; every rebuild recreates them from the numbers.
 """
 
+import math
 from dataclasses import dataclass
 from datetime import date
-from typing import Literal
+from typing import Literal, get_args
 
 import config
+from domain.cost import weeks_to_days
 from schemas.answers import Change
 from schemas.claims import Claim, DraftClaim, Section
-from schemas.cost import CostEstimate
+from schemas.cost import CostEstimate, PhaseEffort
 from schemas.timeline import Schedule
 
 CLAIM_PREFIX = "C"
@@ -21,6 +23,22 @@ DEFAULT_ADD_SECTION: Section = "proposed_solution"
 MISSING_COST = "the day rate and team size, so the cost can be calculated."
 MISSING_START = "the start date, so the dates can be calculated."
 HOLIDAYS_NOT_CHECKED = "the dates count weekends only; local public holidays are not checked yet."
+DURATION_TEXT = (
+    "Duration: {weeks} ({days} working days) from the start date. Start date to confirm."
+)
+EFFORT_TEXT = "Effort: {engineer_days} engineer-days over {phases}. Cost to confirm: no day rate."
+NOT_DRAFTED = "{section} is not drafted yet."
+SECTION_TITLES: dict[Section, str] = {
+    "executive_summary": "Executive summary",
+    "client_situation": "Client situation",
+    "proposed_solution": "Proposed solution",
+    "scope": "Scope",
+    "timeline": "Timeline and milestones",
+    "team_cost": "Team and cost",
+    "risks": "Risks and mitigations",
+    "assumptions": "Assumptions",
+    "next_steps": "Next steps",
+}
 
 RefusalReason = Literal["locked", "unknown_claim"]
 CalculatedText = tuple[Section, str]
@@ -90,12 +108,62 @@ def schedule_texts(schedule: Schedule) -> list[CalculatedText]:
     return [*texts, (TIMELINE_SECTION, go_live)]
 
 
+def phase_days(estimate: CostEstimate | None, efforts: list[PhaseEffort]) -> list[float]:
+    """Working days per phase: the cost calculator's locked days, else the sized weeks."""
+    if estimate is not None:
+        return [p.days for p in estimate.phases]
+    return [weeks_to_days(e.weeks) for e in efforts]
+
+
+def duration_texts(days: list[float]) -> list[CalculatedText]:
+    """Without a start date the dates stay TO CONFIRM, but the duration is still known."""
+    working_days = sum(max(math.ceil(d), 1) for d in days)
+    weeks = working_days / config.WORKING_DAYS_PER_WEEK
+    unit = "week" if weeks == 1 else "weeks"
+    shown = f"{round(weeks, config.WEEKS_DECIMALS):g}"
+    text = DURATION_TEXT.format(weeks=f"{shown} {unit}", days=working_days)
+    return [(TIMELINE_SECTION, text)]
+
+
+def effort_texts(efforts: list[PhaseEffort]) -> list[CalculatedText]:
+    """Without a day rate the cost stays TO CONFIRM, but the effort is still known."""
+    engineer_days = sum(e.engineers * weeks_to_days(e.weeks) for e in efforts)
+    phases = f"{len(efforts)} phase" + ("" if len(efforts) == 1 else "s")
+    text = EFFORT_TEXT.format(engineer_days=format_number(engineer_days), phases=phases)
+    return [(COST_SECTION, text)]
+
+
 def calculated_texts(
-    estimate: CostEstimate | None, schedule: Schedule | None
+    estimate: CostEstimate | None,
+    schedule: Schedule | None,
+    efforts: list[PhaseEffort] | None = None,
 ) -> list[CalculatedText]:
-    cost = cost_texts(estimate) if estimate is not None else []
-    dates = schedule_texts(schedule) if schedule is not None else []
+    """Every code-made claim, from the locked numbers. The wording lives only in this module."""
+    sized = efforts or []
+    if estimate is not None:
+        cost = cost_texts(estimate)
+    else:
+        cost = effort_texts(sized) if sized else []
+    if schedule is not None:
+        dates = schedule_texts(schedule)
+    else:
+        days = phase_days(estimate, sized)
+        dates = duration_texts(days) if days else []
     return [*cost, *dates]
+
+
+def not_drafted_claim(claim_id: str, section: Section) -> Claim:
+    text = ASSUMPTION_PREFIX + NOT_DRAFTED.format(section=SECTION_TITLES[section].lower())
+    return Claim(id=claim_id, section=section, text=text, origin="assumption")
+
+
+def fill_empty_sections(claims: list[Claim]) -> list[Claim]:
+    """No section of a draft is ever empty: a gap becomes a TO CONFIRM line written by code."""
+    filled = list(claims)
+    for section in get_args(Section):
+        if not any(c.section == section for c in filled):
+            filled.append(not_drafted_claim(next_claim_id(filled), section))
+    return filled
 
 
 def code_assumptions(estimate: CostEstimate | None, schedule: Schedule | None) -> list[str]:
@@ -121,9 +189,13 @@ def assumption_claim(claim_id: str, text: str) -> Claim:
 
 
 def assemble_claims(
-    drafts: list[DraftClaim], estimate: CostEstimate | None, schedule: Schedule | None = None
+    drafts: list[DraftClaim],
+    estimate: CostEstimate | None,
+    schedule: Schedule | None = None,
+    efforts: list[PhaseEffort] | None = None,
 ) -> list[Claim]:
-    """Number the model's claims, then add code's assumptions and the locked calculated claims.
+    """Number the model's claims, then add code's assumptions, the locked calculated claims
+    and, for any section still empty, a TO CONFIRM line.
 
     A model cannot mark its own text as calculated, so such a claim becomes `derived`.
     """
@@ -140,16 +212,19 @@ def assemble_claims(
         claims.append(claim)
     for gap in code_assumptions(estimate, schedule):
         claims.append(assumption_claim(next_claim_id(claims), gap))
-    for section, text in calculated_texts(estimate, schedule):
+    for section, text in calculated_texts(estimate, schedule, efforts):
         claims.append(locked_claim(next_claim_id(claims), section, text))
-    return claims
+    return fill_empty_sections(claims)
 
 
 def rebuild_calculated(
-    claims: list[Claim], estimate: CostEstimate | None, schedule: Schedule | None = None
+    claims: list[Claim],
+    estimate: CostEstimate | None,
+    schedule: Schedule | None = None,
+    efforts: list[PhaseEffort] | None = None,
 ) -> list[Claim]:
     """Recreate every calculated claim from the numbers, keeping existing ids where possible."""
-    texts = iter(calculated_texts(estimate, schedule))
+    texts = iter(calculated_texts(estimate, schedule, efforts))
     rebuilt: list[Claim] = []
     for claim in claims:
         if claim.origin != "calculated":

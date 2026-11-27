@@ -77,11 +77,11 @@ async def draft(state: RunState, runtime: Runtime, today: date) -> DraftResponse
     start = choose_start([case_file.start, sizing.start], brief_numbers, today)
     schedule = schedule_for(start, efforts)
 
-    pm = await proposal_manager.run(case_file, design, estimate, schedule, runtime)
+    pm = await proposal_manager.run(case_file, design, estimate, schedule, efforts, runtime)
     written = require(pm, state.run_id)
     tool_results = [call.result for call in dm.step.tool_calls] + code_results(estimate, schedule)
     claims, retagged = checked_claims(
-        assemble_claims(written.claims, estimate, schedule), brief, tool_results, efforts
+        assemble_claims(written.claims, estimate, schedule, efforts), brief, tool_results, efforts
     )
 
     return DraftResponse(

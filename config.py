@@ -94,6 +94,7 @@ MONEY_DECIMALS = 2
 # --- Tools (plan section 5). ---
 OUTSIDE_CALL_TIMEOUT_S = 5.0
 WORKING_DAYS_PER_WEEK = 5
+WEEKS_DECIMALS = 1
 
 # --- Input limits (plan section 6.1, guard G2). ---
 BRIEF_MAX_CHARS = 15_000

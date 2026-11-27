@@ -55,3 +55,10 @@ A short record of each choice, including ones still unconfirmed.
 - **Start panel wording:** "Agent roles" shows the registry counts, "14, with 3 tools so far" (the design shows 5 tools); "Time" reads "About 2 to 3 minutes for a full run"; the brief card's subtitle reads "Paste text or pick a sample" (no upload yet).
 - **Footer text:** "Lumen Works is a fictional firm. All client names and briefs are made up." and "Every number is decided by code, not by AI." instead of naming Northwind and linking to "What happens when something fails" (the failure states screen arrives in Phase 6).
 - **Extra on the stage 2 screen:** the full tagged 9-section proposal is shown below the relay (the design shows it on the report screen), and the Business Analyst card also lists the board chosen by code.
+
+### Timeline without a start date (Phase 2 fix)
+
+- **No section of a draft is ever empty.** Without a start date, code adds a calculated, locked timeline claim from the locked phase days: "Duration: 26 weeks (130 working days) from the start date. Start date to confirm.", and the existing TO CONFIRM assumption asks for the start date; the draft summary shows Start and Go-live as "To confirm". With a start date the per-phase dates and go-live stay as before. Part days round up exactly as the schedule does.
+- **Without a day rate**, the cost section gets a calculated, locked effort claim ("Effort: 60 engineer-days over 1 phase. Cost to confirm: no day rate.") instead of being empty.
+- **Any other empty section** (for example when the Proposal Manager skips one, or ends as the safe default) gets a code-written TO CONFIRM line: "Confirm with the client: next steps is not drafted yet." The page therefore no longer needs a "Nothing yet." state.
+- All code-made wording lives in `domain/claims.py`; fake-model stage tests cover a draft with and without a start date, and one where the Proposal Manager is skipped, each checking all 9 sections are present.

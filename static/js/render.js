@@ -310,10 +310,9 @@ export function proposal(claims) {
     ...Object.values(TAGS).map(([text, cls]) => h("span", { class: `tag ${cls}` }, text)),
     "Recommendations carry no tag.");
   const sections = Object.entries(SECTION_TITLES).map(([id, title], i) => {
+    // The server fills every section (code adds a TO CONFIRM line for any gap).
     const items = claims.filter((c) => c.section === id);
-    const list = items.length
-      ? h("ul", {}, ...items.map((c) => h("li", {}, h("span", { class: "num claim-id" }, c.id), c.text, " ", tagFor(c.origin))))
-      : h("span", { class: "empty-sec" }, "Nothing yet.");
+    const list = h("ul", {}, ...items.map((c) => h("li", {}, h("span", { class: "num claim-id" }, c.id), c.text, " ", tagFor(c.origin))));
     return h("div", { class: "sec" }, h("h3", {}, `${i + 1}. ${title}`), list);
   });
   return [h("h2", { id: "proposal-h" }, "Proposal, draft 1"), legend, ...sections];

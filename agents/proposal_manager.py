@@ -8,7 +8,7 @@ from llm.client import AgentResult, Runtime, run_agent
 from schemas.answers import ProposalManagerAnswer, SolutionArchitectAnswer
 from schemas.case_file import CaseFile
 from schemas.claims import Claim
-from schemas.cost import CostEstimate
+from schemas.cost import CostEstimate, PhaseEffort
 from schemas.step import StepRecord
 from schemas.timeline import Schedule
 
@@ -20,12 +20,13 @@ async def run(
     design: SolutionArchitectAnswer,
     estimate: CostEstimate | None,
     schedule: Schedule | None,
+    efforts: list[PhaseEffort],
     runtime: Runtime,
 ) -> AgentResult[ProposalManagerAnswer]:
     payload = {
         "case_file": dump(case_file),
         "design": dump(design),
-        "locked_by_code": [text for _, text in calculated_texts(estimate, schedule)],
+        "locked_by_code": [text for _, text in calculated_texts(estimate, schedule, efforts)],
     }
     system = system_prompt(
         AGENT_ID,

@@ -7,6 +7,7 @@ from domain.claims import (
     HOLIDAYS_NOT_CHECKED,
     MISSING_COST,
     MISSING_START,
+    SECTION_TITLES,
     apply_change,
     assemble_claims,
     code_assumptions,
@@ -53,7 +54,7 @@ def test_format_date() -> None:
 
 def test_assemble_adds_code_assumptions_then_locked_calculated_claims() -> None:
     claims = full_draft()
-    assert [c.id for c in claims] == [f"C{i}" for i in range(1, 10)]
+    assert [c.id for c in claims[:9]] == [f"C{i}" for i in range(1, 10)]
     assert claims[2].text == ASSUMPTION_PREFIX + HOLIDAYS_NOT_CHECKED
     assert claims[2].origin == "assumption" and not claims[2].locked
     calculated = [c for c in claims if c.origin == "calculated"]
@@ -105,14 +106,14 @@ def test_unknown_claim_id_is_refused() -> None:
 
 
 def test_replace_and_remove_an_unlocked_claim() -> None:
-    claims = assemble_claims(drafts(), None)  # C1, C2, then C3 and C4 code assumptions
+    claims = assemble_claims(drafts(), None)
     replaced = apply_change(
         claims, Change(objection_id="O1", action="replace", claim_id="C1", text="New.")
     )
     assert replaced.refused is None
     assert (replaced.claims[0].text, replaced.claims[0].origin) == ("New.", "proposal")
     removed = apply_change(claims, Change(objection_id="O1", action="remove", claim_id="C1"))
-    assert [c.id for c in removed.claims] == ["C2", "C3", "C4"]
+    assert [c.id for c in removed.claims] == [c.id for c in claims[1:]]
 
 
 def test_add_and_assume_get_new_ids() -> None:
@@ -121,7 +122,11 @@ def test_add_and_assume_get_new_ids() -> None:
         claims, Change(objection_id="O2", action="add", claim_id="C1", text="More.")
     )
     new = added.claims[-1]
-    assert (new.id, new.section, new.origin) == ("C5", "executive_summary", "proposal")
+    assert (new.id, new.section, new.origin) == (
+        next_claim_id(claims),
+        "executive_summary",
+        "proposal",
+    )
     assumed = apply_change(
         claims, Change(objection_id="O3", action="assume", text="Phase 2 funding.")
     )
@@ -139,11 +144,72 @@ def test_rebuild_restores_calculated_claims_from_the_numbers() -> None:
 
 
 def test_rebuild_follows_a_changed_estimate() -> None:
-    claims = assemble_claims(drafts(), northwind_estimate())  # C3 missing start, C4-C6 cost
+    claims = assemble_claims(drafts(), northwind_estimate())  # C3 missing start, C4-C7 code
     smaller = estimate_cost([PhaseEffort(no=1, engineers=1, weeks=1)], 600, "USD")
     calculated = [c for c in rebuild_calculated(claims, smaller) if c.origin == "calculated"]
-    assert [c.id for c in calculated] == ["C4", "C5"]
-    assert calculated[-1].text == "Total: 5 engineer-days, $3,000."
+    assert [c.id for c in calculated] == ["C4", "C5", "C6"]
+    assert [c.text for c in calculated[1:]] == [
+        "Total: 5 engineer-days, $3,000.",
+        "Duration: 1 week (5 working days) from the start date. Start date to confirm.",
+    ]
+
+
+# --- No start date, no day rate, no empty sections ---
+
+
+def test_without_a_start_date_the_timeline_shows_the_locked_duration() -> None:
+    harbor = estimate_cost([PhaseEffort(no=1, engineers=1, weeks=26)], 450, "USD")
+    claims = assemble_claims(drafts(), harbor, None)
+    timeline = [c for c in claims if c.section == "timeline"]
+    assert [(c.text, c.origin, c.locked) for c in timeline] == [
+        (
+            "Duration: 26 weeks (130 working days) from the start date. Start date to confirm.",
+            "calculated",
+            True,
+        )
+    ]
+    assert ASSUMPTION_PREFIX + MISSING_START in [c.text for c in claims]
+
+
+def test_duration_adds_up_phases_and_rounds_part_days_like_the_schedule() -> None:
+    efforts = [PhaseEffort(no=1, engineers=2, weeks=2), PhaseEffort(no=2, engineers=1, weeks=1.3)]
+    timeline = [c.text for c in assemble_claims([], None, None, efforts) if c.section == "timeline"]
+    assert timeline == [
+        "Duration: 3.4 weeks (17 working days) from the start date. Start date to confirm."
+    ]
+
+
+def test_without_a_day_rate_the_cost_section_shows_the_effort() -> None:
+    efforts = [PhaseEffort(no=1, engineers=2, weeks=6)]
+    cost = [c for c in assemble_claims([], None, None, efforts) if c.section == "team_cost"]
+    assert [(c.text, c.origin, c.locked) for c in cost] == [
+        ("Effort: 60 engineer-days over 1 phase. Cost to confirm: no day rate.", "calculated", True)
+    ]
+
+
+@pytest.mark.parametrize(
+    ("estimate", "schedule", "efforts"),
+    [
+        (None, None, None),
+        (None, None, [PhaseEffort(no=1, engineers=1, weeks=2)]),
+        ("northwind", None, None),
+        ("northwind", "northwind", None),
+    ],
+)
+def test_no_section_is_ever_empty(
+    estimate: str | None, schedule: str | None, efforts: list[PhaseEffort] | None
+) -> None:
+    claims = assemble_claims(
+        [],
+        northwind_estimate() if estimate else None,
+        northwind_schedule() if schedule else None,
+        efforts,
+    )
+    assert {c.section for c in claims} == set(SECTION_TITLES)
+    placeholders = [c for c in claims if c.text.endswith("is not drafted yet.")]
+    assert all(
+        c.origin == "assumption" and c.text.startswith(ASSUMPTION_PREFIX) for c in placeholders
+    )
 
 
 def test_next_claim_id_ignores_odd_ids() -> None:
