@@ -9,10 +9,10 @@ Items start open; Phase 4 marks one fixed only when the seat that raised it re-r
 from dataclasses import dataclass
 from typing import Literal
 
-from schemas.answers import GateObjection, ScoringObjection
+from schemas.answers import GateObjection, PreviousState, ScoringObjection
 from schemas.board import ChecklistResult
 from schemas.common import match_key as criterion_key
-from schemas.state import TrackerItem
+from schemas.state import HistoryEntry, TrackerItem
 
 Kind = Literal["O", "C"]
 Severity = Literal["blocker", "condition"]
@@ -81,17 +81,21 @@ def scoring_drafts(
 
 
 def gate_drafts(
-    seat_id: str, items: list[ChecklistResult], objections: list[GateObjection]
+    seat_id: str,
+    items: list[ChecklistResult],
+    objections: list[GateObjection],
+    tracker: list[TrackerItem] | None = None,
 ) -> list[ItemDraft]:
     """One item per checklist line that is not met or partly met. The seat's own objection
     gives the wording; without one, code writes it. Objections on met or unknown items are
-    ignored."""
+    ignored, and a line that already has an open item of this seat gets no second one."""
+    already_open = {t.item_id for t in open_items(tracker or [], seat_id) if t.item_id}
     by_item: dict[str, GateObjection] = {}
     for objection in objections:
         by_item.setdefault(criterion_key(objection.item_id), objection)
     drafts = []
     for item in items:
-        if item.status in ("met", "missing"):
+        if item.status in ("met", "missing") or item.id in already_open:
             continue
         objection = by_item.get(item.id) or by_item.get(criterion_key(item.label))
         text = objection.text.strip() if objection and objection.text.strip() else ""
@@ -110,3 +114,52 @@ def gate_drafts(
 
 def open_items(tracker: list[TrackerItem], seat_id: str) -> list[TrackerItem]:
     return [t for t in tracker if t.seat == seat_id and t.status == "open"]
+
+
+# A gate's checklist answer for the line an item is about counts as its re-read of that item
+# when its `previous` list leaves the item out.
+CHECKLIST_STATES = {"met": "resolved", "partly": "partly", "not_met": "open"}
+
+
+def reread_states(
+    tracker: list[TrackerItem],
+    seat_id: str,
+    previous: list[PreviousState],
+    checklist: list[ChecklistResult] | None = None,
+) -> dict[str, str]:
+    """What the raising seat said about each of its own open items after re-reading.
+
+    Ids of other seats' items and unknown ids are ignored: only the seat that raised an item
+    can fix it. A missing checklist line says nothing."""
+    own = {t.id: t for t in open_items(tracker, seat_id)}
+    states = {p.id: p.state for p in previous if p.id in own}
+    by_line = {c.id: c.status for c in checklist or []}
+    for item_id, item in own.items():
+        line_status = by_line.get(item.item_id or "")
+        if item_id not in states and line_status in CHECKLIST_STATES:
+            states[item_id] = CHECKLIST_STATES[line_status]
+    return states
+
+
+def apply_reread(
+    tracker: list[TrackerItem], states: dict[str, str], round_no: int
+) -> list[TrackerItem]:
+    """Record each re-read in the item's history. Only "resolved" fixes an item."""
+    updated = []
+    for item in tracker:
+        state = states.get(item.id)
+        if state is None:
+            updated.append(item)
+            continue
+        history = [*item.history, HistoryEntry(round=round_no, state=state)]  # type: ignore[arg-type]
+        status = "fixed" if state == "resolved" else "open"
+        updated.append(item.model_copy(update={"history": history, "status": status}))
+    return updated
+
+
+def mark_answered(tracker: list[TrackerItem], ids: set[str], bid_round: int) -> list[TrackerItem]:
+    """The Bid Manager answered these items. That is shown as "answered", never as "fixed"."""
+    return [
+        t.model_copy(update={"answered_in": [*t.answered_in, bid_round]}) if t.id in ids else t
+        for t in tracker
+    ]

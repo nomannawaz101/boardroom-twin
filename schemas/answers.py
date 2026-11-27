@@ -6,10 +6,10 @@ Models never return a total, a vote, a cost or a verdict: code computes those.
 from datetime import date
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field, ValidationInfo, model_validator
+from pydantic import BaseModel, Field, ValidationInfo, field_validator, model_validator
 
 import config
-from schemas.claims import DraftClaim
+from schemas.claims import ASSUMPTION_PREFIX, DraftClaim
 from schemas.common import REQUIRED_ITEMS, at_least, capped, from_model, match_key
 
 Short = capped(config.LIST_CAP_SHORT)
@@ -82,6 +82,15 @@ class Change(BaseModel):
     action: Literal["replace", "remove", "add", "assume"]
     claim_id: str | None = None
     text: str = ""
+
+    @field_validator("text")
+    @classmethod
+    def short_sentence(cls, text: str, info: ValidationInfo) -> str:
+        """Appendix A: one sentence of at most 20 words; "Confirm with the client:" is free."""
+        words = len(text.removeprefix(ASSUMPTION_PREFIX).split())
+        if from_model(info) and words > config.CLAIM_MAX_WORDS:
+            raise ValueError(f"must be at most {config.CLAIM_MAX_WORDS} words")
+        return text
 
 
 class BidManagerAnswer(BaseModel):

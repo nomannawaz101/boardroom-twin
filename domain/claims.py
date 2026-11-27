@@ -11,12 +11,11 @@ from typing import Literal, get_args
 import config
 from domain.cost import weeks_to_days
 from schemas.answers import Change
-from schemas.claims import Claim, DraftClaim, Section
+from schemas.claims import ASSUMPTION_PREFIX, Claim, DraftClaim, Section
 from schemas.cost import CostEstimate, PhaseEffort
 from schemas.timeline import Schedule
 
 CLAIM_PREFIX = "C"
-ASSUMPTION_PREFIX = "Confirm with the client: "
 # The on-screen tags (plan section 7.2). Recommendations carry no tag.
 ORIGIN_TAGS: dict[str, str] = {
     "brief": "FROM BRIEF",

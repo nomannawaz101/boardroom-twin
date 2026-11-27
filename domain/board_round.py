@@ -6,7 +6,14 @@ seat's known result, and the other seats still count. Progress is "N of M can pr
 
 from domain import gates, scoring
 from domain.seats import SEATS_BY_ID
-from domain.tracker import add_items, gate_drafts, open_items, scoring_drafts
+from domain.tracker import (
+    add_items,
+    apply_reread,
+    gate_drafts,
+    open_items,
+    reread_states,
+    scoring_drafts,
+)
 from schemas.answers import GateSeatAnswer, ScoringSeatAnswer
 from schemas.board import BoardRound, ChecklistResult, PlannedSeat, Progress, SeatResult
 from schemas.state import TrackerItem
@@ -38,7 +45,8 @@ def review_scoring(
     needed = spec.needed_score or 0.0
     criteria = scoring.match_ratings(spec, answer.ratings)
     score = scoring.weighted_score(criteria)
-    updated = add_items(tracker, scoring_drafts(seat.id, answer.objections, claim_ids), round_no)
+    reread = apply_reread(tracker, reread_states(tracker, seat.id, answer.previous), round_no)
+    updated = add_items(reread, scoring_drafts(seat.id, answer.objections, claim_ids), round_no)
     condition = (answer.condition or "").strip() or None
     has_open = bool(open_items(updated, seat.id)) or condition is not None
     vote = scoring.scoring_vote(score, needed, has_open)
@@ -68,7 +76,10 @@ def review_gate(
     if outcome is None:
         # Items still missing after the retries and nothing known blocks: undecided.
         return partial_not_reviewed(seat, items), tracker
-    updated = add_items(tracker, gate_drafts(seat.id, items, answer.objections), round_no)
+    states = reread_states(tracker, seat.id, answer.previous, items)
+    reread = apply_reread(tracker, states, round_no)
+    new_items = gate_drafts(seat.id, items, answer.objections, reread)
+    updated = add_items(reread, new_items, round_no)
     result = SeatResult(
         seat_id=seat.id,
         kind="gate",

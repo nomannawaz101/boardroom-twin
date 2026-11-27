@@ -20,6 +20,7 @@ Section = Literal[
 ]
 Origin = Literal["brief", "calculated", "architect", "proposal", "derived", "assumption"]
 DEFAULT_ORIGIN: Origin = "derived"
+ASSUMPTION_PREFIX = "Confirm with the client: "
 
 
 def _known_origin(value: object) -> object:
