@@ -23,6 +23,7 @@ import config
 from agents.registry import get_agent
 from domain.errors import BudgetUsedUp
 from llm.usage import cost_usd
+from schemas.common import FROM_MODEL
 from schemas.step import StepFlag, StepRecord, StepStatus, ToolCallRecord
 from tools.registry import TOOLS, ToolContext, ToolOutcome, run_tool
 
@@ -140,14 +141,35 @@ def extract_json(text: str) -> object | None:
     return value
 
 
-def parse_answer[T: BaseModel](text: str, schema: type[T]) -> T | None:
+def problem_list(error: ValidationError) -> list[str]:
+    """Where the reply broke the shape, for the retry message. Field paths and rule messages
+    only; the reply's own values are never repeated."""
+    problems = [".".join(str(part) for part in e["loc"]) + ": " + e["msg"] for e in error.errors()]
+    return problems[: config.MAX_REPLY_PROBLEMS]
+
+
+def parse_answer[T: BaseModel](text: str, schema: type[T]) -> tuple[T | None, list[str]]:
+    """Check a model's reply. FROM_MODEL turns on the count and length rules of the answer
+    shapes, which code-built objects and the stored run state do not have to meet."""
     value = extract_json(text)
     if not isinstance(value, dict):
-        return None
+        return None, []
     try:
-        return schema.model_validate(value)
-    except ValidationError:
-        return None
+        return schema.model_validate(value, context={FROM_MODEL: True}), []
+    except ValidationError as error:
+        return None, problem_list(error)
+
+
+def reminder(problems: list[str]) -> dict[str, Any]:
+    content = JSON_REMINDER if not problems else f"{JSON_REMINDER} Fix: {'; '.join(problems)}."
+    return {"role": "user", "content": content}
+
+
+def with_reminder(messages: list[dict[str, Any]], problems: list[str]) -> list[dict[str, Any]]:
+    """One reminder at a time: a newer one replaces the last, so retries do not pile up."""
+    last = messages[-1] if messages else {}
+    keep = messages[:-1] if str(last.get("content", "")).startswith(JSON_REMINDER) else messages
+    return [*keep, reminder(problems)]
 
 
 def tool_message(call: ToolCall, outcome: ToolOutcome) -> dict[str, Any]:
@@ -245,14 +267,13 @@ async def answer_loop[T: BaseModel](
             state.cap *= config.TRUNCATION_CAP_FACTOR
             state.flag("retried")
             continue
-        answer = parse_answer(reply.content, schema)
+        answer, problems = parse_answer(reply.content, schema)
         if answer is not None:
             return answer, "retried" if "retried" in state.flags else "ok"
         json_failures += 1
         if json_failures > config.JSON_RETRIES:
             return None, "skipped"
-        if json_failures == 1:
-            messages = [*messages, {"role": "user", "content": JSON_REMINDER}]
+        messages = with_reminder(messages, problems)
         state.flag("retried")
 
 

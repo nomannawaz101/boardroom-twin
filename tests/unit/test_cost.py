@@ -71,7 +71,6 @@ def test_effort_comes_from_the_delivery_manager_renumbered_by_code() -> None:
         {
             "phases": [
                 {"no": 5, "engineers": 2, "weeks": 2},
-                {"no": 9, "engineers": 0, "weeks": 1},
                 {"no": 7, "engineers": 1, "weeks": 3},
             ]
         }

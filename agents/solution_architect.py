@@ -2,6 +2,7 @@
 
 from agents.common import dump, inputs_block, plural, system_prompt, with_text
 from agents.registry import passed_line, received_line
+from config import SA_PARTS, SA_PHASES
 from llm.client import AgentResult, Runtime, run_agent
 from schemas.answers import SolutionArchitectAnswer
 from schemas.case_file import CaseFile
@@ -12,9 +13,16 @@ AGENT_ID = "solution_architect"
 
 async def run(case_file: CaseFile, runtime: Runtime) -> AgentResult[SolutionArchitectAnswer]:
     user = inputs_block({"case_file": dump(case_file)})
+    system = system_prompt(
+        AGENT_ID,
+        min_parts=SA_PARTS[0],
+        max_parts=SA_PARTS[1],
+        min_phases=SA_PHASES[0],
+        max_phases=SA_PHASES[1],
+    )
     return await run_agent(
         AGENT_ID,
-        system_prompt(AGENT_ID),
+        system,
         user,
         SolutionArchitectAnswer,
         runtime=runtime,

@@ -82,6 +82,7 @@ RATE_LIMIT_BASE_WAIT_S = 2.0  # doubles on each retry
 MODEL_ERROR_RETRIES = 1  # on the routed model, before one last try on the fast model
 MODEL_ERROR_BASE_WAIT_S = 1.0
 MAX_TOOL_ROUNDS = 5
+MAX_REPLY_PROBLEMS = 5  # shape problems named in the retry message
 
 # --- Prices in USD per million tokens (plan section 9.1, published 27 Nov 2026). Placeholders:
 # the gateway's own spend figure is the truth. ---
@@ -139,7 +140,12 @@ DEFAULT_CURRENCY = "USD"
 # --- Proposal drafting (plan sections 7.2 and 8). ---
 PROPOSAL_SECTION_COUNT = 9
 CLAIM_MAX_WORDS = 20
-PM_TARGET_CLAIMS = (12, 24)  # asked of the Proposal Manager; code caps the list at LIST_CAP_LONG
+# (minimum, maximum) asked in each prompt. A reply below the minimum fails its check and is
+# retried; a reply above the maximum is cut to it, like every other capped list.
+SA_PARTS = (2, 5)
+SA_PHASES = (1, 3)
+DM_MIN_PHASES = 1
+PM_TARGET_CLAIMS = (10, 24)  # live Gemini drafts held 9 to 14 claims (Phase 2 gate)
 
 
 def run_mode() -> RunMode:

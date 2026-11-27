@@ -53,6 +53,11 @@ SIZING = {
     "start": "2026-12-07",
     "notes": "Matches the planned team.",
 }
+# Neutral recommendations that pad a draft to the Proposal Manager's minimum claim count.
+PLAIN_CLAIMS = [
+    {"section": section, "text": f"A plain {section} recommendation.", "origin": "proposal"}
+    for section in ("proposed_solution", "scope", "scope", "risks", "next_steps")
+]
 CLAIMS = {
     "claims": [
         {
@@ -74,6 +79,7 @@ CLAIMS = {
         },
         {"section": "risks", "text": "Saves $90,000 a year.", "origin": "proposal"},
         {"section": "team_cost", "text": "Costs $1.", "origin": "calculated"},
+        *PLAIN_CLAIMS,
     ]
 }
 
@@ -309,3 +315,52 @@ def test_not_a_brief_with_null_lists_still_stops_cleanly(scripted: Scripted) -> 
     body = client.post("/api/discover", json=form(briefs.NOT_A_BRIEF)).json()
     assert body["error"] == "not_a_brief"
     assert len(model.requests) == 1
+
+
+# --- Board composer through the Business Analyst (Harbor Freight, plan Appendix B) ---
+
+HARBOR_FORM = {"client": "Harbor Freight Logistics", "country": "United States"}
+
+
+def harbor_case(**flags: object) -> dict[str, Any]:
+    base = {"personal_data": False, "contract_type": "tm", "function": "Support Operations"}
+    return {"is_brief": True, "flags": base | flags}
+
+
+def test_harbor_with_no_existing_systems_gets_exactly_three_seats(scripted: Scripted) -> None:
+    scripted.load([reply_json(harbor_case(existing_systems=False))])
+    body = client.post("/api/discover", json=form(briefs.HARBOR_FREIGHT, **HARBOR_FORM)).json()
+    assert [s["id"] for s in body["board_plan"]["seats"]] == ["cfo", "vp_director", "procurement"]
+
+
+def test_harbor_with_unclear_flags_adds_architect_and_security(scripted: Scripted) -> None:
+    scripted.load([reply_json(harbor_case(existing_systems=None, personal_data=None))])
+    body = client.post("/api/discover", json=form(briefs.HARBOR_FREIGHT, **HARBOR_FORM)).json()
+    assert [s["id"] for s in body["board_plan"]["seats"]] == [
+        "cfo",
+        "vp_director",
+        "enterprise_architect",
+        "procurement",
+        "security",
+    ]
+
+
+# --- Answer shapes enforced through the stage ---
+
+
+def test_a_one_part_design_is_retried_then_defaulted_and_flagged(scripted: Scripted) -> None:
+    state = state_from(discover_northwind(scripted))
+    one_part = DESIGN | {"parts": DESIGN["parts"][:1]}
+    tool_args = {"phases": [{"no": 1, "people": 2, "days": 10}], "rate": 600}
+    script: list[FakeStep] = [reply_json(one_part)] * 4
+    script += [reply_tool("cost_calculator", tool_args), reply_json(SIZING), reply_json(CLAIMS)]
+    model = scripted.load(script)
+    body = client.post("/api/draft", json=state).json()
+    architect = body["steps"][0]
+    assert architect["status"] == "skipped" and "skipped" in architect["flags"]
+    assert architect["attempts"] == 4
+    assert body["design"]["parts"] == []
+    assert (
+        "parts: Value error, needs at least 2 items, got 1"
+        in (model.requests[1].messages[-1]["content"])
+    )

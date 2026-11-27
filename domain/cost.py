@@ -57,12 +57,14 @@ def estimate_cost(efforts: list[PhaseEffort], day_rate: float, currency: str) ->
 
 
 def choose_efforts(answer: DeliveryManagerAnswer, team: Team | None) -> list[PhaseEffort]:
-    """Usable phases from the Delivery Manager, numbered by code; else the brief's own team."""
-    usable = [p for p in answer.phases if p.engineers > 0 and p.weeks > 0]
-    if usable:
+    """The Delivery Manager's phases, numbered by code; else the brief's own team.
+
+    The answer's checks already refuse zero engineers or weeks, so every phase can be priced.
+    """
+    if answer.phases:
         return [
             PhaseEffort(no=i, engineers=p.engineers, weeks=p.weeks)
-            for i, p in enumerate(usable, start=1)
+            for i, p in enumerate(answer.phases, start=1)
         ]
     if team is not None and team.engineers > 0 and team.weeks > 0:
         return [PhaseEffort(no=1, engineers=team.engineers, weeks=team.weeks)]
