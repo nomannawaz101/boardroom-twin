@@ -13,6 +13,18 @@ from schemas.state import TrackerItem
 
 BLOCKING_OUTCOME = "blocked"
 REJECTED_VOTE = "rejected"
+# The words the page shows. Written once, here, by code.
+VOTE_WORDS = {
+    "approved": "Approved",
+    "yes_with_condition": "Yes, with a condition",
+    "rejected": "Rejected",
+}
+OUTCOME_WORDS = {
+    "pass": "Pass",
+    "pass_with_conditions": "Pass, with conditions",
+    "blocked": "Blocked",
+}
+NOT_REVIEWED_WORDS = "Not reviewed"
 
 
 def review_scoring(
@@ -41,6 +53,7 @@ def review_scoring(
         score=score,
         needed=needed,
         vote=vote,
+        decision=VOTE_WORDS[vote],
         condition=condition,
         quote=answer.quote.strip(),
     )
@@ -62,6 +75,7 @@ def review_gate(
         partial=gates.is_partial(items),
         items=items,
         outcome=outcome,
+        decision=OUTCOME_WORDS[outcome],
         quote=answer.quote.strip(),
     )
     return result, updated
@@ -76,6 +90,7 @@ def not_reviewed(seat: PlannedSeat) -> SeatResult:
         status="not_reviewed",
         able=False,
         needed=SEATS_BY_ID[seat.id].needed_score,
+        decision=NOT_REVIEWED_WORDS,
     )
 
 

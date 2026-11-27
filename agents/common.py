@@ -48,5 +48,6 @@ def with_text(step: StepRecord, summary: str, handoff_in: str, handoff_out: str)
     )
 
 
-def plural(count: int, word: str) -> str:
-    return f"{count} {word}" if count == 1 else f"{count} {word}s"
+def plural(count: int, word: str, many: str | None = None) -> str:
+    """'1 claim', '3 claims'; pass `many` for irregular words ('criterion', 'criteria')."""
+    return f"{count} {word}" if count == 1 else f"{count} {many or word + 's'}"

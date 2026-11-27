@@ -6,10 +6,11 @@ from pydantic import BaseModel
 
 from config import RunMode
 from schemas.answers import SolutionArchitectAnswer
-from schemas.board import BoardPlan
+from schemas.board import BoardPlan, BoardRound
 from schemas.case_file import BoardFlags, CaseFile, Signal
 from schemas.claims import Claim
 from schemas.cost import CostEstimate, PhaseEffort
+from schemas.state import TrackerItem
 from schemas.step import StepRecord
 from schemas.timeline import Schedule
 
@@ -31,6 +32,14 @@ class DiscoverResponse(BaseModel):
     flags: BoardFlags
     board_plan: BoardPlan
     ignored_signals: list[Signal]
+    steps: list[StepRecord]
+
+
+class BoardResponse(BaseModel):
+    """One board round, the objection tracker and the seat steps (plan section 7.1)."""
+
+    round: BoardRound
+    tracker: list[TrackerItem]
     steps: list[StepRecord]
 
 

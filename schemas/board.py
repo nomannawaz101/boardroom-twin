@@ -64,6 +64,7 @@ class SeatResult(BaseModel):
     vote: ScoringVote | None = None
     items: list[ChecklistResult] = []
     outcome: GateOutcome | None = None
+    decision: str = ""  # the vote or outcome in words, written by code
     condition: str | None = None
     quote: str = ""
 
