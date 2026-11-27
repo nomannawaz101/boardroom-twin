@@ -8,3 +8,4 @@ PLAN.md
 .pytest_cache/
 .ruff_cache/
 .vercel/
+.claude/settings.local.json

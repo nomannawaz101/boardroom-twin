@@ -12,7 +12,8 @@ A multi-agent proposal simulator: a proposal team drafts, a client board chosen 
 - Never log or print brief content, model output or environment values. AI text is rendered with `textContent` only.
 - Plain HTML, CSS and JavaScript with system fonts. No CDN, no framework.
 - Tests use the fake model and never call a real one.
-- Work on a branch per phase (`phase-N-name`); never push to `main` directly.
+- Work on a branch per phase (`phase-N-name`); never commit to `main`. Never push, merge or open pull requests: the owner reviews and pushes.
+- Commit messages are short and imperative, with no attribution trailers.
 
 ## Commands
 

@@ -9,5 +9,5 @@ A short record of each choice, including ones still unconfirmed.
 - **Secret scan private terms:** names that must never appear in the repo cannot be written into the scanner, so it reads them from `SECRET_SCAN_TERMS` in `.env.local` (laptop only). It also treats every `.env.local` value as a secret, and fails if `PLAN.md` or an env file is tracked. Findings name the file and rule, never the matched value.
 - **Pre-commit hook:** a plain git hook in `.git/hooks/pre-commit`; no extra library.
 - **pytest settings:** `pytest.ini` (not `pyproject.toml`, which Vercel's Python builder may read).
-- **Git flow:** first commit (`.gitignore`) on `main`; after that one branch per phase (`phase-N-name`), merged by pull request. `main` is never pushed to directly. Vercel builds previews from branches and production from `main`.
+- **Git flow:** first commit (`.gitignore`) on `main`; after that one branch per phase (`phase-N-name`). Only the owner pushes, opens pull requests and merges; development commits stay local until reviewed. Vercel builds previews from branches and production from `main`.
 - **Placeholders:** `MAX_OUT_DEFAULT = 2500` until measured (plan section 9.2). `CHECK_MAX_TOKENS = 1024` for the gateway check.
