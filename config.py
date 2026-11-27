@@ -22,7 +22,10 @@ RunMode = Literal["auto", "full", "lite", "sample"]
 DEFAULT_RUN_MODE: RunMode = "auto"
 
 # Extras are switched on in later phases (plan section 3); all off until built.
+# `risk_analyst` is core, not an extra: it stays off only until Phase 5 builds it, so handoff
+# lines never name an agent that did not run.
 FEATURES: dict[str, bool] = {
+    "risk_analyst": False,
     "qa_reviewer": False,
     "run_details": False,
     "upload": False,
@@ -131,6 +134,12 @@ LIST_CAP_MEDIUM = 12
 LIST_CAP_LONG = 40
 
 CURRENCY_SYMBOLS: dict[str, str] = {"USD": "$", "EUR": "€", "GBP": "£"}
+DEFAULT_CURRENCY = "USD"
+
+# --- Proposal drafting (plan sections 7.2 and 8). ---
+PROPOSAL_SECTION_COUNT = 9
+CLAIM_MAX_WORDS = 20
+PM_TARGET_CLAIMS = (12, 24)  # asked of the Proposal Manager; code caps the list at LIST_CAP_LONG
 
 
 def run_mode() -> RunMode:
