@@ -17,6 +17,12 @@ from schemas.timeline import Schedule
 
 CLAIM_PREFIX = "C"
 ASSUMPTION_PREFIX = "Confirm with the client: "
+# The on-screen tags (plan section 7.2). Recommendations carry no tag.
+ORIGIN_TAGS: dict[str, str] = {
+    "brief": "FROM BRIEF",
+    "calculated": "CALCULATED",
+    "assumption": "TO CONFIRM",
+}
 COST_SECTION: Section = "team_cost"
 TIMELINE_SECTION: Section = "timeline"
 DEFAULT_ADD_SECTION: Section = "proposed_solution"

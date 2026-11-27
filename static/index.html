@@ -177,6 +177,30 @@
     <section class="card proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
   </main>
 
+  <main class="wrap main" id="view-board" hidden>
+    <section class="stage-head">
+      <div class="stage-intro">
+        <span class="num eyebrow">STAGE 3 OF 5 · BOARD ROUND 1</span>
+        <h1 id="board-title">The client's board is reviewing draft 1</h1>
+        <p id="board-intro">Code picked the board from the brief. Every seat reviews the draft at the same time, and code turns their answers into votes.</p>
+      </div>
+      <div class="stat-chips" id="board-stats"></div>
+    </section>
+    <section class="card plan-card" id="board-plan" aria-labelledby="plan-h"></section>
+    <div id="board-status"></div>
+    <section class="board-block" id="score-block" aria-labelledby="scores-h" hidden>
+      <div class="block-head"><h2 id="scores-h">Round 1 · scores</h2><span class="muted small">Ran at the same time · the tick on each bar is the score needed</span></div>
+      <div class="seat-grid" id="score-cards"></div>
+      <p class="code-note"><strong>Decided by code, not AI:</strong> score = sum of rating × weight. Below the needed score → Rejected. At or above it with anything still open → Yes, with a condition. Otherwise → Approved.</p>
+    </section>
+    <section class="board-block" id="gate-block" aria-labelledby="gates-h" hidden>
+      <div class="block-head"><h2 id="gates-h">Round 1 · gates</h2><span class="muted small">Gatekeepers answer three checklist questions. They do not give a score.</span></div>
+      <div class="seat-grid gates" id="gate-cards"></div>
+      <p class="code-note"><strong>Decided by code, not AI:</strong> "Not met" on a must-have → Blocked. Any "Partly", or "Not met" on another item → Pass, with conditions. All "Met" → Pass.</p>
+    </section>
+    <section class="card log-card" id="objections" aria-labelledby="obj-h" hidden></section>
+  </main>
+
   <footer class="site-footer">
     <div class="wrap footer-row">
       <span>Lumen Works is a fictional firm. All client names and briefs are made up.</span>

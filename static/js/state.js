@@ -14,13 +14,15 @@ export const run = {
 };
 
 export function startRun(discovered) {
-  run.data = { ...discovered, claims: [], draft_no: 0 };
+  run.data = { ...discovered, claims: [], draft_no: 0, rounds: [], tracker: [] };
 }
 
 export function addDraft(drafted) {
   run.data = {
     ...run.data,
     ...drafted,
+    rounds: [],
+    tracker: [],
     steps: [...run.data.steps.filter((s) => s.stage < 2), ...drafted.steps],
   };
 }
@@ -35,4 +37,31 @@ export function stateForServer() {
 
 export function hasDraft() {
   return Boolean(run.data && run.data.draft_no > 0);
+}
+
+export function addBoard(board) {
+  run.data = {
+    ...run.data,
+    rounds: [board.round],
+    tracker: board.tracker,
+    verdict: board.verdict.code,
+    verdictLabel: board.verdict,
+    steps: [...run.data.steps.filter((s) => s.stage < 3), ...board.steps],
+  };
+}
+
+export function addRetriedSeat(board) {
+  const step = board.steps[0];
+  run.data = {
+    ...run.data,
+    rounds: [...run.data.rounds.slice(0, -1), board.round],
+    tracker: board.tracker,
+    verdict: board.verdict.code,
+    verdictLabel: board.verdict,
+    steps: run.data.steps.map((s) => (s.agent === step.agent ? step : s)),
+  };
+}
+
+export function hasBoard() {
+  return Boolean(run.data && run.data.rounds && run.data.rounds.length > 0);
 }

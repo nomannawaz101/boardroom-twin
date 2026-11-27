@@ -1,3 +1,4 @@
+import re
 from typing import Any
 
 from pydantic import AfterValidator, BeforeValidator, ValidationInfo
@@ -5,6 +6,9 @@ from pydantic import AfterValidator, BeforeValidator, ValidationInfo
 # run_agent validates a model's reply with this context key set. Count and length rules apply
 # only then, so code-built objects and the run state (including a safe default) stay valid.
 FROM_MODEL = "from_model"
+# run_agent also passes this key for a gate seat: the checklist the answer must cover.
+REQUIRED_ITEMS = "required_items"
+NOT_WORD = re.compile(r"[^a-z0-9]+")
 
 
 def capped(limit: int) -> BeforeValidator:
@@ -52,3 +56,8 @@ def max_words(limit: int) -> AfterValidator:
         return value
 
     return AfterValidator(check)
+
+
+def match_key(text: str) -> str:
+    """Match "cost_clarity", "Cost clarity" and "cost-clarity" to the same criterion or item."""
+    return NOT_WORD.sub("_", text.lower()).strip("_")

@@ -10,7 +10,7 @@ from fastapi.staticfiles import StaticFiles
 
 import config
 from domain.errors import AppError, InputBlocked, StepFailed
-from routers import discover, draft, health, version
+from routers import board, discover, draft, health, version
 
 STATIC_DIR = config.PROJECT_ROOT / "static"
 BAD_SHAPE = "The request was not in the expected shape. Please start again from the brief."
@@ -18,7 +18,7 @@ BAD_SHAPE = "The request was not in the expected shape. Please start again from 
 log = logging.getLogger("boardroom")
 
 app = FastAPI(title=config.APP_NAME, version=config.APP_VERSION)
-for module in (health, version, discover, draft):
+for module in (health, version, discover, draft, board):
     app.include_router(module.router)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
 
