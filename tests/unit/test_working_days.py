@@ -1,6 +1,6 @@
 from datetime import date
 
-from tools import working_days
+from domain import timeline as working_days
 
 
 def test_two_full_weeks_have_ten_working_days() -> None:
