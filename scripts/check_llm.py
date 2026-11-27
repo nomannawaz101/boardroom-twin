@@ -9,6 +9,7 @@ import logging
 import os
 import sys
 from collections.abc import Callable
+from datetime import date
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
@@ -17,12 +18,15 @@ from openai import OpenAI  # noqa: E402
 
 import config  # noqa: E402
 from tools import working_days  # noqa: E402
+from tools.registry import ToolContext, run_tool  # noqa: E402
 
 log = logging.getLogger("check_llm")
 
 TOOL_START = "2026-12-07"
 TOOL_END = "2026-12-18"
-TOOL_EXPECTED = working_days.run(TOOL_START, TOOL_END)["working_days"]
+TOOL_EXPECTED = working_days.count_working_days(
+    date.fromisoformat(TOOL_START), date.fromisoformat(TOOL_END)
+)
 
 
 class CheckFailed(Exception):
@@ -90,7 +94,10 @@ def check_tool_round_trip(client: OpenAI, model: str) -> None:
     calls = first.choices[0].message.tool_calls or []
     if not calls or calls[0].function.name != working_days.NAME:
         raise CheckFailed("model did not choose the working days tool")
-    result = working_days.run(**json.loads(calls[0].function.arguments))
+    outcome = run_tool(calls[0].function.name, calls[0].function.arguments, ToolContext())
+    if not outcome.ok:
+        raise CheckFailed("model sent tool arguments the tool could not use")
+    result = outcome.result
     messages.append(first.choices[0].message.model_dump(exclude_none=True))
     # Tool output goes back as data, never as instructions.
     messages.append({"role": "tool", "tool_call_id": calls[0].id, "content": json.dumps(result)})
