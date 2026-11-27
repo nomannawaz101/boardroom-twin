@@ -326,6 +326,10 @@ export function stats(steps) {
   return [
     h("span", {}, `${steps.length} agents`),
     h("span", {}, `${tools} tool ${tools === 1 ? "call" : "calls"}`),
-    h("span", { class: "num" }, `${Math.round(ms / 1000)} s · $${cost.toFixed(2)}`),
+    h(
+      "span",
+      { class: "num", title: "Estimated from token counts at list prices. It is not a bill." },
+      `${Math.round(ms / 1000)} s · $${cost.toFixed(2)} est.`,
+    ),
   ];
 }

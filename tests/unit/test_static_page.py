@@ -44,3 +44,8 @@ def test_sample_buttons_carry_the_appendix_b_briefs_and_valid_countries() -> Non
     samples = json.loads((STATIC / "sample" / "briefs.json").read_text(encoding="utf-8"))
     assert [s["brief"] for s in samples] == list(briefs.SAMPLE_BRIEFS)
     assert all(s["country"] in config.COUNTRIES for s in samples)
+
+
+def test_stage_cost_is_labelled_as_an_estimate() -> None:
+    render_js = (STATIC / "js" / "render.js").read_text(encoding="utf-8")
+    assert "toFixed(2)} est.`" in render_js
