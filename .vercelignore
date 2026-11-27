@@ -1,0 +1,10 @@
+tests/
+docs/
+design/
+scripts/
+PLAN.md
+.venv/
+.env*
+requirements-dev.txt
+ruff.toml
+pytest.ini

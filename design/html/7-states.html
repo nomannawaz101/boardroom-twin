@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Fallbacks and states</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.cap{font-size:11.5px;font-weight:700;letter-spacing:.06em;color:#5D6675}
+.btn{display:inline-flex;align-items:center;justify-content:center;min-height:44px;padding:0 16px;border-radius:10px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;text-decoration:none}
+.tool{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 10px;padding:9px 12px;border-radius:8px;background:#F7F8FA;border:1px solid #E4E7EC;font-size:13.5px}
+.row{display:flex;align-items:center;gap:10px;font-size:14px;padding:6px 0}
+.ic{width:22px;height:22px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+.msg{margin:0;font-size:14px;line-height:1.5;border-radius:8px;padding:10px 12px}
+.m-err{background:#FDECEA;color:#8C1D13}
+.m-warn{background:#FEF3E2;color:#8A3B12}
+.m-info{background:#F7F8FA;border:1px solid #E4E7EC;color:#344054}
+.note{font-size:13px;color:#5D6675}
+.banner{display:flex;flex-wrap:wrap;align-items:center;gap:8px;border-radius:8px;padding:9px 12px;font-size:13.5px}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">Fallbacks and states</span>
+      </div>
+      <a href="Main.dc.html" style="color: #FFFFFF; font-size: 14px; min-height: 44px; display: inline-flex; align-items: center">← Start</a>
+    </div>
+  </header>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 32px 24px 56px; display: flex; flex-direction: column; gap: 20px">
+    <section style="display: flex; flex-direction: column; gap: 6px; max-width: 740px">
+      <h1 style="margin: 0; font-size: 26px">Nothing crashes: every failure has a fallback</h1>
+      <p style="margin: 0; font-size: 15.5px; color: #475467; line-height: 1.5">These are the screens and messages for each case, so the app stays usable through judging. Problems with the input are caught by code before any AI call is spent.</p>
+    </section>
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(330px, 1fr)); gap: 16px">
+
+      <section class="card" aria-labelledby="s1" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">RUN MODES</span>
+        <h2 id="s1" style="margin: 0; font-size: 17px">The mode is always visible</h2>
+        <div class="banner" style="background: #E3F4EA; color: #0B6B3A"><strong>Full mode</strong><span>Sonnet and Haiku, up to 2 revision rounds</span></div>
+        <div class="banner" style="background: #FEF0D7; color: #8A4B06"><strong>Lite mode</strong><span>All Haiku, 1 revision round. Used to save budget.</span></div>
+        <div class="banner" style="background: #FFD66B; color: #101828"><strong>Sample run</strong><span>A recorded real run. No AI calls.</span></div>
+        <span class="note">Code picks the mode from the settings and the budget left. It moves down a step by itself, never up.</span>
+      </section>
+
+      <section class="card" aria-labelledby="s2" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">WHILE A STAGE RUNS</span>
+        <h2 id="s2" style="margin: 0; font-size: 17px">Live progress, one agent at a time</h2>
+        <div>
+          <div class="row"><span class="ic" style="background: #E3F4EA; color: #0B6B3A">✓</span>Business Analyst<span class="num" style="margin-left: auto; color: #5D6675; font-size: 12.5px">3.1 s</span></div>
+          <div class="row"><span class="ic" style="background: #E3F4EA; color: #0B6B3A">✓</span>Solution Architect<span class="num" style="margin-left: auto; color: #5D6675; font-size: 12.5px">7.4 s</span></div>
+          <div class="row" style="font-weight: 600; color: #36238A"><span class="ic" style="background: #EFEBFC; color: #36238A">•</span>Risk &amp; Compliance Analyst is checking public holidays…</div>
+          <div class="row" style="font-weight: 600; color: #36238A"><span class="ic" style="background: #EFEBFC; color: #36238A">•</span>Delivery Manager is running the cost calculator…</div>
+          <div class="row" style="color: #5D6675"><span class="ic" style="background: #EEF1F6"></span>Proposal Manager</div>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="s3" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">BUDGET USED UP</span>
+        <h2 id="s3" style="margin: 0; font-size: 17px">Live runs paused, sample run instead</h2>
+        <p class="msg m-warn">Live runs are paused right now. Here is a recorded run on Claude, with every agent's real output.</p>
+        <a class="btn" href="Team.dc.html" style="background: #5B3CC4; color: #FFFFFF; align-self: flex-start">Watch the sample run</a>
+      </section>
+
+      <section class="card" aria-labelledby="s4" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">BUSY OR RATE-LIMITED</span>
+        <h2 id="s4" style="margin: 0; font-size: 17px">Waits and retries by itself</h2>
+        <div class="tool"><span style="font-weight: 600">Enterprise Architect</span><span>The AI service is busy.</span><span class="num" style="margin-left: auto">Retrying in 10 s · try 2 of 5</span></div>
+        <span class="note">If Sonnet keeps failing, the same step is tried once on Haiku and the card says so.</span>
+      </section>
+
+      <section class="card" aria-labelledby="s5" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">PUBLIC API DOWN</span>
+        <h2 id="s5" style="margin: 0; font-size: 17px">The agent carries on without it</h2>
+        <div class="tool"><span style="font-weight: 600">Public holidays</span><span style="color: #8A3B12">Unavailable (no answer in 5 s)</span><span style="margin-left: auto">Carried on without it</span></div>
+        <span class="note">The proposal then lists "check local holidays" under Assumptions.</span>
+      </section>
+
+      <section class="card" aria-labelledby="s6" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">TOOL CHOICE NOT AVAILABLE</span>
+        <h2 id="s6" style="margin: 0; font-size: 17px">Tools run in a fixed order</h2>
+        <p class="msg m-info">The model can't choose tools right now, so the Risk &amp; Compliance Analyst's tools ran in a fixed order. The card says so.</p>
+      </section>
+
+      <section class="card" aria-labelledby="s7" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">A STAGE FAILED</span>
+        <h2 id="s7" style="margin: 0; font-size: 17px">Retry only that step</h2>
+        <p class="msg" style="background: #FFFFFF; padding: 0">The Bid Manager couldn't finish. Earlier stages are kept; nothing else is lost.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 8px">
+          <button class="btn" type="button" style="background: #5B3CC4; color: #FFFFFF; border: 0">Retry this step</button>
+          <a class="btn" href="Report.dc.html" style="background: #FFFFFF; color: #344054; border: 1px solid #C9CED8">Show report so far</a>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="s8" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">ONE BOARD SEAT FAILED</span>
+        <h2 id="s8" style="margin: 0; font-size: 17px">Scoring seat or gate seat</h2>
+        <p class="msg m-info"><strong>Scoring seat.</strong> The Enterprise Architect couldn't answer, so it is shown as "not reviewed". The other seats' votes still count. The verdict is Review incomplete, unless a seat has already rejected or blocked.</p>
+        <p class="msg m-warn"><strong>Gate seat.</strong> The Security Officer couldn't answer, so security is "not reviewed". Until it is, the verdict is Review incomplete, never Approved.</p>
+        <button class="btn" type="button" style="background: #FFFFFF; color: #36238A; border: 1.5px solid #5B3CC4; align-self: flex-start">Retry this seat</button>
+      </section>
+
+      <section class="card" aria-labelledby="s8b" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">VERDICT WHEN A SEAT DID NOT ANSWER</span>
+        <h2 id="s8b" style="margin: 0; font-size: 17px">Review incomplete</h2>
+        <p class="msg m-warn"><strong>Review incomplete.</strong> The Security Officer did not answer after 2 tries. The other 4 seats answered. Retry that seat before relying on this result.</p>
+        <p class="msg m-info">If any seat has already rejected or blocked the proposal, the verdict stays <strong>Not ready yet</strong>. A failed call never hides a known result.</p>
+        <button class="btn" type="button" style="background: #FFFFFF; color: #36238A; border: 1.5px solid #5B3CC4; align-self: flex-start">Retry this seat</button>
+      </section>
+
+      <section class="card" aria-labelledby="s9" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">QA REVIEWER FAILED</span>
+        <h2 id="s9" style="margin: 0; font-size: 17px">New statements stay marked "to confirm"</h2>
+        <p class="msg m-info">The QA Reviewer couldn't check this round. New statements are labelled "unchecked" and keep the TO CONFIRM tag, so nothing unverified reads as fact.</p>
+      </section>
+
+      <section class="card" aria-labelledby="s10" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">INPUT CHECKS (CODE, BEFORE ANY AI CALL)</span>
+        <h2 id="s10" style="margin: 0; font-size: 17px">Clear reason, clear next step</h2>
+        <p class="msg m-err"><strong>Looks like real personal data.</strong> The text contains an email address and a phone number. Replace them with made-up ones to continue.</p>
+        <p class="msg m-warn"><strong>Instructions aimed at an AI.</strong> The text says "ignore your rules". It is treated as part of the brief and not obeyed. <a href="#">Continue</a></p>
+        <p class="msg m-err"><strong>This doesn't look like a client brief.</strong> Describe what the client wants, what it costs and when, or try a sample brief.</p>
+        <p class="msg m-err"><strong>Too long.</strong> Your text has 18,420 characters. The limit is 15,000, about 5 pages. Paste the relevant part.</p>
+      </section>
+
+      <section class="card" aria-labelledby="s11" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">UPLOAD PROBLEMS</span>
+        <h2 id="s11" style="margin: 0; font-size: 17px">Every file problem has a plain message</h2>
+        <p class="msg m-err">This PDF has no readable text (it looks scanned). Paste the text into the form instead.</p>
+        <p class="msg m-err">The file is 5.1 MB. The limit is 3.5 MB; try a shorter version.</p>
+        <p class="msg m-err">Old Word files (.doc) aren't supported. Save it as .docx, or paste the text.</p>
+        <p class="msg m-err">This PDF is password-protected. Remove the password, or paste the text.</p>
+        <p class="msg m-warn">Your document has 31,000 characters. The first 15,000 (about 5 pages) are in the box. Edit it, or paste the part you need.</p>
+      </section>
+
+      <section class="card" aria-labelledby="s12" style="padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <span class="cap">LIVE RUN PROTECTION</span>
+        <h2 id="s12" style="margin: 0; font-size: 17px">Passcode and run limit</h2>
+        <label for="pc" style="font-size: 13px; font-weight: 600; color: #344054">Passcode for live runs</label>
+        <input id="pc" type="password" value="wrong" aria-describedby="pc-err" style="min-height: 44px; box-sizing: border-box; padding: 0 12px; font: inherit; border: 1.5px solid #B42318; border-radius: 8px">
+        <span id="pc-err" style="font-size: 13px; color: #B42318">That passcode didn't match. The sample run is always free to watch.</span>
+        <p class="msg m-info">Live runs left in this browser: <strong class="num">2 of 3</strong>. After that, the sample run is still free.</p>
+      </section>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1940}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Final report</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.step{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:13.5px;text-decoration:none;color:#475467}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.ok{font-size:12.5px;font-weight:700;color:#0B6B3A;background:#E3F4EA;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.cond{font-size:12.5px;font-weight:700;color:#8A4B06;background:#FEF0D7;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.m-haiku{font-size:11.5px;font-weight:600;color:#344054;background:#EEF1F6;padding:2px 8px;border-radius:999px}
+.tag{font-size:11px;font-weight:700;letter-spacing:.03em;padding:1px 6px;border-radius:4px;white-space:nowrap}
+.t-brief{color:#1D4F91;background:#E8F1FD}
+.t-calc{color:#0B6B3A;background:#E3F4EA}
+.t-conf{color:#8A4B06;background:#FEF0D7}
+.sec{display:grid;grid-template-columns:minmax(0,190px) minmax(0,1fr);gap:6px 24px;padding:16px 0;border-top:1px solid #EEF1F6}
+.sec h3{margin:0;font-size:14.5px;color:#344054}
+.sec p,.sec ul{margin:0;font-size:14.5px;line-height:1.6}
+.sec ul{padding-left:18px}
+th,td{text-align:left;padding:10px 12px;border-bottom:1px solid #EEF1F6;font-size:14px;vertical-align:top}
+th{font-size:12.5px;color:#5D6675;font-weight:600;background:#FAFBFC}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:44px;padding:0 16px;border-radius:10px;font:inherit;font-size:14.5px;font-weight:600;cursor:pointer;text-decoration:none}
+.gl{display:grid;grid-template-columns:minmax(120px,210px) minmax(0,1fr);gap:10px;align-items:center;font-size:12.5px;padding:3px 0}
+.gt{position:relative;height:14px;background:#F2F4F7;border-radius:4px}
+.gb{position:absolute;top:0;bottom:0;border-radius:4px}
+.gs{background:#8C70E6}.gh{background:#98A2B3}.gx{background:linear-gradient(90deg,#8C70E6 70%,#98A2B3 70%)}
+.chg2{display:flex;gap:10px;padding:8px 0;border-top:1px solid #EEF1F6;font-size:14px;line-height:1.5}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">Northwind Insurance · Claim status page</span>
+      </div>
+      <span style="font-size: 12.5px; color: #101828; background: #FFD66B; padding: 4px 10px; border-radius: 999px; font-weight: 600">Sample run</span>
+    </div>
+  </header>
+  <nav aria-label="Run stages" style="background: #FFFFFF; border-bottom: 1px solid #E4E7EC">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="step" href="Main.dc.html"><span class="num">1</span> Brief ✓</a>
+      <a class="step" href="Team.dc.html"><span class="num">2</span> Proposal team ✓</a>
+      <a class="step" href="Board.dc.html"><span class="num">3</span> Client board ✓</a>
+      <a class="step" href="Revision.dc.html"><span class="num">4</span> Revisions ✓</a>
+      <a class="step" href="Report.dc.html" aria-current="step" style="background: #EFEBFC; color: #36238A; font-weight: 600"><span class="num">5</span> Report</a>
+    </div>
+  </nav>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 32px 24px 56px; display: flex; flex-direction: column; gap: 22px">
+    <section aria-labelledby="verdict-h" style="border-radius: 14px; background: #0E3B2A; color: #FFFFFF; padding: 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px">
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 660px">
+        <span class="num" style="font-size: 12px; font-weight: 700; color: #9FE3BE">VERDICT</span>
+        <h1 id="verdict-h" style="margin: 0; font-size: 30px; line-height: 1.2">Approved with conditions</h1>
+        <span class="num" style="font-size: 15.5px; color: #FFFFFF; font-weight: 600">Draft 1 scored 6.2. After 2 revision rounds it scored 8.0.</span>
+        <span style="font-size: 15.5px; color: #D3EFE0; line-height: 1.5">All five board seats can proceed. Confirm two things with Northwind before the meeting: Phase 2 funding, and their data-retention rule.</span>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 8px">
+        <button class="btn" type="button" style="background: #FFFFFF; color: #0E3B2A; border: 0">Print or save as PDF</button>
+        <button class="btn" type="button" style="background: transparent; color: #FFFFFF; border: 1.5px solid #9FE3BE">Download this run</button>
+      </div>
+    </section>
+
+    <section aria-label="Key numbers" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px">
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5D6675">Average score, scoring seats</span><span class="num" style="font-size: 26px; font-weight: 700">6.2 → 8.0</span><span style="font-size: 12.5px; color: #5D6675">CFO, VP, Enterprise Architect</span></div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5D6675">Objections fixed</span><span class="num" style="font-size: 26px; font-weight: 700">6 of 6</span><span style="font-size: 12.5px; color: #8A4B06">+2 conditions to confirm</span></div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5D6675">Phase 1 cost</span><span class="num" style="font-size: 26px; font-weight: 700">$12,000</span><span class="num" style="font-size: 12.5px; color: #5D6675">≈ €11,050 · Phase 2 optional</span></div>
+      <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 13px; color: #5D6675">Go-live</span><span class="num" style="font-size: 26px; font-weight: 700">Jan 18, 2027</span><span style="font-size: 12.5px; color: #5D6675">After holidays and the claim peak</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="chg-h" style="padding: 18px 22px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; padding-bottom: 8px"><h2 id="chg-h" style="margin: 0; font-size: 18px">What changed since draft 1</h2><span style="font-size: 13px; color: #5D6675">Each change answers one objection</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O1</span><span>One payment of $24,000 became two phases: Phase 1 at $12,000, Phase 2 optional.</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O2</span><span>The page reads a read-only copy, so it never calls the live claims system.</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O3</span><span>Added a one-minute switch-off for rollback.</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O4</span><span>Go-live moved from Jan 5 to Jan 18, after the early-January peak.</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O5</span><span>Added written change requests and phase-by-phase acceptance.</span></div>
+      <div class="chg2"><span class="num" style="font-weight: 700; width: 24px">O6</span><span>The page shows only status; access needs the claim number and a secure link.</span></div>
+    </section>
+
+    <section class="card" aria-labelledby="prop-h" style="padding: 20px 24px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: baseline; gap: 8px; padding-bottom: 12px">
+        <div style="display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12.5px; color: #5D6675">Proposal · final version (draft 3)</span><h2 id="prop-h" style="margin: 0; font-size: 21px">Online claim status page for Northwind Insurance</h2></div>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: #5D6675">Tags: <span class="tag t-brief">FROM BRIEF</span><span class="tag t-calc">CALCULATED</span><span class="tag t-conf">TO CONFIRM</span></div>
+      </div>
+      <div class="sec"><h3>1. Executive summary</h3><p>A self-service page where customers check their claim status any time, cutting status calls to the contact centre. Delivered in two phases; Phase 1 alone delivers the main benefit for <span class="num">$12,000</span> <span class="tag t-calc">CALCULATED</span>.</p></div>
+      <div class="sec"><h3>2. Client situation</h3><ul><li>Customers phone to ask where their claim is <span class="tag t-brief">FROM BRIEF</span></li><li>Tight budget this year; six-hour claims outage last month <span class="tag t-brief">FROM BRIEF</span></li></ul></div>
+      <div class="sec"><h3>3. Proposed solution</h3><p>Status page reading a read-only copy of claim data, refreshed every 15 minutes. No load on the live claims system. A claim opens only with the claim number and a secure link, and the page shows status steps and the expected payment date only. One switch turns the page off within a minute.</p></div>
+      <div class="sec"><h3>4. Scope</h3><ul><li><strong>In:</strong> claim lookup, status steps, expected payment date, secure link</li><li><strong>Out:</strong> changes to the claims system, mobile app, live chat</li></ul></div>
+      <div class="sec"><h3>5. Timeline</h3><ul><li class="num">Phase 1 build: Dec 7 – Dec 18, 2026</li><li class="num">Holiday freeze: Dec 21 – Jan 15 (holidays Dec 25, Dec 26, Jan 1) <span class="tag t-calc">CALCULATED</span></li><li class="num">Go-live: Mon Jan 18, 2027 · Phase 2: Jan 18 – Jan 29</li></ul></div>
+      <div class="sec"><h3>6. Team and cost</h3><p class="num">2 engineers · $600 per engineer-day <span class="tag t-brief">FROM BRIEF</span><br>Phase 1: 2 × 2 weeks × 5 days × $600 = $12,000 <span class="tag t-calc">CALCULATED</span><br>Phase 2 (optional): $12,000 · Total $24,000 ≈ €22,100<br><span style="font-family: system-ui, sans-serif">Changes: a written change request, sized in engineer-days at the same rate, agreed before work starts. Each phase is accepted against the scope list before it is invoiced.</span></p></div>
+      <div class="sec"><h3>7. Risks and mitigations</h3><ul><li>Load on claims system → read-only copy</li><li>Bad release → one-minute switch-off</li><li>January claim peak → go-live after the peak</li><li>Personal claim data → status only, secure link, access logged</li></ul></div>
+      <div class="sec"><h3>8. Assumptions</h3><ul><li>Phase 2 can be funded next quarter <span class="tag t-conf">TO CONFIRM</span></li><li>Claim data can be copied every 15 minutes <span class="tag t-conf">TO CONFIRM</span></li><li>The client's data-retention rule applies to the read-only copy <span class="tag t-conf">TO CONFIRM</span></li></ul></div>
+      <div class="sec"><h3>9. Next steps</h3><ul><li>Confirm Phase 2 funding with Northwind's CFO</li><li>Confirm the data-retention rule with Northwind's security team</li><li>Sign Phase 1 by Dec 2 to start Dec 7</li></ul></div>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <section class="card" aria-labelledby="memo-h" style="flex: 999 1 560px; min-width: 0; overflow: hidden">
+        <div style="padding: 16px 18px"><h2 id="memo-h" style="margin: 0; font-size: 18px">Board decision memo</h2></div>
+        <div style="overflow-x: auto">
+          <table style="width: 100%; border-collapse: collapse; min-width: 600px">
+            <thead><tr><th scope="col">Seat</th><th scope="col">Result</th><th scope="col">Score</th><th scope="col">Reason</th></tr></thead>
+            <tbody>
+              <tr><td><strong>CFO</strong></td><td><span class="cond">Yes, with a condition</span></td><td class="num">7.4 / 7.0</td><td>Phasing fits the budget; Phase 2 funding to confirm</td></tr>
+              <tr><td><strong>Enterprise Architect</strong></td><td><span class="ok">Approved</span></td><td class="num">8.4 / 8.0</td><td>Claims system protected; rollback in a minute</td></tr>
+              <tr><td><strong>VP, Claims Operations</strong></td><td><span class="ok">Approved</span></td><td class="num">8.3 / 7.0</td><td>Fewer calls, launch after the January peak</td></tr>
+              <tr><td><strong>Procurement &amp; Contracts</strong></td><td><span class="ok">Pass</span></td><td class="num">gate</td><td>Time-and-materials rate, change control and acceptance terms are stated</td></tr>
+              <tr><td><strong>Security Officer</strong></td><td><span class="cond">Pass, with conditions</span></td><td class="num">gate</td><td>Access and data scope fixed; the client's retention rule to confirm</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="card" aria-labelledby="prep-h" style="flex: 1 1 320px; min-width: 0; padding: 18px; display: flex; flex-direction: column; gap: 10px">
+        <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><h2 id="prep-h" style="margin: 0; font-size: 18px">Meeting prep</h2><span class="m-haiku">Presales Lead · Haiku</span></div>
+        <strong style="font-size: 13.5px; color: #344054">Questions to expect</strong>
+        <ol style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55"><li>What if Phase 2 is never funded?</li><li>How fresh is a 15-minute copy for a customer?</li><li>Who flips the switch-off, and when?</li><li>Who can see a claim, and how long is the data kept?</li></ol>
+        <strong style="font-size: 13.5px; color: #344054">Confirm with the client</strong>
+        <ol style="margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.55"><li>Phase 2 budget owner</li><li>Their IT allows the data copy</li><li>The data-retention rule</li><li>Signature date for a Dec 7 start</li></ol>
+      </section>
+    </div>
+
+    <section class="card" aria-labelledby="proto-h" style="padding: 18px 20px; display: flex; flex-wrap: wrap; align-items: center; gap: 14px">
+      <div style="flex: 1 1 360px; display: flex; flex-direction: column; gap: 4px">
+        <h2 id="proto-h" style="margin: 0; font-size: 18px">See what Phase 1 could look like</h2>
+        <span style="font-size: 14px; color: #475467">The UX Designer draws one concept screen from the proposal's scope. One extra AI call, about $0.01.</span>
+      </div>
+      <a class="btn" href="Prototype.dc.html" style="background: #5B3CC4; color: #FFFFFF">Show prototype preview</a>
+    </section>
+
+    <section class="card" aria-labelledby="tl-h" style="padding: 18px 20px; display: flex; flex-direction: column; gap: 8px">
+      <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px"><h2 id="tl-h" style="margin: 0; font-size: 18px">Run timeline</h2><span class="num" style="font-size: 13px; color: #5D6675">88 s on the clock · 94 s of agent work · bars that overlap ran at the same time</span></div>
+      <div role="img" aria-label="Timeline of agents over 88 seconds. The Delivery Manager and the Risk and Compliance Analyst overlap.">
+        <div class="gl"><span>Business Analyst · 3.1 s</span><span class="gt"><span class="gb gh" style="left: 0%; width: 3.53%"></span></span></div>
+        <div class="gl"><span>Solution Architect · 7.4 s</span><span class="gt"><span class="gb gs" style="left: 3.53%; width: 8.44%"></span></span></div>
+        <div class="gl"><span>Delivery Manager · 6.2 s</span><span class="gt"><span class="gb gs" style="left: 11.97%; width: 7.07%"></span></span></div>
+        <div class="gl"><span>Risk &amp; Compliance · 12.8 s</span><span class="gt"><span class="gb gs" style="left: 11.97%; width: 14.6%"></span></span></div>
+        <div class="gl"><span>Proposal Manager · 11.5 s</span><span class="gt"><span class="gb gs" style="left: 26.57%; width: 13.11%"></span></span></div>
+        <div class="gl"><span>Board round 1 · 5 seats</span><span class="gt"><span class="gb gx" style="left: 39.68%; width: 10.26%"></span></span></div>
+        <div class="gl"><span>Bid Manager round 1 · 10.2 s</span><span class="gt"><span class="gb gs" style="left: 49.95%; width: 11.63%"></span></span></div>
+        <div class="gl"><span>QA Reviewer · 2.3 s</span><span class="gt"><span class="gb gh" style="left: 61.58%; width: 2.62%"></span></span></div>
+        <div class="gl"><span>Board round 2 · 5 seats</span><span class="gt"><span class="gb gx" style="left: 64.2%; width: 9.92%"></span></span></div>
+        <div class="gl"><span>Bid Manager round 2 · 8.7 s</span><span class="gt"><span class="gb gs" style="left: 74.12%; width: 9.92%"></span></span></div>
+        <div class="gl"><span>QA Reviewer · 2.3 s</span><span class="gt"><span class="gb gh" style="left: 84.04%; width: 2.62%"></span></span></div>
+        <div class="gl"><span>Board round 3 · 5 seats</span><span class="gt"><span class="gb gx" style="left: 86.66%; width: 9.46%"></span></span></div>
+        <div class="gl"><span>Presales Lead · 3.4 s</span><span class="gt"><span class="gb gh" style="left: 96.12%; width: 3.88%"></span></span></div>
+        <div class="gl"><span></span><span class="num" style="display: flex; justify-content: space-between; font-size: 11.5px; color: #5D6675"><span>0 s</span><span>22 s</span><span>44 s</span><span>66 s</span><span>88 s</span></span></div>
+      </div>
+      <span style="font-size: 12.5px; color: #5D6675; display: flex; flex-wrap: wrap; gap: 6px 14px"><span><span style="display: inline-block; width: 10px; height: 10px; background: #8C70E6; border-radius: 2px"></span> Sonnet</span><span><span style="display: inline-block; width: 10px; height: 10px; background: #98A2B3; border-radius: 2px"></span> Haiku</span><span><span style="display: inline-block; width: 10px; height: 10px; background: linear-gradient(90deg,#8C70E6 70%,#98A2B3 70%); border-radius: 2px"></span> Both (board seats)</span></span>
+    </section>
+
+    <section class="card" aria-labelledby="run-h" style="overflow: hidden">
+      <div style="padding: 16px 18px; display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px"><h2 id="run-h" style="margin: 0; font-size: 18px">Run details</h2><span class="num" style="font-size: 13px; color: #5D6675">13 of 14 agents used (1 skipped, 0 failed) · 28 AI calls · 54,600 tokens in · 10,230 out · $0.16 · 94 s agent time</span></div>
+      <div style="overflow-x: auto">
+        <table style="width: 100%; border-collapse: collapse; min-width: 720px">
+          <thead><tr><th scope="col">Agent</th><th scope="col">Model</th><th scope="col">Calls</th><th scope="col">Tokens in / out</th><th scope="col">Cost</th><th scope="col">Time</th></tr></thead>
+          <tbody class="num">
+            <tr><td>Business Analyst</td><td>Haiku</td><td>1</td><td>2,100 / 380</td><td>$0.0004</td><td>3.1 s</td></tr>
+            <tr><td>Solution Architect</td><td>Sonnet</td><td>1</td><td>2,400 / 520</td><td>$0.010</td><td>7.4 s</td></tr>
+            <tr><td>Delivery Manager + 2 tools</td><td>Sonnet</td><td>2</td><td>4,300 / 410</td><td>$0.013</td><td>6.2 s</td></tr>
+            <tr><td>Risk &amp; Compliance Analyst + 3 tools</td><td>Sonnet</td><td>3</td><td>6,900 / 640</td><td>$0.020</td><td>12.8 s</td></tr>
+            <tr><td>Proposal Manager</td><td>Sonnet</td><td>1</td><td>3,600 / 1,150</td><td>$0.019</td><td>11.5 s</td></tr>
+            <tr><td>Scoring seats × 3 rounds (CFO, VP, Architect)</td><td>Sonnet</td><td>9</td><td>16,200 / 3,150</td><td>$0.064</td><td>26.0 s</td></tr>
+            <tr><td>Gate seats × 3 rounds (Procurement, Security)</td><td>Haiku</td><td>6</td><td>9,000 / 1,500</td><td>$0.002</td><td>in parallel</td></tr>
+            <tr><td>Bid Manager × 2</td><td>Sonnet</td><td>2</td><td>5,400 / 1,700</td><td>$0.028</td><td>18.9 s</td></tr>
+            <tr><td>QA Reviewer × 2</td><td>Haiku</td><td>2</td><td>2,500 / 300</td><td>$0.0004</td><td>4.6 s</td></tr>
+            <tr><td>Presales Lead</td><td>Haiku</td><td>1</td><td>2,200 / 480</td><td>$0.0005</td><td>3.4 s</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p style="margin: 0; padding: 12px 18px; font-size: 12.5px; color: #5D6675">Tokens come from each API response; cost uses Claude's list prices. Sample values for this design, to be replaced by measured numbers.</p>
+    </section>
+
+    <div style="display: flex; flex-wrap: wrap; justify-content: space-between; gap: 10px">
+      <a class="btn" href="Main.dc.html" style="background: #FFFFFF; color: #36238A; border: 1.5px solid #5B3CC4">Start a new brief</a>
+      <a class="btn" href="States.dc.html" style="background: #FFFFFF; color: #344054; border: 1px solid #C9CED8">How failures are handled</a>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":3360}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>

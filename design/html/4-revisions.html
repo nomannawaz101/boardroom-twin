@@ -1,0 +1,187 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Boardroom Twin · Revisions</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<style>
+body{margin:0;background:#F4F5F7;color:#101828;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+a{color:#4B32B8}a:hover{color:#36238A}
+.card{background:#FFFFFF;border:1px solid #E4E7EC;border-radius:12px}
+.step{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;font-size:13.5px;text-decoration:none;color:#475467}
+.num{font-variant-numeric:tabular-nums;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+.m-sonnet{font-size:11.5px;font-weight:600;color:#36238A;background:#EFEBFC;padding:2px 8px;border-radius:999px}
+.m-haiku{font-size:11.5px;font-weight:600;color:#344054;background:#EEF1F6;padding:2px 8px;border-radius:999px}
+.m-code{font-size:11.5px;font-weight:600;color:#344054;border:1px solid #C9CED8;padding:1px 8px;border-radius:999px}
+.ok{font-size:12.5px;font-weight:700;color:#0B6B3A;background:#E3F4EA;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.no{font-size:12.5px;font-weight:700;color:#B42318;background:#FDECEA;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.cond{font-size:12.5px;font-weight:700;color:#8A4B06;background:#FEF0D7;padding:3px 9px;border-radius:999px;white-space:nowrap}
+.chg{display:grid;grid-template-columns:44px minmax(0,1fr);gap:4px 10px;padding:12px 0;border-top:1px solid #EEF1F6;font-size:14px;line-height:1.5}
+.was{color:#5D6675;text-decoration:line-through;text-decoration-color:#B42318}
+.vrow{display:flex;flex-wrap:wrap;align-items:center;gap:6px 10px;padding:10px 0;border-top:1px solid #EEF1F6;font-size:14px}
+.vrow .nm{width:178px;font-weight:700}
+.vrow .sc{width:86px}
+.rb{display:flex;align-items:center;gap:8px;font-size:12.5px}
+.track{position:relative;flex:1;height:12px;background:#EEF1F6;border-radius:999px}
+.hand{display:block;line-height:1.5;font-size:12.5px;color:#5D6675;border-top:1px dashed #D9DDE5;padding-top:8px;margin-top:10px}
+.hand b{color:#36238A;font-weight:600}
+.hand svg{vertical-align:-2px;margin-right:6px}
+</style>
+</helmet>
+<div style="min-height: 100%; display: flex; flex-direction: column">
+  <header style="background: #101828; color: #FFFFFF">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 14px 24px; display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px">
+      <div style="display: flex; align-items: center; gap: 10px">
+        <span aria-hidden="true" style="width: 30px; height: 30px; border-radius: 8px; background: #6D4FE0; display: inline-flex; align-items: center; justify-content: center">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
+        </span>
+        <strong style="font-size: 17px">Boardroom Twin</strong>
+        <span style="font-size: 12.5px; color: #B9C0CC">Northwind Insurance · Claim status page</span>
+      </div>
+      <span style="font-size: 12.5px; color: #101828; background: #FFD66B; padding: 4px 10px; border-radius: 999px; font-weight: 600">Sample run</span>
+    </div>
+  </header>
+  <nav aria-label="Run stages" style="background: #FFFFFF; border-bottom: 1px solid #E4E7EC">
+    <div style="max-width: 1120px; margin: 0 auto; padding: 10px 24px; display: flex; flex-wrap: wrap; gap: 6px">
+      <a class="step" href="Main.dc.html"><span class="num">1</span> Brief ✓</a>
+      <a class="step" href="Team.dc.html"><span class="num">2</span> Proposal team ✓</a>
+      <a class="step" href="Board.dc.html"><span class="num">3</span> Client board ✓</a>
+      <a class="step" href="Revision.dc.html" aria-current="step" style="background: #EFEBFC; color: #36238A; font-weight: 600"><span class="num">4</span> Revisions</a>
+      <a class="step" href="Report.dc.html"><span class="num">5</span> Report</a>
+    </div>
+  </nav>
+
+  <main style="max-width: 1120px; width: 100%; box-sizing: border-box; margin: 0 auto; padding: 32px 24px 56px; display: flex; flex-direction: column; gap: 22px">
+    <section style="display: flex; flex-wrap: wrap; justify-content: space-between; align-items: flex-end; gap: 12px">
+      <div style="display: flex; flex-direction: column; gap: 6px; max-width: 720px">
+        <span class="num" style="font-size: 12px; font-weight: 700; color: #6D4FE0">STAGE 4 OF 5 · UP TO 2 BID MANAGER ROUNDS</span>
+        <h1 style="margin: 0; font-size: 28px">The Bid Manager answered every objection in 2 rounds</h1>
+        <p style="margin: 0; color: #475467; font-size: 15.5px; line-height: 1.5">Each round: the Bid Manager changes only what was objected to, the QA Reviewer checks every new claim, then the whole board votes again.</p>
+      </div>
+      <div style="display: flex; flex-wrap: wrap; gap: 6px; font-size: 13px">
+        <span style="background: #FFFFFF; border: 1px solid #E4E7EC; padding: 5px 10px; border-radius: 999px">14 agent calls</span>
+        <span class="num" style="background: #FFFFFF; border: 1px solid #E4E7EC; padding: 5px 10px; border-radius: 999px">42 s · $0.07</span>
+      </div>
+    </section>
+
+    <ol aria-label="Loop progress" style="list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 8px; font-size: 13.5px">
+      <li style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 999px; padding: 6px 12px">Board round 1: 2 of 5 can proceed</li>
+      <li aria-hidden="true" style="color: #98A2B3; padding: 6px 0">→</li>
+      <li style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 999px; padding: 6px 12px">Bid round 1 → Board round 2: 4 of 5</li>
+      <li aria-hidden="true" style="color: #98A2B3; padding: 6px 0">→</li>
+      <li style="background: #FFFFFF; border: 1px solid #E4E7EC; border-radius: 999px; padding: 6px 12px">Bid round 2 → Board round 3: 5 of 5</li>
+      <li aria-hidden="true" style="color: #98A2B3; padding: 6px 0">→</li>
+      <li style="background: #E3F4EA; color: #0B6B3A; border-radius: 999px; padding: 6px 12px; font-weight: 600">Stopped by code</li>
+    </ol>
+
+    <div style="display: flex; flex-wrap: wrap; gap: 20px; align-items: flex-start">
+      <div style="flex: 999 1 600px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="card" aria-labelledby="c1-h" style="padding: 18px 20px">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 6px"><h2 id="c1-h" style="margin: 0; font-size: 18px">Bid Manager · round 1</h2><span class="m-sonnet">Sonnet</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">10.2 s · answered O1, O2, O4, O5, O6</span></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O1</span><div><span class="was">One payment of $24,000.</span><br>Two phases: <strong>Phase 1</strong> status page, 2 weeks, <span class="num">$12,000</span>. <strong>Phase 2</strong> email and SMS updates, 2 weeks, <span class="num">$12,000</span>, optional.</div></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O2</span><div>The page reads only the read-only copy, refreshed every 15 minutes. <strong>No calls to the live claims system.</strong></div></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O4</span><div><span class="was">Go-live Tue Jan 5.</span><br>Build Dec 7–18, holiday freeze, <strong>go-live Mon Jan 18</strong>, after the early-January peak.</div></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O5</span><div><span class="was">No terms for changes or sign-off.</span><br>Any scope change becomes a <strong>written change request</strong>, sized in engineer-days at the same rate, before work starts. Each phase is <strong>accepted against the scope list</strong> before it is invoiced.</div></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O6</span><div>The page shows <strong>only status steps and the expected payment date</strong>, never personal details or documents. A claim opens only with the claim number and a secure link. The read-only copy holds status data only, and access is logged.</div></div>
+          <div style="margin-top: 6px; border-radius: 10px; background: #F7F8FA; border: 1px solid #E4E7EC; padding: 12px; display: flex; flex-direction: column; gap: 6px">
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px"><strong style="font-size: 14.5px">QA Reviewer</strong><span class="m-haiku">Haiku</span><span class="m-code">uses Quote checker</span><span style="font-size: 13px; color: #475467">Checked 7 new statements</span></div>
+            <span style="font-size: 13.5px"><span class="ok">4 backed by the brief or the calculation</span> <span class="cond">3 marked "to confirm with client"</span></span>
+            <span style="font-size: 13.5px; color: #475467">"Phase 2 can be funded next quarter", "claim data can be copied every 15 minutes" and "the client's retention rule applies to the copy" are not in the brief, so they now read as assumptions.</span>
+          </div>
+          <div style="margin-top: 10px">
+            <div class="vrow"><span class="nm">CFO</span><span class="num sc">5.3 → 7.4</span><span class="cond">Yes, with a condition</span><span style="color: #475467; flex: 1 1 200px">Phase 2 funding must be confirmed (C1)</span></div>
+            <div class="vrow"><span class="nm">Enterprise Architect</span><span class="num sc">6.2 → 7.6</span><span class="no">Rejected</span><span style="color: #475467; flex: 1 1 200px">Still no rollback plan (O3)</span></div>
+            <div class="vrow"><span class="nm">VP, Claims Operations</span><span class="num sc">7.1 → 8.2</span><span class="ok">Approved</span><span style="color: #475467; flex: 1 1 200px">Timing now works</span></div>
+            <div class="vrow"><span class="nm">Procurement &amp; Contracts</span><span class="num sc">gate</span><span class="ok">Pass</span><span style="color: #475467; flex: 1 1 200px">Change control and acceptance terms are now stated</span></div>
+            <div class="vrow"><span class="nm">Security Officer</span><span class="num sc">gate</span><span class="cond">Pass, with conditions</span><span style="color: #475467; flex: 1 1 200px">Access and data scope fixed; the client's retention rule is still to confirm (C2)</span></div>
+          </div>
+          <div class="hand"><svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#5B3CC4" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"></path></svg>Hands the one open objection (O3) and two conditions back to the <b>Bid Manager</b>.</div>
+        </section>
+
+        <section class="card" aria-labelledby="c2-h" style="padding: 18px 20px">
+          <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding-bottom: 6px"><h2 id="c2-h" style="margin: 0; font-size: 18px">Bid Manager · round 2</h2><span class="m-sonnet">Sonnet</span><span class="num" style="margin-left: auto; font-size: 12.5px; color: #5D6675">8.7 s · answered O3</span></div>
+          <div class="chg"><span class="num" style="font-weight: 700">O3</span><div>Rollback: one switch turns the page off within a minute. The contact centre keeps working exactly as today.</div></div>
+          <div style="margin-top: 6px; border-radius: 10px; background: #F7F8FA; border: 1px solid #E4E7EC; padding: 12px; display: flex; flex-wrap: wrap; align-items: center; gap: 8px">
+            <strong style="font-size: 14.5px">QA Reviewer</strong><span class="m-haiku">Haiku</span><span class="ok">1 of 1 backed</span>
+          </div>
+          <div style="margin-top: 10px">
+            <div class="vrow"><span class="nm">CFO</span><span class="num sc">7.4 → 7.4</span><span class="cond">Yes, with a condition</span></div>
+            <div class="vrow"><span class="nm">Enterprise Architect</span><span class="num sc">7.6 → 8.4</span><span class="ok">Approved</span></div>
+            <div class="vrow"><span class="nm">VP, Claims Operations</span><span class="num sc">8.2 → 8.3</span><span class="ok">Approved</span></div>
+            <div class="vrow"><span class="nm">Procurement &amp; Contracts</span><span class="num sc">gate</span><span class="ok">Pass</span></div>
+            <div class="vrow"><span class="nm">Security Officer</span><span class="num sc">gate</span><span class="cond">Pass, with conditions</span><span style="color: #475467; flex: 1 1 200px">Retention rule still to confirm (C2)</span></div>
+          </div>
+        </section>
+      </div>
+
+      <aside style="flex: 1 1 320px; min-width: 0; display: flex; flex-direction: column; gap: 16px">
+        <section class="card" aria-labelledby="chart-h" style="padding: 18px; display: flex; flex-direction: column; gap: 14px">
+          <h2 id="chart-h" style="margin: 0; font-size: 17px">Scores by round</h2>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <strong style="font-size: 14px">CFO <span class="num" style="font-weight: 400; color: #5D6675">needs 7.0</span></strong>
+            <div class="rb"><span class="num" style="width: 22px">R1</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 53%; background: #C7B8F5; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">5.3</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R2</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 74%; background: #8C70E6; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">7.4</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R3</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 74%; background: #5B3CC4; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">7.4</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <strong style="font-size: 14px">Enterprise Architect <span class="num" style="font-weight: 400; color: #5D6675">needs 8.0</span></strong>
+            <div class="rb"><span class="num" style="width: 22px">R1</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 62%; background: #C7B8F5; border-radius: 999px"></span><span style="position: absolute; left: 80%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">6.2</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R2</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 76%; background: #8C70E6; border-radius: 999px"></span><span style="position: absolute; left: 80%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">7.6</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R3</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 84%; background: #5B3CC4; border-radius: 999px"></span><span style="position: absolute; left: 80%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">8.4</span></div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 6px">
+            <strong style="font-size: 14px">VP, Claims Operations <span class="num" style="font-weight: 400; color: #5D6675">needs 7.0</span></strong>
+            <div class="rb"><span class="num" style="width: 22px">R1</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 71%; background: #C7B8F5; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">7.1</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R2</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 82%; background: #8C70E6; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">8.2</span></div>
+            <div class="rb"><span class="num" style="width: 22px">R3</span><span class="track"><span style="position: absolute; left: 0; top: 0; bottom: 0; width: 83%; background: #5B3CC4; border-radius: 999px"></span><span style="position: absolute; left: 70%; top: -3px; width: 2px; height: 18px; background: #101828"></span></span><span class="num" style="width: 28px">8.3</span></div>
+          </div>
+          <span style="font-size: 12.5px; color: #5D6675">The black tick is the score each executive needs.</span>
+          <div style="border-top: 1px solid #EEF1F6; padding-top: 12px; display: flex; flex-direction: column; gap: 8px">
+            <strong style="font-size: 14px">Gates by round</strong>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px"><span style="width: 150px">Procurement &amp; Contracts</span><span class="cond">R1</span><span aria-hidden="true">→</span><span class="ok">R2</span><span aria-hidden="true">→</span><span class="ok">R3</span></div>
+            <div style="display: flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 13px"><span style="width: 150px">Security Officer</span><span class="no">R1</span><span aria-hidden="true">→</span><span class="cond">R2</span><span aria-hidden="true">→</span><span class="cond">R3</span></div>
+            <span style="font-size: 12.5px; color: #5D6675">Red = blocked, amber = pass with conditions, green = pass.</span>
+          </div>
+        </section>
+
+        <section class="card" aria-labelledby="stop-h" style="padding: 18px; display: flex; flex-direction: column; gap: 8px">
+          <h2 id="stop-h" style="margin: 0; font-size: 17px">Why the loop stopped</h2>
+          <ul style="margin: 0; padding-left: 18px; font-size: 13.5px; line-height: 1.6; color: #344054">
+            <li><strong>All five seats can proceed</strong> (the CFO and the Security Officer with a condition each)</li>
+            <li>The limit of 2 Bid Manager rounds was also reached</li>
+          </ul>
+          <span style="font-size: 12.5px; color: #5D6675">Other stop rules: scores stop improving, or the budget guard trips. Code decides, never an agent.</span>
+        </section>
+
+        <section class="card" aria-labelledby="trk-h" style="padding: 18px; display: flex; flex-direction: column; gap: 8px">
+          <h2 id="trk-h" style="margin: 0; font-size: 17px">Objection tracker</h2>
+          <div class="vrow" style="border-top: 0"><span class="num" style="width: 26px; font-weight: 700">O1</span><span style="flex: 1">Smaller first step</span><span class="ok">Fixed R1</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">O2</span><span style="flex: 1">Protect claims system</span><span class="ok">Fixed R1</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">O3</span><span style="flex: 1">Rollback plan</span><span class="ok">Fixed R2</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">O4</span><span style="flex: 1">January peak</span><span class="ok">Fixed R1</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">O5</span><span style="flex: 1">Change control, acceptance</span><span class="ok">Fixed R1</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">O6</span><span style="flex: 1">Access, data protection</span><span class="ok">Fixed R1</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">C1</span><span style="flex: 1">Phase 2 funding</span><span class="cond">Confirm</span></div>
+          <div class="vrow"><span class="num" style="width: 26px; font-weight: 700">C2</span><span style="flex: 1">Client's retention rule</span><span class="cond">Confirm</span></div>
+          <span style="font-size: 12.5px; color: #5D6675">An objection counts as fixed only after the seat that raised it has read the new text and agreed.</span>
+        </section>
+
+        <a href="Report.dc.html" style="display: flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 10px; background: #5B3CC4; color: #FFFFFF; text-decoration: none; font-weight: 600">Next: the final report →</a>
+      </aside>
+    </div>
+  </main>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":1840}}'>
+class Component extends DCLogic {
+  renderVals() {
+    return {};
+  }
+}
+</script>
+</body>
+</html>
