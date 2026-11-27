@@ -1,12 +1,13 @@
 import asyncio
 from collections.abc import Iterator
+from dataclasses import replace
 
 import pytest
 from pydantic import BaseModel
 
 import config
 from domain.errors import BudgetUsedUp
-from llm.client import JSON_REMINDER, AgentResult, Runtime, extract_json, run_agent
+from llm.client import JSON_REMINDER, AgentResult, Runtime, extract_json, model_badge, run_agent
 from llm.fake import FakeChatModel, FakeStep, fail, reply_json, reply_text, reply_tool
 from llm.usage import cost_usd
 from tools.registry import ToolContext
@@ -234,3 +235,55 @@ def test_step_timing_comes_from_the_run_clock() -> None:
     ticks: Iterator[float] = iter([10.0, 10.5, 12.0])
     result, _, _ = run([reply_json({"value": 1})], clock=lambda: next(ticks))
     assert (result.step.start_ms, result.step.duration_ms) == (500, 1500)
+
+
+# --- Model badge: the model that answered, after any fallback ---
+
+GATEWAY_MODELS = {"LITELLM_MODEL": "claude-sonnet-5-5", "LITELLM_MODEL_FAST": "claude-haiku-5-5"}
+
+
+@pytest.mark.parametrize(
+    ("model", "badge"),
+    [
+        ("claude-sonnet-5-5", "Sonnet"),
+        ("claude-haiku-5-5", "Haiku"),
+        ("provider/Claude-Haiku-5-5-20261101", "Haiku"),
+        ("dev-model-x", "dev-model-x"),
+    ],
+)
+def test_model_badge(model: str, badge: str) -> None:
+    assert model_badge(model) == badge
+
+
+def test_fallback_badge_names_the_fast_model_that_answered() -> None:
+    result, _, _ = run([fail("server"), fail("server"), reply_json({"value": 1})])
+    step = result.step
+    assert (step.tier, step.model, step.badge) == ("haiku", "fake-fast", "fake-fast")
+    assert "fallback_fast" in step.flags
+
+
+def test_gateway_models_keep_the_tier_names_including_after_a_fallback(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    for name, value in GATEWAY_MODELS.items():
+        monkeypatch.setenv(name, value)
+    normal, _, _ = run([reply_json({"value": 1})])
+    assert (normal.step.model, normal.step.badge) == ("claude-sonnet-5-5", "Sonnet")
+    fallback, _, _ = run([fail("server"), fail("server"), reply_json({"value": 1})])
+    assert (fallback.step.model, fallback.step.badge) == ("claude-haiku-5-5", "Haiku")
+
+
+def test_the_badge_follows_the_model_the_service_reports_not_the_one_asked_for() -> None:
+    reply = replace(reply_json({"value": 1}), model="provider/claude-haiku-5-5-20261101")
+    result, _, _ = run([reply])
+    assert result.step.model == "provider/claude-haiku-5-5-20261101"
+    assert result.step.badge == "Haiku"
+
+
+def test_a_step_where_every_call_failed_names_the_last_model_tried() -> None:
+    result, _, _ = run([fail("server")] * 3)
+    assert (result.step.status, result.step.model, result.step.badge) == (
+        "failed",
+        "fake-fast",
+        "fake-fast",
+    )

@@ -62,3 +62,25 @@ A short record of each choice, including ones still unconfirmed.
 - **Without a day rate**, the cost section gets a calculated, locked effort claim ("Effort: 60 engineer-days over 1 phase. Cost to confirm: no day rate.") instead of being empty.
 - **Any other empty section** (for example when the Proposal Manager skips one, or ends as the safe default) gets a code-written TO CONFIRM line: "Confirm with the client: next steps is not drafted yet." The page therefore no longer needs a "Nothing yet." state.
 - All code-made wording lives in `domain/claims.py`; fake-model stage tests cover a draft with and without a start date, and one where the Proposal Manager is skipped, each checking all 9 sections are present.
+
+### Where every number and label on the page comes from (Phase 2 honesty check)
+
+| Shown | Where | Source |
+| --- | --- | --- |
+| Agent card seconds | agent cards | Measured: `duration_ms` from the run clock for that agent's calls |
+| "· 1 tool" on a card | agent cards | Counted from the step's recorded tool calls |
+| Model badge | agent cards | The model that answered, from the step record (after any fallback); "Sonnet"/"Haiku" only when the model belongs to that family, else the model's own name |
+| "N agents" | stage header | Counted from the step records that ran |
+| "N tool calls" | stage header | Counted from the step records' tool calls |
+| "S s" | stage header | Measured: sum of the agents' `duration_ms` (agent time, not wall-clock time) |
+| "$X est." | stage header | Measured tokens × the price table in `config.py` (list prices; during development Gemini tokens at Claude prices) — an estimate |
+| Tokens | not shown yet | Measured from each reply's usage; on the step record, shown in Phase 7's run details |
+| "14, with 3 tools so far" | start panel | Counted from the agent and tool registries via `/api/health` |
+| Mode chip and "Sonnet and Haiku" | start panel, header | Mode from `RUN_MODE` (config); model names are the badges of the configured models via `/api/health` |
+| "3 to 5 seats, chosen from your brief" | start panel | Fixed text matching the composer's rules (`MIN_SEATS`, `MAX_SEATS`) |
+| "About 2 to 3 minutes for a full run" | start panel | Placeholder from plan section 10; replaced by measured runs in Phase 10 |
+| "≈ $0.16 per run (estimate)" | start panel | Placeholder from plan section 9.1; replaced by measured runs in Phase 10 |
+| "N / 15,000 characters" | brief form | Measured live; the limit is `BRIEF_MAX_CHARS`, kept equal to `config.py` by a test |
+| Cost, team, start, go-live | draft summary | Calculated by code (cost calculator, working-day schedule) |
+
+- **Model badge fix:** the badge used to print the configured tier ("Sonnet"/"Haiku") whatever model answered, so a development model was shown as Sonnet or Haiku. Now each reply's reported model is recorded (`model` on the step record, falling back to the requested model if the service does not say), and code derives `badge` from it. A fallback to the fast tier shows the fast model; with the judged gateway's models the tier names stay. The start panel's model line uses the same rule (`models` added to `/api/health`), and shows one name when both tiers use the same model.

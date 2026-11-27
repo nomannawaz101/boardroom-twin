@@ -27,7 +27,14 @@ def test_health_reports_mode_features_and_version(monkeypatch: pytest.MonkeyPatc
         "version": config.APP_VERSION,
         "agents": 14,
         "tools": 3,
+        "models": {"main": "fake-main", "fast": "fake-fast"},
     }
+
+
+def test_health_names_gateway_models_by_tier(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("LITELLM_MODEL", "claude-sonnet-5-5")
+    monkeypatch.setenv("LITELLM_MODEL_FAST", "claude-haiku-5-5")
+    assert client.get("/api/health").json()["models"] == {"main": "Sonnet", "fast": "Haiku"}
 
 
 def test_unknown_run_mode_falls_back_to_default(monkeypatch: pytest.MonkeyPatch) -> None:

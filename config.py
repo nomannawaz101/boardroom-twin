@@ -52,6 +52,8 @@ CHECK_MAX_TOKENS = 1024
 # --- Model routing (plan section 3): one table. Lite mode sends every agent to the fast tier. ---
 Tier = Literal["sonnet", "haiku"]
 FAST_TIER: Tier = "haiku"
+# Badge labels: shown only when the answering model's name contains the family word.
+TIER_LABELS: dict[str, str] = {"sonnet": "Sonnet", "haiku": "Haiku"}
 TIER_MODEL_VARS: dict[Tier, str] = {"sonnet": LLM_MODEL_VAR, "haiku": LLM_MODEL_FAST_VAR}
 MODEL_ROUTING: dict[str, Tier] = {
     "business_analyst": "haiku",

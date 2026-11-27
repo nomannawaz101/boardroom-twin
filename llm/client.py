@@ -59,6 +59,7 @@ class ChatReply:
     tokens_in: int
     tokens_out: int
     assistant_message: dict[str, Any]
+    model: str = ""  # the model the service says answered; empty if it did not say
 
 
 class ModelCallError(Exception):
@@ -113,6 +114,7 @@ class CallState:
     tokens_out: int = 0
     cost: float = 0.0
     on_fallback: bool = False
+    answered_by: str = ""
     flags: list[StepFlag] = field(default_factory=list)
     tool_records: list[ToolCallRecord] = field(default_factory=list)
 
@@ -120,10 +122,21 @@ class CallState:
         if name not in self.flags:
             self.flags.append(name)
 
-    def add_usage(self, reply: ChatReply) -> None:
+    def add_reply(self, reply: ChatReply, requested: str) -> None:
+        """Usage at the price of the tier that answered, and which model it was."""
         self.tokens_in += reply.tokens_in
         self.tokens_out += reply.tokens_out
         self.cost += cost_usd(self.tier, reply.tokens_in, reply.tokens_out)
+        self.answered_by = reply.model or requested
+
+
+def model_badge(model: str) -> str:
+    """The badge on an agent card: a tier name only when the model really is one of that family
+    (the judged gateway); otherwise the model's own name, so a development model is never
+    shown as Sonnet or Haiku."""
+    lowered = model.lower()
+    family = next((label for word, label in config.TIER_LABELS.items() if word in lowered), None)
+    return family or model
 
 
 def extract_json(text: str) -> object | None:
@@ -238,7 +251,7 @@ async def call_model(
                 raise AllCallsFailed() from error
             state.flag("retried")
             continue
-        state.add_usage(reply)
+        state.add_reply(reply, request.model)
         return reply
 
 
@@ -307,11 +320,14 @@ async def run_agent[T: BaseModel](
     if status == "skipped":
         answer = default
         state.flag("skipped")
+    # If no call answered at all, name the model that was tried last.
+    answered = state.answered_by or config.model_for_tier(state.tier)
     step = StepRecord(
         agent=spec.id,
         label=spec.label,
         tier=state.tier,
-        model=config.model_for_tier(state.tier),
+        model=answered,
+        badge=model_badge(answered),
         stage=spec.stage,
         start_ms=start_ms,
         duration_ms=runtime.elapsed_ms() - start_ms,

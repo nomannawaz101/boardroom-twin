@@ -13,7 +13,15 @@ const ERROR_TITLES = {
   not_a_brief: "This doesn't look like a client brief.",
 };
 const MODE_LABELS = { auto: "Full", full: "Full", lite: "Lite", sample: "Sample" };
-const MODE_NOTES = { Full: "Sonnet and Haiku", Lite: "Haiku only", Sample: "Recorded run" };
+// Filled from /api/health: the badges of the configured models, never assumed.
+const configured = { main: "", fast: "" };
+
+function modeNote(label) {
+  if (label === "Sample") return "Recorded run";
+  if (!configured.main) return "";
+  if (label === "Lite" || configured.main === configured.fast) return `${configured.fast} only`;
+  return `${configured.main} and ${configured.fast}`;
+}
 
 const $ = (id) => document.getElementById(id);
 const els = {
@@ -48,7 +56,7 @@ function setMode(mode) {
   els.modeChip.hidden = false;
   els.modeChip.textContent = label === "Sample" ? "Sample run" : `${label} mode`;
   els.modeChip.className = `mode-chip ${label.toLowerCase()}`;
-  els.factMode.replaceChildren(h("span", { class: "pill-ok" }, label), MODE_NOTES[label]);
+  els.factMode.replaceChildren(h("span", { class: "pill-ok" }, label), modeNote(label));
 }
 
 // --- Brief form ---
@@ -197,6 +205,7 @@ async function init() {
   updateCounter();
   const health = await getJson("/api/health");
   if (health) {
+    Object.assign(configured, health.models);
     setMode(health.mode);
     els.factAgents.textContent = `${health.agents}, with ${health.tools} tools so far`;
   }

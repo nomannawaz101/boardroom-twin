@@ -89,8 +89,11 @@ function yesNo(value) {
 
 // --- Small parts ---
 
-export function modelChip(tier) {
-  return tier === "haiku" ? h("span", { class: "m-haiku" }, "Haiku") : h("span", { class: "m-sonnet" }, "Sonnet");
+// The badge is decided by code on the server from the model that answered (after any
+// fallback): a tier name only for that model family, otherwise the model's own name.
+export function modelChip(step) {
+  const family = step.badge === "Haiku" || (step.badge !== "Sonnet" && step.tier === "haiku") ? "m-haiku" : "m-sonnet";
+  return h("span", { class: family, title: `Answered by ${step.model} (${step.tier} tier)` }, step.badge || step.model);
 }
 
 function codeChip() {
@@ -123,7 +126,7 @@ function agentCard(index, step, body, last) {
   const card = h(
     "div", { class: "card agent-card" },
     h("div", { class: "agent-head" },
-      h("strong", {}, step.label), modelChip(step.tier), h("span", { class: "num agent-time" }, time)),
+      h("strong", {}, step.label), modelChip(step), h("span", { class: "num agent-time" }, time)),
     h("span", { class: "agent-summary" }, step.summary),
     ...body,
     flagNotes(step),

@@ -10,6 +10,7 @@ class HealthResponse(BaseModel):
     version: str
     agents: int
     tools: int
+    models: dict[str, str]  # badges of the configured main and fast models
 
 
 class VersionResponse(BaseModel):

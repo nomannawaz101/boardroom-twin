@@ -50,6 +50,7 @@ def to_reply(response: Any) -> ChatReply:  # noqa: ANN401 - the SDK's response o
         tokens_out=(usage.completion_tokens or 0) if usage else 0,
         # Kept whole so provider-specific fields (such as reasoning signatures) go back unchanged.
         assistant_message=message.model_dump(exclude_none=True),
+        model=response.model or "",
     )
 
 
