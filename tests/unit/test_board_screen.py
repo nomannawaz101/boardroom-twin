@@ -1,4 +1,4 @@
-"""Board screen states: runs tests/js/board_screen.test.mjs with Node, which is skipped if absent."""
+"""Board screen states: runs tests/js/board_screen.test.mjs with Node (skipped if absent)."""
 
 import shutil
 import subprocess

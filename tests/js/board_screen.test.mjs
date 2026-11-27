@@ -78,6 +78,8 @@ const gate = {
   assert.match(text, /needs 7\.0/);
   assert.match(text, /Rejected/);
   assert.match(text, /not rated \(0\)/);
+  const ratings = byClass(card, "crit").map((row) => row.children[1].textContent);
+  assert.deepEqual(ratings, ["7", "5", "not rated (0)"]);
   assert.match(text, /"Is there a smaller first step\?"/);
   const bar = byClass(card, "bar")[0];
   assert.equal(bar.attrs["aria-label"], "Score 5.3 of 10, needs 7.0");
@@ -123,14 +125,16 @@ const gate = {
 // Objections log: one row per item, words for every status, the open count.
 {
   const tracker = [
+    { id: "C1", seat: "security", kind: "C", severity: "condition", claim_ids: [], text: "Retention rule unknown", status: "open" },
     { id: "O1", seat: "cfo", kind: "O", severity: "blocker", claim_ids: ["C7"], text: "No smaller first step", status: "open" },
     { id: "O2", seat: "security", kind: "O", severity: "condition", claim_ids: [], text: "Data protection: partly met.", status: "open" },
-    { id: "C1", seat: "security", kind: "C", severity: "condition", claim_ids: [], text: "Retention rule unknown", status: "open" },
   ];
   const parts = render.objectionsLog(tracker, [answered, gate]);
   const holder = new FakeNode("section");
   holder.append(...parts);
-  assert.equal(byTag(holder, "tr").length, 4); // header + 3 rows
+  const rows = byTag(holder, "tr");
+  assert.equal(rows.length, 4); // header + 3 rows
+  assert.deepEqual(rows.slice(1).map((r) => r.children[0].textContent), ["O1", "O2", "C1"]);
   const text = holder.textContent;
   for (const word of ["Blocker", "Condition", "Client to confirm", "3 open", "(C7)", "Security Officer"]) {
     assert.ok(text.includes(word), `missing: ${word}`);

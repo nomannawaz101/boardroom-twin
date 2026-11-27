@@ -422,7 +422,7 @@ export function scoreCard(result, step, onRetry) {
   if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
   const criteria = result.criteria.map((c) => h("div", { class: "crit", title: c.reason || null },
     h("span", {}, `${c.label} ×${c.weight.toFixed(2)}`),
-    h("span", { class: "num" }, c.rating === null ? "not rated (0)" : scoreText(c.rating))));
+    h("span", { class: "num" }, c.rating === null ? "not rated (0)" : ratingText(c.rating))));
   return h("article", { class: "card seat-card" },
     head,
     h("div", { class: "score-row" },
@@ -454,6 +454,15 @@ export function gateCard(result, step, onRetry) {
     quoteLine(result));
 }
 
+function ratingText(rating) {
+  return Number.isInteger(rating) ? String(rating) : rating.toFixed(1);
+}
+
+function byTrackerOrder(a, b) {
+  if (a.kind !== b.kind) return a.kind === "O" ? -1 : 1;
+  return Number(a.id.slice(1)) - Number(b.id.slice(1));
+}
+
 function trackerPill(item) {
   if (item.kind === "C") return h("span", { class: "pill pill-cond" }, "Client to confirm");
   return item.severity === "blocker"
@@ -464,7 +473,7 @@ function trackerPill(item) {
 export function objectionsLog(tracker, seats) {
   const titles = Object.fromEntries(seats.map((s) => [s.seat_id, s.title]));
   const open = tracker.filter((t) => t.status === "open");
-  const rows = tracker.map((t) => h("tr", {},
+  const rows = [...tracker].sort(byTrackerOrder).map((t) => h("tr", {},
     h("td", { class: "num" }, t.id),
     h("td", {}, titles[t.seat] || t.seat),
     h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.join(", ")})`) : null),

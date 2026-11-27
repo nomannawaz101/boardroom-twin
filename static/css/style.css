@@ -274,6 +274,11 @@ a:hover { color: var(--primary-ink); }
   .sec { grid-template-columns: minmax(0, 1fr); }
   .seat-grid, .seat-grid.gates { grid-template-columns: minmax(0, 1fr); }
   .score-big { font-size: 30px; }
+  /* The objections log stacks each row on a phone instead of squeezing four columns. */
+  .log-card thead { display: none; }
+  .log-card tr { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 4px 10px; padding: 10px 14px; border-bottom: 1px solid #eef1f6; }
+  .log-card td { border: 0; padding: 0; }
+  .log-card td:nth-child(3), .log-card td:nth-child(4) { grid-column: 1 / -1; }
   .relay > li { gap: 10px; }
   .dot { width: 28px; height: 28px; }
 }
