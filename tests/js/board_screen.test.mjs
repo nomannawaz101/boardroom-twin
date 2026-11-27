@@ -165,6 +165,52 @@ const gate = {
   assert.match(holder.textContent, /2 seats/);
   assert.match(holder.textContent, /2 of 5 can proceed/);
   assert.match(holder.textContent, /9 s · \$0\.02 est\./);
+  assert.equal(holder.children.length, 3); // no empty slot when there is no verdict yet
+  const withVerdict = new FakeNode("div");
+  withVerdict.append(...render.boardStats(steps, { able: 2, total: 5 }, { code: "not_ready", label: "Not ready yet" }));
+  assert.match(withVerdict.textContent, /Verdict so far: Not ready yet/);
+}
+
+// Partial gate answer, Not reviewed: the answered items, the missing one in words, and Retry.
+{
+  let retried = false;
+  const partial = {
+    seat_id: "security", kind: "gate", title: "Security Officer", status: "not_reviewed",
+    able: false, partial: true, decision: "Not reviewed", outcome: null,
+    items: [
+      { id: "data_protection", label: "Data protection", must: true, status: "met", reason: "described" },
+      { id: "access_control", label: "Access control", must: true, status: "missing", reason: "Not answered by the seat." },
+      { id: "data_rules_fit", label: "Fit with the client's data rules", must: false, status: "met", reason: "fine" },
+    ],
+  };
+  const card = render.gateCard(partial, { ...step, agent: "security", tier: "haiku", badge: "Haiku" }, () => { retried = true; });
+  const text = card.textContent;
+  assert.match(text, /Not reviewed/);
+  assert.match(text, /partial answer/);
+  assert.match(text, /never counted as met or not met/);
+  assert.match(text, /Not answered: Not answered by the seat\./);
+  assert.deepEqual(byClass(card, "ic").map((n) => n.attrs["aria-label"]), ["Met", "Not answered", "Met"]);
+  const buttons = byTag(card, "button");
+  assert.equal(buttons.length, 1);
+  assert.equal(buttons[0].textContent, "Retry this seat");
+  buttons[0].listeners.click();
+  assert.equal(retried, true);
+}
+
+// Partial gate answer that a known must-have Not met blocks: Blocked, with the partial note.
+{
+  const blocked = {
+    ...gate, partial: true,
+    items: [
+      { id: "data_protection", label: "Data protection", must: true, status: "not_met", reason: "not described" },
+      { id: "access_control", label: "Access control", must: true, status: "missing", reason: "Not answered by the seat." },
+      { id: "data_rules_fit", label: "Fit with the client's data rules", must: false, status: "met", reason: "fine" },
+    ],
+  };
+  const card = render.gateCard(blocked, undefined, () => {});
+  assert.match(card.textContent, /Blocked/);
+  assert.match(card.textContent, /A must-have it answered Not met blocks anyway/);
+  assert.equal(byTag(card, "button").length, 0);
 }
 
 process.stdout.write("board screen: all checks passed\n");

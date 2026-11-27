@@ -4,24 +4,17 @@ A seat only rates its criteria. Ratings are clamped to 0..10; a missing criterio
 and marks the answer partial; score = sum of rating x weight, rounded to 2 decimals.
 """
 
-import re
 from decimal import ROUND_HALF_UP, Decimal
 
 import config
 from domain.seats import SeatSpec
 from schemas.answers import Rating
 from schemas.board import CriterionResult, ScoringVote
-
-NOT_WORD = re.compile(r"[^a-z0-9]+")
+from schemas.common import match_key as criterion_key
 
 
 def clamp(rating: float) -> float:
     return min(max(rating, config.RATING_MIN), config.RATING_MAX)
-
-
-def criterion_key(text: str) -> str:
-    """Match "cost_clarity", "Cost clarity" and "cost-clarity" to the same criterion."""
-    return NOT_WORD.sub("_", text.lower()).strip("_")
 
 
 def match_ratings(spec: SeatSpec, ratings: list[Rating]) -> list[CriterionResult]:

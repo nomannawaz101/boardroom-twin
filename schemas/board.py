@@ -13,7 +13,10 @@ from domain.seats import SeatKind
 ScoringVote = Literal["approved", "yes_with_condition", "rejected"]
 GateOutcome = Literal["pass", "pass_with_conditions", "blocked"]
 ItemStatus = Literal["met", "partly", "not_met"]
+# "missing": the seat never answered the item. It is never read as met, partly or not met.
+ItemResultStatus = Literal["met", "partly", "not_met", "missing"]
 SeatStatus = Literal["answered", "not_reviewed"]
+VerdictCode = Literal["not_ready", "review_incomplete", "approved_with_conditions", "approved"]
 
 
 class PlannedSeat(BaseModel):
@@ -46,9 +49,8 @@ class ChecklistResult(BaseModel):
     id: str
     label: str
     must: bool
-    status: ItemStatus
+    status: ItemResultStatus
     reason: str = ""
-    answered: bool = True  # False when the seat left it out (counted as not met)
 
 
 class SeatResult(BaseModel):
@@ -78,3 +80,10 @@ class BoardRound(BaseModel):
     no: int
     seats: list[SeatResult]
     progress: Progress
+
+
+class Verdict(BaseModel):
+    """Decided by code from the seats' results (plan section 4.7), never by a model."""
+
+    code: VerdictCode
+    label: str

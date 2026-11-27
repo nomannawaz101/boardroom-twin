@@ -16,6 +16,7 @@ from schemas.answers import GateSeatAnswer, ScoringSeatAnswer
 from schemas.board import PlannedSeat, SeatResult
 from schemas.case_file import CaseFile
 from schemas.claims import Claim
+from schemas.common import REQUIRED_ITEMS, match_key
 from schemas.step import StepRecord
 
 SeatAnswer = ScoringSeatAnswer | GateSeatAnswer
@@ -65,14 +66,34 @@ async def run(
     spec = SEATS_BY_ID[seat.id]
     system = system_prompt(PROMPTS[spec.kind], lens=spec.lens, max_objections=SEAT_MAX_OBJECTIONS)
     user = seat_inputs(seat, claims, case_file, draft_no)
-    return await run_agent(seat.id, system, user, SCHEMAS[spec.kind], runtime=runtime)
+    return await run_agent(
+        seat.id, system, user, SCHEMAS[spec.kind], runtime=runtime, check=reply_check(spec)
+    )
+
+
+def reply_check(spec: SeatSpec) -> dict[str, object] | None:
+    """A gate seat must answer every checklist item; a reply that leaves one out is retried."""
+    if spec.kind != "gate":
+        return None
+    return {REQUIRED_ITEMS: [[item.id, match_key(item.label)] for item in spec.checklist]}
+
+
+def answered_items(result: SeatResult) -> int:
+    return sum(item.status != "missing" for item in result.items)
 
 
 def summary(result: SeatResult, attempts: int) -> str:
+    tries = plural(attempts, "try", "tries")
+    if result.status == "not_reviewed" and result.partial:
+        return (
+            f"Answered only {answered_items(result)} of {len(result.items)} checklist items, "
+            f"even after {tries}, so this seat is Not reviewed (partial answer). "
+            "The other seats still count."
+        )
     if result.status == "not_reviewed":
         return (
-            f"Did not answer after {plural(attempts, 'try', 'tries')}, so this seat is Not "
-            "reviewed. The other seats still count."
+            f"Did not answer after {tries}, so this seat is Not reviewed. "
+            "The other seats still count."
         )
     if result.kind == "scoring":
         partial = " A criterion was not rated, so code counted it as 0."
@@ -81,9 +102,12 @@ def summary(result: SeatResult, attempts: int) -> str:
             f"{result.score:.2f} against the {result.needed:.1f} needed: {result.decision}."
         )
     else:
-        partial = " A checklist item was not answered, so code counted it as not met."
+        partial = (
+            " Partial answer: an item was still missing after the retries; a must-have that it "
+            "answered Not met blocks anyway."
+        )
         text = (
-            f"Answered {plural(len(result.items), 'checklist item')}. "
+            f"Answered {answered_items(result)} of {plural(len(result.items), 'checklist item')}. "
             f"Code decided: {result.decision}."
         )
     return text + (partial if result.partial else "")
@@ -95,7 +119,15 @@ def describe(step: StepRecord, result: SeatResult, draft_no: int, claims: int) -
         "summary": summary(result, step.attempts),
         "handoff_in": received_line(step.agent, f"draft {draft_no}, {plural(claims, 'claim')}."),
     }
+    flags = list(step.flags)
+    if result.partial and result.kind == "gate":
+        flags.append("partial")
     if result.status == "not_reviewed":
         update["status"] = "not_reviewed"
-        update["flags"] = [*step.flags, "not_reviewed"]
+        flags.append("not_reviewed")
+    elif step.status == "skipped":
+        # The reply failed its check, but code used what it knew for sure (a known Not met).
+        update["status"] = "retried"
+        flags = [f for f in flags if f != "skipped"]
+    update["flags"] = flags
     return step.model_copy(update=update)

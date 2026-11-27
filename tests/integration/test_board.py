@@ -209,7 +209,7 @@ def test_seat_steps_show_tier_badge_and_code_written_summary(scripted: Scripted)
         "Rated 3 criteria. Code scored 5.30 against the 7.0 needed: Rejected."
     )
     assert steps["procurement"]["summary"] == (
-        "Answered 3 checklist items. Code decided: Pass, with conditions."
+        "Answered 3 of 3 checklist items. Code decided: Pass, with conditions."
     )
     assert steps["cfo"]["handoff_in"] == "Received from Proposal Manager: draft 1, 4 claims."
 
@@ -324,3 +324,140 @@ def test_only_a_not_reviewed_seat_can_be_retried(scripted: Scripted) -> None:
 def test_a_board_without_a_draft_asks_for_the_draft_first(scripted: Scripted) -> None:
     body = review(scripted, [], state(claims=[]))
     assert body["error"] == "step_failed" and "no draft" in body["message"]
+
+
+# Appended to tests/integration/test_board.py: gate answers that leave a checklist item out.
+
+SECURITY_MISSING_ONE = {
+    "items": [
+        {"id": "data_protection", "status": "met"},
+        {"id": "data_rules_fit", "status": "met"},
+    ],
+    "quote": "Looks fine.",
+}
+SECURITY_MISSING_ONE_MUST_NOT_MET = {
+    "items": [
+        {"id": "data_protection", "status": "not_met", "reason": "not described"},
+        {"id": "data_rules_fit", "status": "met"},
+    ],
+    "quote": "Nothing on data protection.",
+}
+SECURITY_COMPLETE = {
+    "items": [
+        {"id": "data_protection", "status": "met"},
+        {"id": "access_control", "status": "met"},
+        {"id": "data_rules_fit", "status": "met"},
+    ],
+    "quote": "All covered.",
+}
+
+
+def gate_script(*security_replies: dict[str, Any]) -> list[FakeStep]:
+    """CFO, VP, Architect and Procurement answer once; then the Security Officer's replies."""
+    return [reply_json(a) for a in NORTHWIND_ANSWERS[:4]] + [
+        reply_json(r) for r in security_replies
+    ]
+
+
+def security_of(body: dict[str, Any]) -> tuple[dict[str, Any], dict[str, Any]]:
+    seat = next(s for s in body["round"]["seats"] if s["seat_id"] == "security")
+    step = next(s for s in body["steps"] if s["agent"] == "security")
+    return seat, step
+
+
+def test_a_gate_reply_missing_an_item_is_retried_with_the_item_named(scripted: Scripted) -> None:
+    review(scripted, gate_script(SECURITY_MISSING_ONE, SECURITY_COMPLETE))
+    retry_message = scripted.model.requests[-1].messages[-1]["content"]
+    assert "missing: access_control" in retry_message
+
+
+def test_one_item_missing_and_the_rest_met_is_not_reviewed_with_a_partial_answer(
+    scripted: Scripted,
+) -> None:
+    body = review(scripted, gate_script(*[SECURITY_MISSING_ONE] * 4))
+    seat, step = security_of(body)
+    assert (seat["status"], seat["partial"], seat["able"], seat["outcome"]) == (
+        "not_reviewed",
+        True,
+        False,
+        None,
+    )
+    assert [i["status"] for i in seat["items"]] == ["met", "missing", "met"]
+    assert (step["status"], step["attempts"]) == ("not_reviewed", 4)
+    assert "partial" in step["flags"] and "not_reviewed" in step["flags"]
+    assert "Answered only 2 of 3 checklist items" in step["summary"]
+    assert not any(t["seat"] == "security" for t in body["tracker"])
+    assert body["verdict"]["label"] == "Not ready yet"  # the CFO's known rejection wins
+
+
+def test_one_item_missing_and_a_must_have_not_met_is_blocked(scripted: Scripted) -> None:
+    body = review(scripted, gate_script(*[SECURITY_MISSING_ONE_MUST_NOT_MET] * 4))
+    seat, step = security_of(body)
+    assert (seat["status"], seat["outcome"], seat["decision"], seat["partial"]) == (
+        "answered",
+        "blocked",
+        "Blocked",
+        True,
+    )
+    assert [i["status"] for i in seat["items"]] == ["not_met", "missing", "met"]
+    assert step["status"] == "retried" and "skipped" not in step["flags"]
+    assert "partial" in step["flags"]
+    assert [t["item_id"] for t in body["tracker"] if t["seat"] == "security"] == ["data_protection"]
+
+
+def test_one_item_missing_then_fixed_by_the_retry_counts_normally(scripted: Scripted) -> None:
+    body = review(scripted, gate_script(SECURITY_MISSING_ONE, SECURITY_COMPLETE))
+    seat, step = security_of(body)
+    assert (seat["status"], seat["outcome"], seat["partial"], seat["able"]) == (
+        "answered",
+        "pass",
+        False,
+        True,
+    )
+    assert (step["status"], step["attempts"]) == ("retried", 2)
+    assert "partial" not in step["flags"]
+
+
+def test_review_incomplete_when_only_a_partial_gate_is_unresolved(scripted: Scripted) -> None:
+    passing_cfo = CFO | {
+        "ratings": [{"criterion": c, "rating": 9} for c in ("cost_clarity", "value", "budget_fit")],
+        "objections": [],
+    }
+    passing_vp = VP | {
+        "ratings": [
+            {"criterion": c, "rating": 9} for c in ("customer_benefit", "timing", "disruption")
+        ],
+        "objections": [],
+    }
+    passing_ea = ARCHITECT | {
+        "ratings": [
+            {"criterion": c, "rating": 9}
+            for c in ("system_fit", "risk_recovery", "maintainability")
+        ],
+        "objections": [],
+    }
+    procurement_pass = {
+        "items": [
+            {"id": i, "status": "met"}
+            for i in ("pricing_model", "change_control", "acceptance_payment")
+        ]
+    }
+    script = [
+        reply_json(passing_cfo),
+        reply_json(passing_vp),
+        reply_json(passing_ea),
+        reply_json(procurement_pass),
+    ] + [reply_json(SECURITY_MISSING_ONE)] * 4
+    body = review(scripted, script)
+    assert body["verdict"] == {"code": "review_incomplete", "label": "Review incomplete"}
+
+
+def test_retrying_a_partial_gate_that_now_answers_in_full(scripted: Scripted) -> None:
+    first = review(scripted, gate_script(*[SECURITY_MISSING_ONE] * 4))
+    retry_state = state(rounds=[first["round"]], tracker=first["tracker"])
+    scripted.load([reply_json(SECURITY_COMPLETE)])
+    body = client.post(
+        "/api/board/retry", json={"state": retry_state, "seat_id": "security"}
+    ).json()
+    seat, _ = security_of(body)
+    assert (seat["status"], seat["outcome"], seat["partial"]) == ("answered", "pass", False)

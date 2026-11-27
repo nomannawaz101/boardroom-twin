@@ -349,7 +349,12 @@ const DECISION_PILLS = {
   pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad",
 };
 const FILLS = { approved: "fill-good", yes_with_condition: "fill-cond", rejected: "fill-bad" };
-const ITEM_ICONS = { met: ["✓", "ic-m", "Met"], partly: ["~", "ic-p", "Partly"], not_met: ["✕", "ic-n", "Not met"] };
+const ITEM_ICONS = {
+  met: ["✓", "ic-m", "Met"],
+  partly: ["~", "ic-p", "Partly"],
+  not_met: ["✕", "ic-n", "Not met"],
+  missing: ["?", "ic-x", "Not answered"],
+};
 
 function avatar(seatId) {
   const [text, color] = AVATARS[seatId] || ["?", "#344054"];
@@ -396,12 +401,19 @@ export function boardPlan(plan) {
   ];
 }
 
-function notReviewedBody(result, onRetry) {
-  const text = result.kind === "scoring"
+function notReviewedText(result) {
+  if (result.partial) {
+    return `The ${result.title} did not answer every checklist item, even after retries, so this gate is not reviewed (partial answer). A missing item is never counted as met or not met.`;
+  }
+  return result.kind === "scoring"
     ? `The ${result.title} couldn't answer, so it is shown as not reviewed. The other seats' votes still count.`
     : `The ${result.title} couldn't answer, so this gate is not reviewed. Until it answers, this gate cannot pass.`;
+}
+
+function notReviewedBody(result, onRetry) {
   return [
-    h("p", { class: "msg m-warn" }, h("strong", {}, "Not reviewed. "), text),
+    h("p", { class: "msg m-warn" }, h("strong", {}, "Not reviewed. "), notReviewedText(result)),
+    result.items && result.items.length ? checklist(result.items) : null,
     button("Retry this seat", "btn btn-outline small-btn retry-seat", onRetry),
   ];
 }
@@ -435,10 +447,8 @@ export function scoreCard(result, step, onRetry) {
     quoteLine(result));
 }
 
-export function gateCard(result, step, onRetry) {
-  const head = seatHead(result, step);
-  if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
-  const items = result.items.map((item) => {
+function checklist(items) {
+  const rows = items.map((item) => {
     const [icon, cls, word] = ITEM_ICONS[item.status];
     const reason = item.status === "met" ? item.reason : `${word}: ${item.reason}`;
     return h("div", { class: "chk" },
@@ -447,10 +457,16 @@ export function gateCard(result, step, onRetry) {
       h("span", {}),
       h("span", {}, reason));
   });
+  return h("div", { class: "chk-list" }, ...rows);
+}
+
+export function gateCard(result, step, onRetry) {
+  const head = seatHead(result, step);
+  if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
   return h("article", { class: "card seat-card" },
     head,
-    h("div", { class: "chk-list" }, ...items),
-    result.partial ? h("p", { class: "seat-note" }, "Partial answer: an item was not answered, so code counted it as not met.") : null,
+    checklist(result.items),
+    result.partial ? h("p", { class: "seat-note" }, "Partial answer: an item was still not answered after the retries. A must-have it answered Not met blocks anyway.") : null,
     quoteLine(result));
 }
 
@@ -494,7 +510,7 @@ export function objectionsLog(tracker, seats) {
   ];
 }
 
-export function boardStats(steps, progress) {
+export function boardStats(steps, progress, verdict) {
   const starts = steps.map((s) => s.start_ms);
   const ends = steps.map((s) => s.start_ms + s.duration_ms);
   const spanMs = steps.length ? Math.max(...ends) - Math.min(...starts) : 0;
@@ -502,7 +518,8 @@ export function boardStats(steps, progress) {
   return [
     h("span", {}, `${steps.length} seats`),
     h("span", {}, `${progress.able} of ${progress.total} can proceed`),
+    verdict ? h("span", { title: "Decided by code: a known Rejected or Blocked wins; otherwise a seat not reviewed gives Review incomplete." }, `Verdict so far: ${verdict.label}`) : null,
     h("span", { class: "num", title: "Time from the first seat starting to the last one finishing. Cost is estimated from token counts at list prices; it is not a bill." },
       `${Math.round(spanMs / 1000)} s · $${cost.toFixed(2)} est.`),
-  ];
+  ].filter(Boolean); // replaceChildren would print an empty slot as the word "null"
 }

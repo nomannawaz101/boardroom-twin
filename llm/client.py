@@ -101,6 +101,9 @@ class Runtime:
 class AgentResult[T: BaseModel]:
     answer: T | None
     step: StepRecord
+    # The last reply that had the right shape but failed a rule check, kept so code can still
+    # use what it knows for sure (a gate's known Not met). Never used as if it had passed.
+    unchecked: T | None = None
 
 
 @dataclass
@@ -161,16 +164,34 @@ def problem_list(error: ValidationError) -> list[str]:
     return problems[: config.MAX_REPLY_PROBLEMS]
 
 
-def parse_answer[T: BaseModel](text: str, schema: type[T]) -> tuple[T | None, list[str]]:
+@dataclass(frozen=True)
+class Parsed[T: BaseModel]:
+    answer: T | None
+    problems: list[str]
+    unchecked: T | None = None
+
+
+def parse_answer[T: BaseModel](
+    text: str, schema: type[T], check: dict[str, object] | None = None
+) -> Parsed[T]:
     """Check a model's reply. FROM_MODEL turns on the count and length rules of the answer
-    shapes, which code-built objects and the stored run state do not have to meet."""
+    shapes, which code-built objects and the stored run state do not have to meet; `check`
+    adds an agent's own rules, such as the checklist a gate seat must cover."""
     value = extract_json(text)
     if not isinstance(value, dict):
-        return None, []
+        return Parsed(None, [])
     try:
-        return schema.model_validate(value, context={FROM_MODEL: True}), []
+        return Parsed(schema.model_validate(value, context={FROM_MODEL: True, **(check or {})}), [])
     except ValidationError as error:
-        return None, problem_list(error)
+        return Parsed(None, problem_list(error), shape_only(value, schema))
+
+
+def shape_only[T: BaseModel](value: dict[str, Any], schema: type[T]) -> T | None:
+    """The reply read without the rule checks, or None if even its shape is wrong."""
+    try:
+        return schema.model_validate(value)
+    except ValidationError:
+        return None
 
 
 def reminder(problems: list[str]) -> dict[str, Any]:
@@ -261,8 +282,10 @@ async def answer_loop[T: BaseModel](
     schema: type[T],
     tools: list[str] | None,
     runtime: Runtime,
-) -> tuple[T | None, StepStatus]:
+    check: dict[str, object] | None = None,
+) -> tuple[T | None, StepStatus, T | None]:
     json_failures = 0
+    unchecked: T | None = None
     truncated = False
     tool_rounds = 0
     while True:
@@ -275,18 +298,19 @@ async def answer_loop[T: BaseModel](
             continue
         if reply.finish_reason == "length":
             if truncated:
-                return None, "skipped"
+                return None, "skipped", unchecked
             truncated = True
             state.cap *= config.TRUNCATION_CAP_FACTOR
             state.flag("retried")
             continue
-        answer, problems = parse_answer(reply.content, schema)
-        if answer is not None:
-            return answer, "retried" if "retried" in state.flags else "ok"
+        parsed = parse_answer(reply.content, schema, check)
+        if parsed.answer is not None:
+            return parsed.answer, "retried" if "retried" in state.flags else "ok", None
+        unchecked = parsed.unchecked or unchecked
         json_failures += 1
         if json_failures > config.JSON_RETRIES:
-            return None, "skipped"
-        messages = with_reminder(messages, problems)
+            return None, "skipped", unchecked
+        messages = with_reminder(messages, parsed.problems)
         state.flag("retried")
 
 
@@ -299,10 +323,12 @@ async def run_agent[T: BaseModel](
     *,
     runtime: Runtime,
     default: T | None = None,
+    check: dict[str, object] | None = None,
 ) -> AgentResult[T]:
     """Run one agent and return its checked answer plus the step record for the screens.
 
-    On `skipped` the answer is the caller's safe default; on `failed` it is None.
+    On `skipped` the answer is the caller's safe default; on `failed` it is None. `check` adds
+    agent-specific rules to the reply check.
     """
     spec = get_agent(agent_id)
     state = CallState(
@@ -313,8 +339,11 @@ async def run_agent[T: BaseModel](
         {"role": "system", "content": system},
         {"role": "user", "content": user},
     ]
+    unchecked: T | None = None
     try:
-        answer, status = await answer_loop(state, messages, schema, tools, runtime)
+        answer, status, unchecked = await answer_loop(
+            state, messages, schema, tools, runtime, check
+        )
     except AllCallsFailed:
         answer, status = None, "failed"
     if status == "skipped":
@@ -339,4 +368,4 @@ async def run_agent[T: BaseModel](
         status=status,
         attempts=state.attempts,
     )
-    return AgentResult(answer=answer, step=step)
+    return AgentResult(answer=answer, step=step, unchecked=unchecked)

@@ -9,9 +9,9 @@ Items start open; Phase 4 marks one fixed only when the seat that raised it re-r
 from dataclasses import dataclass
 from typing import Literal
 
-from domain.scoring import criterion_key
 from schemas.answers import GateObjection, ScoringObjection
 from schemas.board import ChecklistResult
+from schemas.common import match_key as criterion_key
 from schemas.state import TrackerItem
 
 Kind = Literal["O", "C"]
@@ -91,7 +91,7 @@ def gate_drafts(
         by_item.setdefault(criterion_key(objection.item_id), objection)
     drafts = []
     for item in items:
-        if item.status == "met":
+        if item.status in ("met", "missing"):
             continue
         objection = by_item.get(item.id) or by_item.get(criterion_key(item.label))
         text = objection.text.strip() if objection and objection.text.strip() else ""

@@ -50,19 +50,43 @@ def test_named_cases(statuses: tuple[str, ...], outcome: str) -> None:
     assert gate_outcome(match_items(PROCUREMENT, answers(PROCUREMENT, statuses))) == outcome
 
 
-def test_a_missing_must_item_counts_as_not_met_blocks_and_is_partial() -> None:
-    given = [
-        ChecklistAnswer(id="pricing_model", status="met"),
-        ChecklistAnswer(id="acceptance_payment", status="met"),
+def answered(*pairs: tuple[str, str]) -> list[ChecklistAnswer]:
+    return [ChecklistAnswer(id=item_id, status=status) for item_id, status in pairs]  # type: ignore[arg-type]
+
+
+def test_a_missing_item_is_never_read_as_met_partly_or_not_met() -> None:
+    items = match_items(
+        PROCUREMENT, answered(("pricing_model", "met"), ("acceptance_payment", "met"))
+    )
+    assert [(i.id, i.status) for i in items] == [
+        ("pricing_model", "met"),
+        ("change_control", "missing"),
+        ("acceptance_payment", "met"),
     ]
-    items = match_items(PROCUREMENT, given)
-    assert [(i.id, i.status, i.answered) for i in items] == [
-        ("pricing_model", "met", True),
-        ("change_control", "not_met", False),
-        ("acceptance_payment", "met", True),
-    ]
-    assert gate_outcome(items) == "blocked"
     assert is_partial(items)
+
+
+def test_one_item_missing_and_the_rest_met_is_undecided() -> None:
+    items = match_items(
+        PROCUREMENT, answered(("pricing_model", "met"), ("acceptance_payment", "met"))
+    )
+    assert gate_outcome(items) is None
+
+
+def test_one_item_missing_and_a_must_have_not_met_is_blocked() -> None:
+    items = match_items(
+        PROCUREMENT, answered(("pricing_model", "not_met"), ("acceptance_payment", "met"))
+    )
+    assert gate_outcome(items) == "blocked"
+
+
+def test_one_item_missing_and_a_non_must_not_met_is_still_undecided() -> None:
+    # Only a must-have Not met can block (section 4.4 rule 3); without it the missing line
+    # leaves the outcome open, so the seat is Not reviewed.
+    items = match_items(
+        PROCUREMENT, answered(("pricing_model", "met"), ("acceptance_payment", "not_met"))
+    )
+    assert gate_outcome(items) is None
 
 
 def test_items_match_by_label_and_unknown_items_are_ignored() -> None:

@@ -6,7 +6,7 @@ from pydantic import BaseModel
 
 from config import RunMode
 from schemas.answers import SolutionArchitectAnswer
-from schemas.board import BoardPlan, BoardRound
+from schemas.board import BoardPlan, BoardRound, Verdict
 from schemas.case_file import BoardFlags, CaseFile, Signal
 from schemas.claims import Claim
 from schemas.cost import CostEstimate, PhaseEffort
@@ -40,6 +40,7 @@ class BoardResponse(BaseModel):
 
     round: BoardRound
     tracker: list[TrackerItem]
+    verdict: Verdict  # the verdict so far, by section 4.7; final after the last round
     steps: list[StepRecord]
 
 

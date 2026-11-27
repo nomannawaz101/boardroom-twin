@@ -237,17 +237,33 @@ def test_gate_objections_on_met_or_unknown_items_are_ignored() -> None:
     assert gate_drafts("procurement", items, objections) == []
 
 
-def test_a_missing_gate_item_becomes_a_blocker_item_and_a_partial_answer() -> None:
-    result, tracker = review_gate(
-        seat("procurement"),
-        gate_answer({"pricing_model": "met", "acceptance_payment": "met"}),
-        [],
-        1,
+def test_a_gate_answer_missing_an_item_with_nothing_blocking_is_not_reviewed() -> None:
+    answer = gate_answer({"pricing_model": "met", "acceptance_payment": "met"})
+    result, tracker = review_gate(seat("procurement"), answer, [], 1)
+    assert (result.status, result.partial, result.able, result.outcome) == (
+        "not_reviewed",
+        True,
+        False,
+        None,
     )
-    assert (result.outcome, result.partial, result.able) == ("blocked", True, False)
-    assert [(t.item_id, t.severity, t.text) for t in tracker] == [
-        ("change_control", "blocker", "Change control: not met.")
-    ]
+    assert result.decision == "Not reviewed"
+    assert [i.status for i in result.items] == ["met", "missing", "met"]
+    assert tracker == []  # no items until the seat answers in full
+
+
+def test_a_gate_answer_missing_an_item_with_a_must_have_not_met_is_blocked() -> None:
+    answer = gate_answer({"pricing_model": "not_met", "acceptance_payment": "partly"})
+    result, tracker = review_gate(seat("procurement"), answer, [], 1)
+    assert (result.status, result.outcome, result.partial, result.able) == (
+        "answered",
+        "blocked",
+        True,
+        False,
+    )
+    assert [(t.item_id, t.severity) for t in tracker] == [
+        ("pricing_model", "blocker"),
+        ("acceptance_payment", "condition"),
+    ]  # the missing change_control line adds nothing
 
 
 # --- Not reviewed and retry ---

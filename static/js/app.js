@@ -267,7 +267,7 @@ function showBoard() {
   els.boardStatus.replaceChildren();
   els.boardTitle.textContent = "The client's board reviewed draft 1";
   els.boardIntro.textContent = boardIntro(round);
-  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress));
+  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress, run.data.verdictLabel));
   els.scoreCards.replaceChildren(...scoring.map(card));
   els.gateCards.replaceChildren(...gates.map(card));
   els.scoreBlock.hidden = scoring.length === 0;

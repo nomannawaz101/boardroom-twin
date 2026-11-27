@@ -8,7 +8,7 @@ from domain import gates, scoring
 from domain.seats import SEATS_BY_ID
 from domain.tracker import add_items, gate_drafts, open_items, scoring_drafts
 from schemas.answers import GateSeatAnswer, ScoringSeatAnswer
-from schemas.board import BoardRound, PlannedSeat, Progress, SeatResult
+from schemas.board import BoardRound, ChecklistResult, PlannedSeat, Progress, SeatResult
 from schemas.state import TrackerItem
 
 BLOCKING_OUTCOME = "blocked"
@@ -65,6 +65,9 @@ def review_gate(
 ) -> tuple[SeatResult, list[TrackerItem]]:
     items = gates.match_items(SEATS_BY_ID[seat.id], answer.items)
     outcome = gates.gate_outcome(items)
+    if outcome is None:
+        # Items still missing after the retries and nothing known blocks: undecided.
+        return partial_not_reviewed(seat, items), tracker
     updated = add_items(tracker, gate_drafts(seat.id, items, answer.objections), round_no)
     result = SeatResult(
         seat_id=seat.id,
@@ -79,6 +82,12 @@ def review_gate(
         quote=answer.quote.strip(),
     )
     return result, updated
+
+
+def partial_not_reviewed(seat: PlannedSeat, items: list[ChecklistResult]) -> SeatResult:
+    """A gate that left items out even after the retries: Not reviewed, marked partial, with
+    the items it did answer shown. It adds no tracker items until it answers in full."""
+    return not_reviewed(seat).model_copy(update={"partial": True, "items": items})
 
 
 def not_reviewed(seat: PlannedSeat) -> SeatResult:

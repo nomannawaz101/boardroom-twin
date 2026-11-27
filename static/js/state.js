@@ -44,6 +44,8 @@ export function addBoard(board) {
     ...run.data,
     rounds: [board.round],
     tracker: board.tracker,
+    verdict: board.verdict.code,
+    verdictLabel: board.verdict,
     steps: [...run.data.steps.filter((s) => s.stage < 3), ...board.steps],
   };
 }
@@ -54,6 +56,8 @@ export function addRetriedSeat(board) {
     ...run.data,
     rounds: [...run.data.rounds.slice(0, -1), board.round],
     tracker: board.tracker,
+    verdict: board.verdict.code,
+    verdictLabel: board.verdict,
     steps: run.data.steps.map((s) => (s.agent === step.agent ? step : s)),
   };
 }

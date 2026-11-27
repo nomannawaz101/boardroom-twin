@@ -18,6 +18,7 @@ from domain.board_round import (
     review_scoring,
 )
 from domain.errors import InputBlocked, StepFailed
+from domain.loop import final_verdict
 from llm.client import AgentResult, Runtime
 from schemas.answers import GateSeatAnswer, ScoringSeatAnswer
 from schemas.board import BoardPlan, PlannedSeat, SeatResult
@@ -48,7 +49,11 @@ def assess(
     tracker: list[TrackerItem],
     round_no: int,
 ) -> tuple[SeatResult, list[TrackerItem]]:
-    """Turn one seat's answer into its result. No answer means Not reviewed."""
+    """Turn one seat's answer into its result. No answer means Not reviewed, except that a gate
+    whose last reply only left items out still counts its known answers: a must-have Not met
+    blocks (a known result wins); otherwise it is Not reviewed with a partial answer."""
+    if result.answer is None and seat.kind == "gate" and result.unchecked is not None:
+        return review_gate(seat, cast(GateSeatAnswer, result.unchecked), tracker, round_no)
     if result.answer is None:
         return not_reviewed(seat), tracker
     if seat.kind == "scoring":
@@ -82,7 +87,9 @@ async def review(state: RunState, runtime: Runtime) -> BoardResponse:
         steps.append(described(agent, result, state))
     if answered_count(results) < MIN_SEATS_ANSWERED:
         raise StepFailed(TOO_FEW)
-    return BoardResponse(round=build_round(FIRST_ROUND, results), tracker=tracker, steps=steps)
+    board_round = build_round(FIRST_ROUND, results)
+    verdict = final_verdict(board_round, tracker)
+    return BoardResponse(round=board_round, tracker=tracker, verdict=verdict, steps=steps)
 
 
 async def retry_seat(state: RunState, seat_id: str, runtime: Runtime) -> BoardResponse:
@@ -98,4 +105,6 @@ async def retry_seat(state: RunState, seat_id: str, runtime: Runtime) -> BoardRe
     claim_ids = {c.id for c in state.claims}
     result, tracker = assess(seat, agent, claim_ids, state.tracker, latest.no)
     step = described(agent, result, state)
-    return BoardResponse(round=replace_seat(latest, result), tracker=tracker, steps=[step])
+    board_round = replace_seat(latest, result)
+    verdict = final_verdict(board_round, tracker)
+    return BoardResponse(round=board_round, tracker=tracker, verdict=verdict, steps=[step])

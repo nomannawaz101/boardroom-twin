@@ -6,11 +6,11 @@ Models never return a total, a vote, a cost or a verdict: code computes those.
 from datetime import date
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationInfo, model_validator
 
 import config
 from schemas.claims import DraftClaim
-from schemas.common import at_least, capped
+from schemas.common import REQUIRED_ITEMS, at_least, capped, from_model, match_key
 
 Short = capped(config.LIST_CAP_SHORT)
 Medium = capped(config.LIST_CAP_MEDIUM)
@@ -162,3 +162,17 @@ class GateSeatAnswer(BaseModel):
     objections: Annotated[list[GateObjection], capped(config.SEAT_MAX_OBJECTIONS)] = []
     quote: str = ""
     previous: Annotated[list[PreviousState], Long] = []
+
+    @model_validator(mode="after")
+    def covers_the_checklist(self, info: ValidationInfo) -> "GateSeatAnswer":
+        """A reply that leaves out a checklist item fails its check, so the seat is retried.
+        A forgotten line must never become a gate outcome. The checklist comes from run_agent
+        as a list of accepted keys (id and label) per item."""
+        required: list[list[str]] = (info.context or {}).get(REQUIRED_ITEMS) or []
+        if not from_model(info) or not required:
+            return self
+        answered = {match_key(item.id) for item in self.items}
+        missing = [keys[0] for keys in required if not answered.intersection(keys)]
+        if missing:
+            raise ValueError(f"answer every checklist item; missing: {', '.join(missing)}")
+        return self
