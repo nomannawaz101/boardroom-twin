@@ -84,3 +84,36 @@ A short record of each choice, including ones still unconfirmed.
 | Cost, team, start, go-live | draft summary | Calculated by code (cost calculator, working-day schedule) |
 
 - **Model badge fix:** the badge used to print the configured tier ("Sonnet"/"Haiku") whatever model answered, so a development model was shown as Sonnet or Haiku. Now each reply's reported model is recorded (`model` on the step record, falling back to the requested model if the service does not say), and code derives `badge` from it. A fallback to the fast tier shows the fast model; with the judged gateway's models the tier names stay. The start panel's model line uses the same rule (`models` added to `/api/health`), and shows one name when both tiers use the same model.
+
+## Phase 3
+
+- **Seats are data, prompts are two templates.** `agents/board_seat.py` runs all five seats; `agents/prompts/scoring_seat.md` and `gate_seat.md` hold the Appendix A rules, and each seat's `lens` (what that buyer cares about) lives in its entry in `domain/seats.py`. This follows the plan's extension rule ("a new board seat is one data entry") instead of one prompt file per seat.
+- **The seat title and client name travel as data.** The VP or Director title is built from the Business Analyst's `function` flag, which comes from the brief, so it is sent inside the `<inputs>` block, never in the system prompt.
+- **Seats run only from `board_plan`, all at the same time** (`asyncio.gather`). Gate seats run on the fast tier, scoring seats on the main tier (`config.MODEL_ROUTING`).
+- **Scores are exact.** Ratings are clamped to 0..10; the score is the weighted sum in decimal arithmetic, rounded half up to 2 decimals (so 6.995 meets a needed 7.0). A criterion the seat leaves out counts as 0 and marks the seat "partial". Criteria and checklist items are matched by id or label; the first answer for an item counts; unknown ones are ignored.
+- **Two gaps in section 4.4, resolved (please confirm):**
+  - An open **blocker** objection on a seat whose score passes gives "Yes, with a condition", not Approved: rule 2 names only conditions, but approving with a blocker still open would be dishonest.
+  - A gate checklist item the seat **leaves out** counts as Not met (Appendix A: "a missing clause is Not met or Partly, never assumed") and marks the seat partial.
+- **Not reviewed.** Seats have no safe default: a seat whose call fails or whose answer cannot be used after the retries is Not reviewed, cannot proceed, and its step record has status `not_reviewed` with the flag. The other seats still count. If fewer than 2 seats answer, the stage fails with `step_failed` and the page offers Retry.
+- **Retry this seat:** `POST /api/board/retry` with `{state, seat_id}` (not in the section 7.1 table). Only a seat that is Not reviewed in the latest round can be retried; its tracker items are appended with the next free ids, and the round's progress is recomputed from all seats.
+- **Board response shape:** `{round: {no, seats, progress}, tracker, steps}`; the plan writes `{round: {seats, objections, progress}, steps}`. The objections are the tracker.
+- **Tracker:** items carry the seat's `resolve_hint` (section 4.3 seat answers have it; section 4.5's shape does not), for the Bid Manager in Phase 4. Gate items that are Not met or Partly become items: blocker if a must-have is Not met, otherwise condition; the seat's own objection gives the wording, else code writes "Change control: not met.". Objections on met or unknown items are ignored; an unknown claim id is dropped from the item. Note: tracker ids C1, C2 share the letter C with claim ids (C7); this follows the plan, and the page always shows them in separate places.
+- **Decision words** are written by code on each seat result: "Approved", "Yes, with a condition", "Rejected", "Pass", "Pass, with conditions" (the design's wording; the plan writes "Pass with conditions"), "Blocked", "Not reviewed".
+- **Screen tests without a new library:** `tests/js/board_screen.test.mjs` renders the board cards with Node against a tiny DOM stand-in (not reviewed with Retry, score bar and tick, gate MUST marks, objections log, header stats); `tests/unit/test_board_screen.py` runs it and skips if Node is not installed.
+
+### Differences from the design (Phase 3)
+
+- **Why lines** on the board strip are the composer's fixed texts per rule (plan 4.2 rule 7, for example "Existing systems are touched."), not brief-specific sentences like the design's "the brief touches the existing claims system".
+- **Skipped seats** are shown dashed in the strip with their reason (plan 12.3), which the design's 5-seat example does not need.
+- **Tracker status pills** say "Blocker", "Condition" or "Client to confirm" from each item's severity and kind; the design mixes "Open", "Condition" and "Blocker". The log lists O items first, then C items.
+- **Header** adds "N of M can proceed" (plan 4.4 rule 5); the seconds are measured from the first seat starting to the last finishing.
+- **Next step:** the Bid Manager arrives in Phase 4, so "Next: the Bid Manager answers the objections" is shown disabled with a note instead of the design's handoff line.
+- **On a phone** the objections log stacks each row instead of a four-column table.
+- **Model badge** names the model that answered, as in Phase 2 (on Gemini the model's own name; on the judged gateway "Sonnet" or "Haiku").
+
+### Phase 3 gate (local, Gemini, 27 Nov build)
+
+- Northwind: discover 2.9 s, draft 5.0 s, board 2.3 s; 5 seats; 1 of 5 can proceed; 8 tracker items.
+- Harbor Freight: discover 1.7 s, draft 4.3 s, board 2.4 s; 4 seats (the accepted Phase 2 deviation; a later run chose the expected 3); 1 of 4; 7 items.
+- Summit Ridge: discover 2.5 s, draft 4.9 s, board 2.2 s; 5 seats; 1 of 5; 9 items.
+- Every seat answered on its first try. Forced failures (one scoring seat, one gate, fewer than 2 seats) and the retry are covered by fake-model tests, because a live model cannot be made to fail on demand.
