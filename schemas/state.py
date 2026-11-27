@@ -1,15 +1,15 @@
 """Run state held by the browser (plan section 7.2). It never holds a key or a passcode.
 
-Rounds and verdict get their own models when Phases 3 and 4 build them.
+The verdict gets its own model when Phase 4 builds it.
 """
 
-from typing import Any, Literal
+from typing import Literal
 
 from pydantic import BaseModel
 
 from config import RunMode
 from schemas.answers import RiskAnalystAnswer, SolutionArchitectAnswer
-from schemas.board import BoardPlan
+from schemas.board import BoardPlan, BoardRound
 from schemas.case_file import BoardFlags, CaseFile
 from schemas.claims import Claim
 from schemas.cost import CostEstimate
@@ -50,7 +50,7 @@ class RunState(BaseModel):
     risks: RiskAnalystAnswer | None = None
     claims: list[Claim] = []
     draft_no: int = 0
-    rounds: list[dict[str, Any]] = []
+    rounds: list[BoardRound] = []
     tracker: list[TrackerItem] = []
     verdict: str | None = None
     steps: list[StepRecord] = []

@@ -138,7 +138,7 @@ class ScoringObjection(BaseModel):
 
 class ScoringSeatAnswer(BaseModel):
     ratings: Annotated[list[Rating], Short] = []
-    objections: Annotated[list[ScoringObjection], Short] = []
+    objections: Annotated[list[ScoringObjection], capped(config.SEAT_MAX_OBJECTIONS)] = []
     condition: str | None = None
     quote: str = ""
     previous: Annotated[list[PreviousState], Long] = []
@@ -159,6 +159,6 @@ class GateObjection(BaseModel):
 
 class GateSeatAnswer(BaseModel):
     items: Annotated[list[ChecklistAnswer], Short] = []
-    objections: Annotated[list[GateObjection], Short] = []
+    objections: Annotated[list[GateObjection], capped(config.SEAT_MAX_OBJECTIONS)] = []
     quote: str = ""
     previous: Annotated[list[PreviousState], Long] = []

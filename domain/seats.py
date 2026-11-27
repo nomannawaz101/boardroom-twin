@@ -31,11 +31,16 @@ class SeatSpec:
     criteria: tuple[Criterion, ...] = ()
     needed_score: float | None = None
     checklist: tuple[ChecklistItem, ...] = ()
+    lens: str = ""  # what this buyer cares about, in their own terms; fills the seat prompt
 
 
 SEATS: tuple[SeatSpec, ...] = (
     SeatSpec(
         id="cfo",
+        lens=(
+            "You own the budget. You want a clear cost, value for the money, and a fit "
+            "with this year's budget."
+        ),
         kind="scoring",
         title="CFO",
         join_rule="always",
@@ -48,6 +53,10 @@ SEATS: tuple[SeatSpec, ...] = (
     ),
     SeatSpec(
         id="vp_director",
+        lens=(
+            "You own the business outcome. You want a real benefit for customers, "
+            "sensible timing for your teams, and little disruption to daily work."
+        ),
         kind="scoring",
         title="VP or Director",  # replaced per brief by the composer, e.g. "VP, Claims Operations"
         join_rule="always",
@@ -60,6 +69,10 @@ SEATS: tuple[SeatSpec, ...] = (
     ),
     SeatSpec(
         id="enterprise_architect",
+        lens=(
+            "You own the client's systems. You want a fit with the systems already "
+            "running, a risk and recovery plan, and something your team can maintain."
+        ),
         kind="scoring",
         title="Enterprise Architect",
         join_rule="existing_systems",
@@ -72,6 +85,10 @@ SEATS: tuple[SeatSpec, ...] = (
     ),
     SeatSpec(
         id="procurement",
+        lens=(
+            "You own the contract. You check that the pricing model is stated, that "
+            "change control exists, and that acceptance and payment terms are clear."
+        ),
         kind="gate",
         title="Procurement & Contracts",
         join_rule="contract",
@@ -83,6 +100,10 @@ SEATS: tuple[SeatSpec, ...] = (
     ),
     SeatSpec(
         id="security",
+        lens=(
+            "You own data protection. You check how personal data is protected, who can "
+            "access what, and whether the work fits the client's data rules."
+        ),
         kind="gate",
         title="Security Officer",
         join_rule="personal_data",

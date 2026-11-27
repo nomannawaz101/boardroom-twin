@@ -150,6 +150,13 @@ SA_PHASES = (1, 3)
 DM_MIN_PHASES = 1
 PM_TARGET_CLAIMS = (10, 24)  # live Gemini drafts held 9 to 14 claims (Phase 2 gate)
 
+# --- Client board (plan section 4). ---
+RATING_MIN = 0.0
+RATING_MAX = 10.0
+SCORE_DECIMALS = 2
+SEAT_MAX_OBJECTIONS = 4  # Appendix A: a scoring seat raises 0 to 4 objections
+MIN_SEATS_ANSWERED = 2  # fewer seats answering stops the run with a Retry card (rule 4.4.6)
+
 
 def run_mode() -> RunMode:
     """Read RUN_MODE; an unknown value falls back to the default instead of failing the app."""
