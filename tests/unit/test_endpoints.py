@@ -25,6 +25,8 @@ def test_health_reports_mode_features_and_version(monkeypatch: pytest.MonkeyPatc
         "mode": "sample",
         "features": config.FEATURES,
         "version": config.APP_VERSION,
+        "agents": 14,
+        "tools": 3,
     }
 
 

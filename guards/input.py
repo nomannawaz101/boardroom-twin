@@ -101,8 +101,8 @@ def clean_text(text: str) -> str:
     return BLANK_RUN.sub("\n" * (config.MAX_BLANK_LINES + 1), joined).strip()
 
 
-def check_lengths(client: str, country: str, brief: str) -> None:
-    """G2: exact limits, checked on the server. Never truncate silently."""
+def check_brief_length(brief: str) -> None:
+    """G2 for the brief: the exact limit, checked on the server. Never truncate silently."""
     if not brief:
         raise InputBlocked(EMPTY_BRIEF_MESSAGE)
     if len(brief) > config.BRIEF_MAX_CHARS:
@@ -110,6 +110,11 @@ def check_lengths(client: str, country: str, brief: str) -> None:
             f"The brief has {len(brief):,} characters. The limit is "
             f"{config.BRIEF_MAX_CHARS:,}. Please shorten it."
         )
+
+
+def check_lengths(client: str, country: str, brief: str) -> None:
+    """G2: exact limits, checked on the server. Never truncate silently."""
+    check_brief_length(brief)
     if not client:
         raise InputBlocked(EMPTY_CLIENT_MESSAGE)
     if len(client) > config.CLIENT_NAME_MAX_CHARS:
@@ -174,6 +179,14 @@ def looks_like_injection(text: str) -> bool:
 def wrap_brief(brief: str) -> str:
     """G4: the brief goes to agents only inside the marked block, with its tags removed first."""
     return f"<{BRIEF_TAG}>\n{BRIEF_TAGS.sub('', brief)}\n</{BRIEF_TAG}>"
+
+
+def recheck_brief(brief: str) -> str:
+    """Later stages get the brief back from the browser, so G2, G3 and G6 run again (G16)."""
+    cleaned = clean_text(brief)
+    check_brief_length(cleaned)
+    block_real_data(cleaned)
+    return cleaned
 
 
 def check_discover_request(request: DiscoverRequest) -> CheckedInput:

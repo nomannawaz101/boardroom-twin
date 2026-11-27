@@ -8,6 +8,8 @@ class HealthResponse(BaseModel):
     mode: RunMode
     features: dict[str, bool]
     version: str
+    agents: int
+    tools: int
 
 
 class VersionResponse(BaseModel):
