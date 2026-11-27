@@ -26,8 +26,3 @@ def test_add_working_days_jumps_the_weekend() -> None:
 
 def test_add_zero_days_returns_start() -> None:
     assert working_days.add_working_days(date(2026, 12, 7), 0) == date(2026, 12, 7)
-
-
-def test_run_accepts_iso_strings() -> None:
-    result = working_days.run("2026-12-21", "2026-12-25", ["2026-12-25"])
-    assert result == {"working_days": 4}

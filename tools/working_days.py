@@ -2,6 +2,12 @@
 
 from collections.abc import Collection
 from datetime import date, timedelta
+from typing import TYPE_CHECKING, Any
+
+from pydantic import BaseModel
+
+if TYPE_CHECKING:
+    from tools.registry import ToolContext
 
 NAME = "working_days"
 SATURDAY = 5
@@ -52,8 +58,12 @@ def add_working_days(start: date, days: int, holidays: Collection[date] = ()) ->
     return current
 
 
-def run(start: str, end: str, holidays: list[str] | None = None) -> dict[str, int]:
-    """Entry point for a model tool call; inputs arrive as ISO date strings."""
-    holiday_dates = {date.fromisoformat(h) for h in holidays or []}
-    total = count_working_days(date.fromisoformat(start), date.fromisoformat(end), holiday_dates)
+class WorkingDaysInput(BaseModel):
+    start: date
+    end: date
+    holidays: list[date] = []
+
+
+def handle(request: WorkingDaysInput, context: "ToolContext") -> dict[str, Any]:
+    total = count_working_days(request.start, request.end, set(request.holidays))
     return {"working_days": total}
