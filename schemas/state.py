@@ -32,6 +32,7 @@ class TrackerItem(BaseModel):
     item_id: str | None = None
     claim_ids: list[str] = []
     text: str
+    resolve_hint: str = ""  # what the seat says would resolve it; the Bid Manager reads this
     status: Literal["open", "fixed"] = "open"
     raised_round: int
     history: list[HistoryEntry] = []
