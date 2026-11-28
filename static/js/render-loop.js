@@ -5,7 +5,7 @@ import {
   button, decisionPill, decisionText, h, handLine, modelChip, proposal, scoreText, seconds,
 } from "./render.js";
 import {
-  OUTCOMES, ROLES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
+  CHANGE_TEXT_MAX, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
 } from "./labels.js";
 
 const GATE_CLASSES = { pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad" };
@@ -273,10 +273,18 @@ export function keyNumbers(numbers) {
     n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null));
 }
 
-export function changesSince(changes, notAnswered = []) {
+// The objection in words, cut to fit with the full text in the title, then its shown id.
+function objectionWords(id, tracker) {
+  const item = tracker.find((t) => t.id === id);
+  if (!item) return h("span", { class: "change-obj" }, h("span", { class: "num change-id" }, objectionId(id)));
+  return h("span", { class: "change-obj", title: item.text },
+    trimmed(item.text, CHANGE_TEXT_MAX), " ", h("span", { class: "num change-id" }, objectionId(id)));
+}
+
+export function changesSince(changes, notAnswered = [], tracker = []) {
   const rows = changes.length
     ? changes.map((c) => h("li", { class: "change-line" },
-        h("span", { class: "num change-id" }, c.objection_id),
+        objectionWords(c.objection_id, tracker),
         h("span", { class: "change-action" }, `${c.action}, round ${c.round}`),
         h("span", {}, c.text)))
     : [h("li", { class: "muted" }, `No change was made: the loop stopped before a ${ROLES.bid_manager} round.`)];
@@ -287,7 +295,7 @@ export function changesSince(changes, notAnswered = []) {
     notAnswered.length ? h("strong", { class: "small" }, `Not answered by the ${ROLES.bid_manager}`) : null,
     notAnswered.length
       ? h("ol", { class: "changes-list" }, ...notAnswered.map((c) => h("li", { class: "change-line" },
-          h("span", { class: "num change-id" }, c.objection_id),
+          objectionWords(c.objection_id, tracker),
           h("span", { class: "change-action" }, `round ${c.round}`),
           h("span", {}, c.text))))
       : null,
@@ -295,7 +303,7 @@ export function changesSince(changes, notAnswered = []) {
 }
 
 export function finalProposal(claims, draftNo, client) {
-  return proposal(claims, `Proposal for ${client} · final version (draft ${draftNo})`, "final-h");
+  return proposal(claims, `Proposal for ${client} · ${W.finalDraft} (draft ${draftNo})`, "final-h");
 }
 
 export function decisionMemo(memo) {

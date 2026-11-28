@@ -46,7 +46,7 @@
     <div class="views">
   <main class="main" id="view-brief">
     <section class="hero" aria-labelledby="hero-h">
-      <h1 id="hero-h">Rehearse your proposal in front of the client's board, before you send it.</h1>
+      <h1 id="hero-h" data-text="hero-title">Know what the client's board will challenge, before the meeting.</h1>
       <p>A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
       <div class="hero-actions">
         <button type="button" class="btn hero-main" disabled aria-describedby="sample-note">
@@ -57,6 +57,7 @@
       </div>
       <span class="hero-note" id="sample-note">The recorded sample run arrives in a later build.</span>
     </section>
+    <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
 
     <section class="how" aria-label="How it works">
       <div class="card how-card">
@@ -185,6 +186,7 @@
         <span class="num eyebrow">STAGE 2 OF 5</span>
         <h1 id="team-title">The proposal team is writing draft 1</h1>
         <p id="team-intro">Each agent hands its work to the next. Tools are plain code: the agent asks, code answers exactly.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="team-stats"></div>
     </section>
@@ -203,6 +205,7 @@
         <span class="num eyebrow">STAGE 3 OF 5 · BOARD ROUND 1</span>
         <h1 id="board-title">The client's board is reviewing draft 1</h1>
         <p id="board-intro" data-text="board-intro">Fixed rules picked the board from the brief. Every reviewer reads the draft at the same time, and fixed rules turn their answers into votes.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="board-stats"></div>
     </section>
@@ -230,6 +233,7 @@
         <span class="num eyebrow" data-text="loop-eyebrow">STAGE 4 OF 5 · UP TO 2 REVISION ROUNDS</span>
         <h1 id="loop-title" data-text="loop-title">The Revision Editor is answering the objections</h1>
         <p data-text="loop-intro">Each round: the Revision Editor changes only what was objected to, then the whole board votes again. Fixed rules decide when the loop stops.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="loop-stats"></div>
     </section>
@@ -249,6 +253,7 @@
   <main class="main" id="view-report" hidden>
     <div id="report-status"></div>
     <div id="report-body" hidden>
+      <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       <div id="verdict-banner"></div>
       <section class="key-numbers" id="key-numbers" aria-label="Key numbers"></section>
       <section class="card report-card" id="report-changes"></section>

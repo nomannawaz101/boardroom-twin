@@ -117,11 +117,15 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(memo, /Blocked/);
   assert.match(memo, /sign-off/);
   assert.match(memo, /8\.0 \/ 7\.0/);
-  assert.match(holderOf(loop.changesSince(report.changes)).textContent, /O1Changed, round 1Two phases\./);
+  assert.match(holderOf(loop.changesSince(report.changes, [], tracker)).textContent, /Smaller first step #1Changed, round 1Two phases\./);
+  const long = [{ id: "O1", text: "A time and materials model does not provide a fixed cost ceiling, which is risky given our tight budget this year." }];
+  const cut = byClass(holderOf(loop.changesSince(report.changes, [], long)), "change-obj")[0];
+  assert.equal(cut.attrs.title, long[0].text);
+  assert.match(cut.textContent, /^A time and materials model does not provide a fixed cost ceiling, which is risky given…\s#1$/);
   assert.doesNotMatch(holderOf(loop.changesSince(report.changes)).textContent, /Not answered/);
-  const skipped = holderOf(loop.changesSince(report.changes, [{ objection_id: "O3", round: 1, action: "Not answered by the Bid Manager", text: "Access control: no single sign-on." }])).textContent;
+  const skipped = holderOf(loop.changesSince(report.changes, [{ objection_id: "O3", round: 1, action: "Not answered by the Bid Manager", text: "Access control: no single sign-on." }], tracker)).textContent;
   assert.match(skipped, /Not answered by the Revision Editor/);
-  assert.match(skipped, /O3round 1Access control: no single sign-on\./);
+  assert.match(skipped, /Nobody answered this #3round 1Access control: no single sign-on\./);
   const prep = holderOf(loop.meetingPrep(report.confirm_with_client)).textContent;
   assert.match(prep, /arrive in a later build/);
   assert.match(prep, /Retention rule/);

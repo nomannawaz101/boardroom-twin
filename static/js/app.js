@@ -496,7 +496,7 @@ function renderReport() {
   const report = run.data.report;
   els.verdictBanner.replaceChildren(verdictBanner(report, () => window.print(), downloadRun));
   els.keyNumbers.replaceChildren(...keyNumbers(report.numbers));
-  els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || []));
+  els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || [], run.data.tracker));
   els.reportProposal.replaceChildren(...finalProposal(run.data.claims, run.data.draft_no, run.data.case_file.client));
   els.reportMemo.replaceChildren(...decisionMemo(report.memo));
   els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client, report.decisions || []));

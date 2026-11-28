@@ -2,7 +2,7 @@
 // no HTML string is ever parsed (guard G12).
 
 import {
-  ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementCount,
+  BOARD_SUBTITLE, ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementCount,
   statementId,
 } from "./labels.js";
 
@@ -437,7 +437,7 @@ export function boardPlan(plan, round = null) {
     h("div", { class: "card-title-row" },
       h("div", { class: "stack-8" },
         h("h2", { id: "plan-h" }, "Board for this brief"),
-        h("span", { class: "muted small" }, "Chosen by fixed rules from the 5 key facts the Business Analyst set.")),
+        h("span", { class: "muted small" }, BOARD_SUBTITLE)),
       codeChip()),
     h("div", { class: "plan-grid" }, ...joined, ...skipped),
     h("span", { class: "muted small" }, "Fixed rules choose 3 to 5 reviewers per brief. Unclear facts make a reviewer join rather than skip."),

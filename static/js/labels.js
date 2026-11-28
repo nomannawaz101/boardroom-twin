@@ -72,9 +72,23 @@ export const MODES = { Full: "Live run", Lite: "Lite run", Sample: "Sample run" 
 
 export const LEGEND_AI = "AI = written by a model. Fixed rules = decided by code, the same every time.";
 export const LEGEND_COLOURS = "Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.";
+export const BOARD_SUBTITLE = "Reviewers picked by fixed rules from the key facts in the brief.";
+export const CHANGE_TEXT_MAX = 90;
+
+// Long text cut at a word boundary, with "…"; the full text goes in the title.
+export function trimmed(text, max) {
+  const value = String(text || "");
+  if (value.length <= max) return value;
+  const cut = value.slice(0, max);
+  const space = cut.lastIndexOf(" ");
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).replace(/[\s,.;:]+$/, "")}…`;
+}
+
 
 // Static page texts, filled into every [data-text] element when the page starts.
 export const PAGE_TEXT = {
+  "legend-ai": LEGEND_AI,
+  "hero-title": "Know what the client's board will challenge, before the meeting.",
   "step-1": `Business Analyst, Solution Architect, Delivery Manager, Risk & Compliance Analyst and ${ROLES.proposal_manager} hand work to each other`,
   "step-2": "3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time",
   "step-3-title": `${ROLES.bid_manager} revises`,
