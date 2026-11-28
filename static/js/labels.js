@@ -150,6 +150,7 @@ const CODE_TEXT = [
   [/\bscoring seats\b/g, WORDS.scoringReviewers],
   [/\bboard seats\b/g, WORDS.reviewers],
   [/\bEvery seat on the board\b/g, "Every reviewer"],
+  [/\bcan proceed\b/g, "can approve"],
   [/\bseats\b/g, WORDS.reviewers],
   [/\bseat\b/g, WORDS.reviewer],
   [/\bclaims\b/g, WORDS.statements],

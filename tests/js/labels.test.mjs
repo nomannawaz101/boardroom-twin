@@ -18,7 +18,7 @@ assert.equal(labels.statementId("C7"), "S7");
 assert.equal(labels.codeText("Hands to Bid Manager: the open objections, each with its id."), "Hands to Revision Editor: the open objections, each with its id.");
 assert.equal(labels.codeText("Wrote draft 1 as 15 short claims in 9 sections."), "Wrote draft 1 as 15 short statements in 9 sections.");
 assert.equal(labels.codeText("Code decided: Pass, with conditions."), "Code decided: Signed off, with conditions.");
-assert.equal(labels.codeText("3 of 5 board seats can proceed."), "3 of 5 reviewers can proceed.");
+assert.equal(labels.codeText("3 of 5 board seats can proceed."), "3 of 5 reviewers can approve.");
 assert.equal(labels.codeText("Not answered by the Bid Manager: O4, C2."), "Not answered by the Revision Editor: #4, Q2.");
 assert.equal(labels.codeText("+4 conditions to confirm"), "+4 items for the client to confirm");
 assert.equal(labels.codeText("and set 5 context flags."), "and set 5 key facts.");

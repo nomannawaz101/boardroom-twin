@@ -196,3 +196,28 @@ A short record of each choice, including ones still unconfirmed.
   - The upload box keeps today's hint rather than the planned limits, because upload is off.
   - The verdict banner keeps today's colours (green, amber, red by verdict), as README item F says.
 - **Checks:** Playwright is not installed, and adding it would be a new dependency. Screenshots were therefore taken by driving the installed Edge over the DevTools protocol, using Node's built-in WebSocket, with a scratch script that is not in the repo. That script replays one real Northwind run recorded on Gemini, through the real page, at 1280 and 390 px wide. It also checks horizontal overflow (0 px on every screen at both widths) and prints the report to PDF (4 pages). The screenshots are in `docs/screenshots/v12/`.
+
+### Phase 4b follow-up 1 (wording, scoreboard, report and Revisions layout)
+
+- **Labels file:** every display name for an internal code, id or role comes from `static/js/labels.js`, including the static page texts (filled into `[data-text]` elements at start-up). `docs/wording.md` lists each display name and what it replaces. Internal codes, ids, the API and the run JSON are unchanged.
+- **Code-written server text** (step labels, summaries, handoff lines, stop lines, report summary, key-number labels and notes) is shown through `codeText()`, which maps the old words to the new ones and ids O1 → #1, C1 → Q1. Model-written text is never rewritten.
+- **Renames (display only):**
+  - gates → sign-off checks; Pass → Signed off; MUST → Required
+  - seats → reviewers; "can proceed" → "can approve"
+  - claims → statements
+  - Bid Manager → Revision Editor; Proposal Manager → Proposal Writer; QA Reviewer → Fact Checker
+  - Answered → Changed, awaiting re-read; Fixed R1 → Resolved in round 1; Confirm → Ask the client
+  - Needs a Lumen Works decision → Needs your decision
+  - Code, no AI → Fixed rules; Context flags → Key facts from the brief; Full mode → Live run
+  - Shown ids: #1 (objections), Q1 (client items), S1 (statements)
+- **Average score, like for like (server, `domain/report.py`):** the report's "Average score" and its headline averaged whichever scoring seats answered in each round. A seat that was Not reviewed in the last round still counted in draft 1, so the two numbers could cover different reviewers. Both now average only the scoring seats that answered in both rounds. The note says "(N of M reviewers answered in both rounds)" when that is fewer than all of them. `average_score` and the "no gain" stop rule are unchanged; no scoring, verdict or loop rule changed. Unit tests are in `tests/unit/test_report.py`.
+- **Client board:** a "Board scoreboard" table under the verdict shows reviewer, role, score (needed), result, and the biggest open issue. The biggest issue is picked in the browser: a blocker before a condition, an objection the proposal can fix before a client item, then tracker order, cut to 80 characters.
+- **Proposal team:** content is in lists, a key-value table and tiles; chips are kept for tags and statuses only.
+- **Report:**
+  - "What to do next" sits under the verdict, with the two lists in two columns; it is shown nowhere else.
+  - Key numbers and the headline use the body font with tabular figures, and the Go-live tile never wraps.
+  - "Scores by reviewer, draft 1 → final" shows each move with ▲, ▼ or =, and the note that scores can move either way.
+  - "What changed" shows each objection in words (90 characters, full text in the tooltip) and then its #id.
+  - The proposal title reads "Final draft (draft N)".
+- **Revisions:** the page reads top-down: loop path, then "Why the loop stopped" (with sign-off checks by round) beside "Scores by round", then the compact tracker. Rounds follow as collapsible blocks, with the latest open and earlier ones summarised in one line ("Round 1: 8 changes, 3 reviewers up, 0 down"). The objections table is collapsed. With the recorded Northwind run the page went from 7,589 px to 3,485 px at 1280 wide, and from 10,029 px to 5,799 px at 390.
+- **Legends:** under each stage intro, "AI = written by a model. Fixed rules = decided by code, the same every time."; at the foot of each stage page, the colour legend. Both are hidden in print.

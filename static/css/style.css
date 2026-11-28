@@ -552,6 +552,7 @@ a:hover { color: var(--primary-ink); }
   .verdict h1, .verdict-headline { color: #101828; }
   .eyebrow-light { color: #475467; }
   .score-ring { display: none; }
+  .legend-line { display: none; }
   .close-box { background: #fff; border-color: #c9ced8; }
   .memo-card, .prep-card { break-inside: auto; }
   .two-col { display: block; }

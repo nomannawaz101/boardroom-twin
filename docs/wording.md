@@ -17,7 +17,7 @@ Other role names are unchanged: Business Analyst, Solution Architect, Delivery M
 | Shown | Replaces | Internal code |
 |---|---|---|
 | reviewer(s) | seat(s) | `seat_id`, `seats` |
-| "5 reviewers", "0 of 5 reviewers can approve" | "5 seats", "0 of 5 can proceed" | `progress.able`, `progress.total` |
+| "5 reviewers", "0 of 5 reviewers can approve" | "5 seats", "0 of 5 can proceed" (also "can proceed" in code-written text) | `progress.able`, `progress.total` |
 | Retry this reviewer / Retrying this reviewer… | Retry this seat / Retrying this seat… | `/api/board/retry` |
 | "This reviewer did not answer." (status stays "Not reviewed") | "… couldn't answer …" | `status: not_reviewed` |
 | scoring reviewers | scoring seats | `kind: scoring` |
@@ -53,6 +53,8 @@ Other role names are unchanged: Business Analyst, Solution Architect, Delivery M
 | Decisions for you | Decisions for Lumen Works | `report.decisions` |
 | N items for the client to confirm | N conditions to confirm | `report.numbers` note |
 | What to do next | Close these items | |
+| Board scoreboard: Scores / Signs off, Score (needed), Biggest issue, "No open objections" | (new) | `kind`, `score`, `needed`, tracker |
+| Scores by reviewer, draft 1 → final; ▲ ▼ = | (new) | `rounds[].seats[].score` |
 
 ## Tags and chips
 

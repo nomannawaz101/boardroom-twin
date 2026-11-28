@@ -607,7 +607,7 @@ export function scoreboard(round, tracker) {
       : `${s.score === null || s.score === undefined ? "—" : scoreText(s.score)} (${s.needed.toFixed(1)})`;
     return h("tr", {},
       h("td", {}, h("strong", {}, s.title)),
-      h("td", {}, KIND_SHORT[s.kind] || KIND_SHORT.gate),
+      h("td", { class: "nowrap" }, KIND_SHORT[s.kind] || KIND_SHORT.gate),
       h("td", { class: "num nowrap" }, score),
       h("td", {}, decisionPill(s)),
       h("td", issue ? { title: issue.text } : {}, issue ? trimmed(issue.text, ISSUE_TEXT_MAX) : h("span", { class: "muted" }, NO_OPEN)));

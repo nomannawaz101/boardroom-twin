@@ -68,7 +68,7 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.equal(byClass(stopped, "loop-stop")[0].textContent, "Stopped by code");
   const why = holderOf(loop.whyStopped({ stopped: true, reasons: ["all_proceed"], lines: ["Every seat on the board can proceed."] }));
   assert.match(why.textContent, /Why the loop stopped/);
-  assert.match(why.textContent, /Every reviewer can proceed\./);
+  assert.match(why.textContent, /Every reviewer can approve\./);
 }
 
 // Scores and gates by round, with the needed-score tick.

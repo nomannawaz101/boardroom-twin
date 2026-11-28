@@ -123,3 +123,13 @@ Written before the Phase 4b redesign from `static/index.html`, `static/js/*.js` 
 ## Test selectors after the redesign
 
 No existing assertion in `tests/js` had to change: every class, attribute and text the tests read is still produced. New checks were added in `tests/js/shell.test.mjs` (rail, model labels, toggle storage), `board_screen.test.mjs` (seats strip vote chip, threshold line, gate chips, what to fix first, verdict box) and `loop_screens.test.mjs` (objections and what changed, tracker layout, score ring, close these items).
+
+## Follow-up 1 (wording and layout), all features kept
+
+- Every visible name for a code, id or role now comes from `static/js/labels.js`; the renames are listed in `docs/wording.md`. Texts that changed wording only: stage bar labels stay; "gates" → "sign-off checks", "seats" → "reviewers", "claims" → "statements", role names, tracker statuses, "Code, no AI" → "Fixed rules", "Context flags" → "Key facts from the brief", "Full mode" → "Live run".
+- Brief: the hero heading is now "Know what the client's board will challenge, before the meeting."; the previous paragraph, both buttons, sample buttons, upload box, tick box and code checks are unchanged.
+- Proposal team: the Business Analyst's goals, warnings (with their quotes), key facts, input checks and board are shown as lists, a key-value table, an ok box and one line, instead of chips. The draft summary's nine section names are a two-column numbered list.
+- Client board: new "Board scoreboard" table; nothing removed.
+- Revisions: same content, reordered top-down; earlier rounds and the objections table are collapsed (open on click). Sign-off checks by round moved into the "Why the loop stopped" card.
+- Report: the "Confirm with the client" and "Decisions for you" lists moved from Meeting prep to "What to do next" under the verdict; "Nothing is waiting for the client." stays in Meeting prep. New "Scores by reviewer" card. "What changed" shows the objection in words with its #id.
+- Legend lines added under each stage intro and at each page foot (hidden in print).
