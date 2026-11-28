@@ -136,3 +136,12 @@ No existing assertion in `tests/js` had to change: every class, attribute and te
 - Client board: the "Verdict so far" header chip was removed because the same verdict shows in the box below it; the chip's tooltip moved to the box.
 - Activity rail: reviewers are named by their board titles, the same as on the board.
 - Objection tables: text columns clamp to two lines; the full text is in the tooltip.
+
+## Follow-up 2 (plain words and first impression)
+
+- New: a takeaway line under each stage title, built by code from run data.
+- New: a Brief intro line, and a five-step "How it works" strip. The four step cards became five steps, and their texts stay as each step's sub-line.
+- Scores carry their scale ("of 10"); weights read as percentages; report and memo labels reworded (see `docs/wording.md`).
+- Meeting prep and the prototype card are hidden behind one "Coming in the full build" line. Their code, the disabled button and the hints are kept for Phase 8. "Nothing is waiting for the client." now appears in the Report takeaway when both lists are empty.
+- Jargon labels reworded through the labels file. Kept as they are: "est." on the stage stat chips, because a unit test pins it; tooltips explain it.
+- Tab title per stage, a meta description, an inline SVG favicon, and a footer link to the source on GitHub (new tab, `rel="noopener"`).

@@ -82,3 +82,26 @@ Step labels, summaries, handoff lines, stop lines, the report summary and the ke
 ## Reviewer names
 
 Every screen, including the activity rail, names a reviewer by its seat title from the board plan (for example "VP, Customer Support"). Before the board plan is known, and for every other agent, the role label is used (`stepName()` in `labels.js`).
+
+## Follow-up 2 additions
+
+| Shown | Replaces |
+|---|---|
+| 6.4 of 10, needs 7.0 of 10 | 6.4, needs 7.0 |
+| weight 40% | ×0.40 |
+| Average score of the scoring reviewers (out of 10) | Average score, scoring seats |
+| Objections resolved | Objections fixed |
+| 4 items for the client to confirm | +4 conditions to confirm |
+| 3 of 5 reviewers can approve this draft | 3 of 5 board seats can proceed |
+| What they need (memo column) | Reason |
+| Passes to … | Hands to … |
+| board picker | Board composer |
+| summary of the brief | case file |
+| Cost fixed by code | Locked cost |
+| N code calculations | N tool calls / N tools |
+| AI steps | agent calls |
+| Tokens (AI text units) | Tokens |
+| Boardroom Twin: {stage} (tab title) | Boardroom Twin |
+| Coming in the full build: meeting questions and a prototype preview. | the Meeting prep and prototype cards |
+
+Takeaway lines under each stage title and the Brief intro line and five steps are also in `labels.js` or built in `static/js/takeaways.js` from run data.

@@ -227,3 +227,9 @@ A short record of each choice, including ones still unconfirmed.
   - In code-written text, "C1" becomes "Q1" only when C1 is a client-only item in the current tracker (`setClientIds()`). Any other "C1", such as a statement id, is left as written.
   - In both objection tables, the fixed columns are narrower, the Challenge and What changed texts get the width, and each is clamped to two lines with the full text in the tooltip.
   - Report average edge case (server, `domain/report.py: score_number` only): when no scoring reviewer answered in both rounds, the value is "—" with the note "No reviewer answered in both rounds". The headline is unchanged and shows "—" in that case.
+
+### Phase 4b follow-up 2 (plain words)
+
+- Takeaway sentences are built in the browser by `static/js/takeaways.js` from run data only. A clause whose data is missing is left out. The board's "biggest gap" is the scoring reviewer furthest below its needed score, else the first Blocked sign-off check.
+- The Presales Lead and prototype placeholders are hidden, not removed, so Phase 8 can switch them back on. One muted line replaces them.
+- The footer links to the project's GitHub source. `tests/unit/test_static_page.py` allows that single URL next to the SVG namespace; the page still fetches nothing from outside, and the favicon is an inline data URI.
