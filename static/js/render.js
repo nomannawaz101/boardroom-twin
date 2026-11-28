@@ -133,19 +133,33 @@ function rail(index, last, waiting = false) {
   );
 }
 
-function agentCard(index, step, body, last) {
+// One block per agent (design v12): what it did in the summary line, the detail inside,
+// open by default. Model and time stay on the block too, so nothing depends on the rail.
+function agentCard(index, step, body) {
   const tools = step.tool_calls.length;
   const time = tools ? `${seconds(step.duration_ms)} · ${tools} ${tools === 1 ? "tool" : "tools"}` : seconds(step.duration_ms);
-  const card = h(
-    "div", { class: "card agent-card" },
-    h("div", { class: "agent-head" },
-      h("strong", {}, step.label), modelChip(step), h("span", { class: "num agent-time" }, time)),
-    h("span", { class: "agent-summary" }, step.summary),
-    ...body,
-    flagNotes(step),
-    handLine(step.handoff_out),
+  const block = h(
+    "details", { class: "card agent-block", open: true },
+    h("summary", { class: "agent-sum" },
+      h("span", { class: "agent-no" }, String(index)),
+      h("strong", { class: "agent-name" }, step.label),
+      h("span", { class: "agent-summary" }, step.summary),
+      h("span", { class: "agent-meta" }, modelChip(step), h("span", { class: "num agent-time" }, time))),
+    h("div", { class: "agent-in" },
+      ...body,
+      flagNotes(step),
+      handLine(step.handoff_out)),
   );
-  return h("li", { "data-agent": step.agent }, rail(index, last), card);
+  return h("li", { "data-agent": step.agent }, block);
+}
+
+// Two steps whose measured times overlap ran at the same time.
+export function ranTogether(a, b) {
+  return a.start_ms < b.start_ms + b.duration_ms && b.start_ms < a.start_ms + a.duration_ms;
+}
+
+export function togetherMarker() {
+  return h("li", { class: "together" }, h("span", {}, "Ran at the same time"));
 }
 
 // --- Tool boxes ---
@@ -206,9 +220,11 @@ export function analystCard(data, last) {
   const caseFile = data.case_file;
   const flags = data.flags;
   const signals = h(
-    "div", { class: "chips" },
-    ...caseFile.goals.map((g) => h("span", { class: "chip-goal" }, `Goal: ${g}`)),
-    ...caseFile.warnings.map((w) => h("span", { class: "chip-warn", title: `"${w.quote}"` }, `Warning: ${w.text}`)),
+    "div", { class: "signal-grid" },
+    h("div", { class: "stack-6" }, h("span", { class: "chips-label" }, "Goals"),
+      h("div", { class: "chips" }, ...caseFile.goals.map((g) => h("span", { class: "chip-goal" }, `Goal: ${g}`)))),
+    h("div", { class: "stack-6" }, h("span", { class: "chips-label" }, "Warning signs"),
+      h("div", { class: "chips" }, ...caseFile.warnings.map((w) => h("span", { class: "chip-warn", title: `"${w.quote}"` }, `Warning: ${w.text}`)))),
   );
   const flagRow = h(
     "div", { class: "chips" },
@@ -219,15 +235,16 @@ export function analystCard(data, last) {
     flagChip("Function", flags.function || "unclear"),
     flagChip("Level", LEVEL[flags.seniority] || "unclear"),
   );
-  return agentCard(1, step, [signals, flagRow, inputChecks(data.checks), boardStrip(data.board_plan)], last);
+  return agentCard(1, step, [signals, flagRow, inputChecks(data.checks), boardStrip(data.board_plan)]);
 }
 
 // --- Stage 2: Solution Architect, Delivery Manager, Proposal Manager ---
 
 export function architectCard(index, step, design, last) {
   const parts = h("div", { class: "parts" },
-    ...design.parts.map((p) => h("div", { class: "part" }, h("strong", {}, p.name), h("span", {}, p.purpose))));
-  return agentCard(index, step, [parts], last);
+    ...design.parts.map((p, i) => h("div", { class: "part" },
+      h("span", { class: "part-no" }, `Part ${i + 1}`), h("strong", {}, p.name), h("span", {}, p.purpose))));
+  return agentCard(index, step, [parts]);
 }
 
 export function deliveryCard(index, step, data, last) {
@@ -242,11 +259,11 @@ export function deliveryCard(index, step, data, last) {
       h("strong", { class: "num tool-result" }, `= ${money(estimate.total, estimate.currency)}`),
     ));
   }
-  return agentCard(index, step, body, last);
+  return agentCard(index, step, body);
 }
 
-export function managerCard(index, step, last) {
-  return agentCard(index, step, [], last);
+export function managerCard(index, step) {
+  return agentCard(index, step, []);
 }
 
 // --- Progress and failure cards ---
@@ -308,10 +325,10 @@ export function draftSummary(data, onNext) {
       h("h2", { id: "draft-h" }, "Proposal, draft 1"),
       h("span", { class: "muted small" }, `9 sections · ${data.claims.length} claims`)),
     h("strong", { class: "draft-title" }, `Proposal for ${data.case_file.client}`),
-    h("dl", { class: "draft-facts" },
-      ...facts.flatMap(([label, value, mono]) => [h("dt", {}, label), h("dd", { class: mono ? "num" : null }, value)])),
-    h("ol", { class: "section-list" }, ...Object.values(SECTION_TITLES).map((t) => h("li", {}, t))),
-    button("Next: send it to the client board →", "btn btn-primary", onNext),
+    h("dl", { class: "kv" },
+      ...facts.map(([label, value, mono]) => h("div", {}, h("dt", {}, label), h("dd", { class: mono ? "num" : null }, value)))),
+    h("ol", { class: "section-chips" }, ...Object.values(SECTION_TITLES).map((t) => h("li", {}, t))),
+    h("div", {}, button("Next: send it to the client board →", "btn btn-primary", onNext)),
   ];
 }
 

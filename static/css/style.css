@@ -223,17 +223,46 @@ a:hover { color: var(--primary-ink); }
 .working { border-style: dashed; background: #fbfaff; }
 .retry-row { display: flex; flex-wrap: wrap; gap: 8px; }
 
+/* Agent blocks (design v12): details/summary, open by default */
+.relay { gap: 12px; }
+.relay > li { display: block; }
+.relay > li:has(.working), .relay > li:has([role="alert"]) { display: flex; gap: 14px; }
+.agent-block { padding: 0; }
+.agent-sum { list-style: none; cursor: pointer; display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding: 14px 18px; min-height: 44px; }
+.agent-sum::-webkit-details-marker { display: none; }
+.agent-no { width: 26px; height: 26px; border-radius: 50%; background: var(--text); color: #fff; font-size: 13px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; flex: none; }
+.agent-name { font-size: 15px; }
+.agent-sum .agent-summary { flex: 1 1 280px; min-width: 0; font-size: 14px; }
+.agent-meta { display: inline-flex; align-items: center; gap: 8px; margin-left: auto; }
+.agent-meta .agent-time { margin-left: 0; }
+.agent-in { padding: 0 18px 16px 56px; display: flex; flex-direction: column; gap: 10px; font-size: 14px; }
+.together { list-style: none; }
+.together span { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--primary); background: #f4f1ff; border-radius: 999px; padding: 4px 10px; }
+.signal-grid { display: flex; flex-wrap: wrap; gap: 12px 24px; }
+.signal-grid > div { flex: 1 1 240px; min-width: 0; }
+.stack-6 { display: flex; flex-direction: column; gap: 6px; }
+.part-no { font-size: 12px; color: var(--muted); }
+.m-public { font-size: 11.5px; font-weight: 700; padding: 1px 8px; border-radius: 999px; color: #134a8b; background: #e6f0fb; }
+
 /* Draft summary */
-.draft-card { flex: 1 1 320px; min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
+.draft-card { min-width: 0; padding: 20px; display: flex; flex-direction: column; gap: 14px; }
 .draft-card h2 { margin: 0; font-size: 18px; }
 .draft-title { font-size: 16px; line-height: 1.35; }
 .draft-facts { margin: 0; display: grid; grid-template-columns: auto 1fr; gap: 8px 12px; font-size: 14px; }
 .draft-facts dt { color: var(--muted); }
 .draft-facts dd { margin: 0; }
-.section-list { margin: 0; padding-left: 20px; font-size: 13.5px; color: var(--text-3); line-height: 1.7; }
+.kv { margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 12px; }
+.kv > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 0; }
+.kv dt { font-size: 12px; color: var(--text-2); }
+.kv dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
+.section-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.section-chips li { font-size: 12px; background: #f2f4f7; border-radius: 6px; padding: 3px 8px; }
+.proposal-details { padding: 0; }
+.proposal-toggle { cursor: pointer; padding: 14px 20px; min-height: 44px; font-weight: 600; color: var(--link); }
+.proposal-details[open] .proposal-toggle { border-bottom: 1px solid var(--border); }
 
 /* Proposal with tags */
-.proposal-card { padding: 24px; display: flex; flex-direction: column; gap: 4px; }
+.proposal-card { padding: 20px 24px; display: flex; flex-direction: column; gap: 4px; }
 .proposal-card h2 { margin: 0; font-size: 20px; }
 .legend { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 12.5px; color: var(--muted); padding-bottom: 8px; }
 .tag { font-size: 11px; font-weight: 700; letter-spacing: 0.03em; padding: 1px 6px; border-radius: 4px; white-space: nowrap; }
@@ -411,6 +440,9 @@ a:hover { color: var(--primary-ink); }
   .log-card td { border: 0; padding: 0; }
   .log-card td:nth-child(3), .log-card td:nth-child(4) { grid-column: 1 / -1; }
   .relay > li { gap: 10px; }
+  .agent-in { padding: 0 14px 14px; }
+  .agent-sum { padding: 12px 14px; }
+  .agent-meta { margin-left: 0; }
   .dot { width: 28px; height: 28px; }
 }
 

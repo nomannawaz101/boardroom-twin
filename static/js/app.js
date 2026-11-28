@@ -1,6 +1,6 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, boardPlan, boardStats, button, deliveryCard, draftSummary, gateCard, h,
+  analystCard, architectCard, boardPlan, ranTogether, togetherMarker, boardStats, button, deliveryCard, draftSummary, gateCard, h,
   managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
 import {
@@ -40,7 +40,7 @@ const els = {
   confirmed: $("confirmed"), start: $("start-live"), startMessage: $("start-message"),
   samples: $("sample-row"), modeChip: $("mode-chip"), clientChip: $("client-chip"),
   toggle: $("activity-toggle"), railDetails: $("rail-details"), railBody: $("rail-body"), railChip: $("rail-chip"),
-  relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"),
+  relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"), proposalDetails: $("proposal-details"),
   stats: $("team-stats"), notices: $("team-notices"), title: $("team-title"),
   boardTitle: $("board-title"), boardIntro: $("board-intro"), boardStats: $("board-stats"),
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
@@ -226,6 +226,7 @@ async function startLive() {
   els.relay.replaceChildren();
   els.summary.hidden = true;
   els.proposal.hidden = true;
+  els.proposalDetails.hidden = true;
   els.stats.replaceChildren();
   els.notices.replaceChildren();
   els.title.textContent = "The proposal team is writing draft 1";
@@ -254,7 +255,7 @@ async function discover(body) {
   startRun(result);
   setMode(result.mode);
   els.notices.replaceChildren(...result.notices.map((n) => message("m-warn", "Instructions aimed at an AI.", n)));
-  els.relay.replaceChildren(analystCard(run.data, false));
+  els.relay.replaceChildren(analystCard(run.data));
   showView(2);
   await draft();
 }
@@ -284,17 +285,23 @@ async function draft() {
 
 function showDraft(result) {
   const [architect, delivery, manager] = result.steps;
-  els.relay.append(
-    architectCard(2, architect, result.design, false),
-    deliveryCard(3, delivery, run.data, false),
-    managerCard(4, manager, true),
-  );
+  const cards = [
+    architectCard(2, architect, result.design),
+    deliveryCard(3, delivery, run.data),
+    managerCard(4, manager),
+  ];
+  // Mark steps whose measured times overlap; today's chain runs one after another.
+  result.steps.forEach((step, i) => {
+    if (i && ranTogether(result.steps[i - 1], step)) els.relay.append(togetherMarker());
+    els.relay.append(cards[i]);
+  });
   els.title.textContent = "The proposal team wrote draft 1";
   els.stats.replaceChildren(...stats(run.data.steps.filter((s) => s.stage <= 2)));
   els.summary.replaceChildren(...draftSummary(run.data, board));
   els.summary.hidden = false;
   els.proposal.replaceChildren(...proposal(run.data.claims));
   els.proposal.hidden = false;
+  els.proposalDetails.hidden = false;
   showView(2);
 }
 

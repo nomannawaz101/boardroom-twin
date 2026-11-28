@@ -189,11 +189,12 @@
       <div class="stat-chips" id="team-stats"></div>
     </section>
     <div id="team-notices"></div>
-    <div class="two-col">
-      <ol class="relay" id="relay" aria-label="Agent steps"></ol>
-      <aside class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></aside>
-    </div>
-    <section class="card proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
+    <ol class="relay" id="relay" aria-label="Agent steps"></ol>
+    <section class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></section>
+    <details class="card proposal-details" id="proposal-details" hidden>
+      <summary class="proposal-toggle">Read the full draft 1, claim by claim, with tags</summary>
+      <section class="proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
+    </details>
   </main>
 
   <main class="main" id="view-board" hidden>
