@@ -49,7 +49,7 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(text, /answered Q1, #1/);
   assert.equal(byTag(card, "del")[0].textContent, "One payment.");
   assert.match(text, /Refused by code: a calculated statement is locked \(S3\)\./);
-  assert.match(text, /5\.3 → 8\.0/);
+  assert.match(text, /5\.3 → 8\.0 ▲/);
   assert.match(text, /Confirm the peak \(#2, #3\)/);
   assert.match(text, /sign-off/);
   assert.equal(byClass(card, "m-sonnet")[0].textContent, "Sonnet");
@@ -194,6 +194,21 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.doesNotMatch(onlyDecision, /Confirm with the client/);
   assert.equal(loop.whatNext([], []).length, 0); // the box is hidden
   assert.match(holderOf(loop.meetingPrep([])).textContent, /Nothing is waiting for the client\./);
+}
+
+// Score moves: up, down or the same, with the note that scores can move either way.
+{
+  assert.equal(loop.scoreMove(5.3, 8.0).className, "move move-up");
+  assert.equal(loop.scoreMove(7.4, 6.1).className, "move move-down");
+  assert.equal(loop.scoreMove(6.1, 6.1).className, "move move-same");
+  assert.equal(loop.scoreMove(6.1, null).textContent, "6.1 → —");
+  const moves = holderOf(loop.scoreMoves([roundOne, roundTwo])).textContent;
+  assert.match(moves, /CFO5\.3 → 8\.0 ▲/);
+  assert.match(moves, /VP, Claims7\.1 → 8\.4 ▲/);
+  assert.match(moves, /Scores can move either way/);
+  const golive = holderOf(loop.keyNumbers([{ label: "Go-live", value: "Mon Mar 22, 2027", note: "" }]));
+  assert.equal(byClass(golive, "key-value")[0].textContent, "Mar 22, 2027");
+  assert.equal(byClass(golive, "key-day")[0].textContent, "Monday");
 }
 
 process.stdout.write("loop screens: all checks passed\n");

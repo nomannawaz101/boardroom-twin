@@ -76,6 +76,8 @@ export const BOARD_SUBTITLE = "Reviewers picked by fixed rules from the key fact
 export const CHANGE_TEXT_MAX = 90;
 export const ISSUE_TEXT_MAX = 80;
 export const NO_OPEN = "No open objections";
+export const SCORES_MOVE = "Scores can move either way: each reviewer re-reads the whole draft from scratch, and AI ratings vary between reads.";
+export const WEEKDAYS = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
 
 // Long text cut at a word boundary, with "…"; the full text goes in the title.
 export function trimmed(text, max) {

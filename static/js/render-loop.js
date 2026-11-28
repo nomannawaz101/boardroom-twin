@@ -5,7 +5,7 @@ import {
   button, decisionPill, decisionText, h, handLine, modelChip, proposal, scoreText, seconds,
 } from "./render.js";
 import {
-  CHANGE_TEXT_MAX, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
+  CHANGE_TEXT_MAX, SCORES_MOVE, WEEKDAYS, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
 } from "./labels.js";
 
 const GATE_CLASSES = { pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad" };
@@ -76,10 +76,20 @@ function seatNote(seat, tracker) {
   return open.length ? `Still open: ${open.join(", ")}` : "Nothing open.";
 }
 
+// Before → after with an arrow and colour: up, down or the same. A missing score shows "—".
+export function scoreMove(before, after) {
+  const known = (v) => v !== null && v !== undefined;
+  const text = `${known(before) ? scoreText(before) : "—"} → ${known(after) ? scoreText(after) : "—"}`;
+  if (!known(before) || !known(after)) return h("span", { class: "move" }, text);
+  const diff = Math.round((after - before) * 100) / 100;
+  const [arrow, cls, word] = diff > 0 ? ["▲", "move-up", "up"] : diff < 0 ? ["▼", "move-down", "down"] : ["=", "move-same", "the same"];
+  return h("span", { class: `move ${cls}`, title: `Score ${word}` }, text, " ", h("span", { "aria-hidden": "true" }, arrow));
+}
+
 function voteRow(seat, before, tracker) {
   const score = seat.kind === "gate"
     ? h("span", { class: "gate-tag" }, WORDS.signOffShort)
-    : `${before && before.score !== null && before.score !== undefined ? scoreText(before.score) : "—"} → ${seat.score === null || seat.score === undefined ? "—" : scoreText(seat.score)}`;
+    : scoreMove(before ? before.score : null, seat.score);
   return h("div", { class: "vote-row" },
     h("strong", {}, seat.title),
     h("span", { class: "num muted" }, score),
@@ -134,7 +144,8 @@ export function scoresByRound(rounds) {
       ...rows);
   });
   return [h("h2", {}, "Scores by round"), ...blocks,
-    h("p", { class: "muted small" }, "The black tick is the score each executive needs.")];
+    h("p", { class: "muted small" }, "The black tick is the score each executive needs."),
+    h("p", { class: "muted small" }, SCORES_MOVE)];
 }
 
 export function gatesByRound(rounds) {
@@ -259,7 +270,7 @@ export function verdictBanner(report, onPrint, onDownload) {
     h("div", { class: "verdict-text" },
       h("span", { class: "num eyebrow-light" }, "VERDICT"),
       h("h1", { id: "verdict-h" }, report.verdict),
-      h("strong", { class: "num verdict-headline" }, report.headline),
+      h("strong", { class: "tnum verdict-headline" }, report.headline),
       h("p", {}, codeText(report.summary))),
     h("div", { class: "verdict-actions no-print" },
       button("Print or save as PDF", "btn btn-light small-btn", onPrint),
@@ -267,10 +278,33 @@ export function verdictBanner(report, onPrint, onDownload) {
 }
 
 export function keyNumbers(numbers) {
-  return numbers.map((n) => h("div", { class: "card key-number" },
-    h("span", { class: "muted small" }, codeText(n.label)),
-    h("strong", { class: "num key-value" }, n.value),
-    n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null));
+  return numbers.map((n) => {
+    const day = /^(Mon|Tue|Wed|Thu|Fri|Sat|Sun) (.+)$/.exec(n.value);
+    const value = day
+      ? [h("strong", { class: "tnum key-value nowrap" }, day[2]), h("span", { class: "small key-day" }, WEEKDAYS[day[1]])]
+      : [h("strong", { class: "tnum key-value" }, n.value)];
+    return h("div", { class: "card key-number" },
+      h("span", { class: "muted small" }, codeText(n.label)),
+      ...value,
+      n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null);
+  });
+}
+
+// Each scoring reviewer's draft 1 score and final score, with the move.
+export function scoreMoves(rounds) {
+  const first = rounds[0];
+  const last = rounds[rounds.length - 1];
+  const scoring = first.seats.filter((s) => s.kind === "scoring");
+  if (!scoring.length) return [];
+  const rows = scoring.map((seat) => {
+    const final = last.seats.find((s) => s.seat_id === seat.seat_id);
+    return h("li", {}, h("span", {}, seat.title), scoreMove(seat.score, final ? final.score : null));
+  });
+  return [
+    h("h2", {}, "Scores by reviewer, draft 1 → final"),
+    h("ul", { class: "move-list" }, ...rows),
+    h("p", { class: "muted small" }, SCORES_MOVE),
+  ];
 }
 
 // The objection in words, cut to fit with the full text in the title, then its shown id.

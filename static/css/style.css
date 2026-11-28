@@ -355,6 +355,14 @@ a:hover { color: var(--primary-ink); }
 .log-card table { width: 100%; border-collapse: collapse; min-width: 560px; }
 #loop-objections table { min-width: 680px; table-layout: fixed; }
 .nowrap { white-space: nowrap; }
+.tnum { font-variant-numeric: tabular-nums; font-family: var(--font); }
+.key-day { color: var(--text-2); margin-top: -2px; }
+.move { font-variant-numeric: tabular-nums; white-space: nowrap; color: var(--text-2); }
+.move-up { color: var(--ok); font-weight: 600; }
+.move-down { color: #b42318; font-weight: 600; }
+.move-same { color: var(--text-2); }
+.move-list { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 4px 24px; }
+.move-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid #f2f4f7; font-size: 14px; }
 .scoreboard { min-width: 620px; }
 .scoreboard td:last-child { color: var(--text-2); }
 #loop-objections th:nth-child(1) { width: 48px; }
@@ -429,7 +437,7 @@ a:hover { color: var(--primary-ink); }
 .ring-in small { display: block; font-size: 10px; font-weight: 600; opacity: 0.85; margin-top: 3px; }
 .verdict h1 { margin: 0; font-size: 30px; color: #fff; }
 .verdict p { margin: 0; font-size: 15px; line-height: 1.5; }
-.verdict-headline { font-size: 15.5px; color: #fff; }
+.verdict-headline { font-size: 16px; color: #fff; }
 .eyebrow-light { font-size: 12px; font-weight: 700; color: #b8d8c6; }
 .verdict-actions { display: flex; flex-wrap: wrap; gap: 10px; }
 .btn-light { background: #fff; color: var(--text); border: 0; }
