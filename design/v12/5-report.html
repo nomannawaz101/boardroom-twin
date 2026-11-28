@@ -1,0 +1,234 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Final report</title><style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;background:#F4F5F7}
+*{box-sizing:border-box}
+.top{background:#101828;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 24px}
+.brand{font-weight:700;font-size:16px}
+.chip{font-size:12px;border:1px solid #475467;border-radius:999px;padding:3px 10px;color:#D0D5DD}
+.sp{flex:1 1 0}
+.tbtn{background:transparent;color:#fff;border:1px solid #667085;border-radius:8px;padding:8px 12px;font-size:13px;min-height:44px}
+.body{display:flex;flex-wrap:wrap;gap:20px;padding:20px 24px;align-items:flex-start}
+.nav{flex:0 0 200px;display:flex;flex-direction:column;gap:4px}
+.navh{font-size:12px;color:#475467;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:#101828;text-decoration:none;font-size:14px;min-height:44px}
+.ni.act{background:#fff;border:1px solid #E4E7EC;font-weight:600}
+.ni small{margin-left:auto;font-size:11px;color:#475467}
+.dot{width:10px;height:10px;border-radius:50%;background:#98A2B3;flex:none}
+.done .dot{background:#0B6B3A}.act .dot{background:#4B32B8}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.rail{flex:0 0 280px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px}
+.rail h3{margin:0 0 4px;font-size:14px}
+.rail p{margin:0 0 12px;font-size:12px;color:#475467}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rail li{display:flex;flex-direction:column;gap:2px;font-size:13px;padding-bottom:10px;border-bottom:1px solid #F2F4F7}
+.rail li .st{font-size:12px;color:#475467}
+.card{background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:20px}
+h1{margin:0;font-size:24px}h2{margin:0 0 4px;font-size:16px}
+.mut{color:#475467;font-size:14px;margin:0}
+.banner{background:#FEF0D7;border:1px solid #F3D49B;border-radius:12px;padding:18px 20px;display:flex;flex-direction:column;gap:6px}
+.banner .l{font-size:12px;font-weight:700;color:#8A4B06;letter-spacing:.06em}
+.banner b{font-size:22px;color:#8A4B06}
+.kn{display:flex;flex-wrap:wrap;gap:12px}
+.kn>div{flex:1 1 200px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px}
+.kn .k{font-size:12px;color:#475467}
+.kn .v{font-size:24px;font-weight:700;margin:2px 0}
+.kn .s{font-size:12px;color:#475467}
+.ch{display:flex;flex-wrap:wrap;gap:6px 12px;padding:8px 0;border-bottom:1px solid #F2F4F7;font-size:14px;line-height:1.5}
+.ch .id{font-family:ui-monospace,Consolas,monospace;font-weight:700;flex:0 0 32px}
+.ch .tx{flex:1 1 300px}
+.doc h3{font-size:15px;margin:16px 0 4px}
+.doc p,.doc li{font-size:14px;line-height:1.6;margin:0 0 6px}
+.t{font-size:10px;font-weight:700;border-radius:4px;padding:1px 6px;white-space:nowrap;margin-left:4px;vertical-align:middle}
+.fb{background:#EAECF0;color:#344054}.cl{background:#E6F0FB;color:#134A8B}.tc{background:#FEF0D7;color:#8A4B06}
+.legend{display:flex;flex-wrap:wrap;gap:8px;font-size:13px;align-items:center;margin-top:6px}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ok{background:#E3F4EA;color:#0B6B3A}.cond{background:#FEF0D7;color:#8A4B06}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:560px}
+th{text-align:left;font-size:12px;color:#475467;padding:8px;border-bottom:1px solid #E4E7EC}
+td{padding:9px 8px;border-bottom:1px solid #F2F4F7;vertical-align:top}
+.two{display:flex;flex-wrap:wrap;gap:16px}
+.two>div{flex:1 1 280px}
+.two ul{margin:6px 0 0;padding-left:18px;font-size:14px;line-height:1.6}
+.tl{display:flex;flex-direction:column;gap:6px;min-width:560px}
+.tr{display:flex;align-items:center;gap:10px;font-size:12px}
+.tr .nm{flex:0 0 190px}
+.tr .tk{flex:1 1 auto;position:relative;height:14px;background:#F2F4F7;border-radius:4px}
+.tr .tk i{position:absolute;top:0;height:14px;border-radius:4px}
+.sn{background:#4B32B8}.hk{background:#0B7A8F}.bo{background:linear-gradient(90deg,#4B32B8 50%,#0B7A8F 50%)}
+.axis{display:flex;justify-content:space-between;font-size:11px;color:#475467;margin-left:200px}
+.acts{display:flex;flex-wrap:wrap;gap:10px}
+.go{background:#4B32B8;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:600;min-height:48px}
+.sbtn{background:#fff;border:1px solid #D0D5DD;border-radius:8px;padding:12px 16px;font-size:14px;min-height:48px;color:#101828}
+details.sum summary{cursor:pointer;font-weight:600;font-size:15px;min-height:36px}
+</style></head><body>
+<div style="width:100%;min-height:3300px;display:flex;flex-direction:column">
+<header class="top">
+<span class="brand">Boardroom Twin</span>
+<span class="chip">Simulation, not a prediction</span>
+<span class="chip">Northwind Insurance · Claim status page</span>
+<span class="chip">Sample run</span>
+<span class="sp"></span>
+<button class="tbtn" type="button">Agent activity: On</button>
+</header>
+<div class="body">
+<nav class="nav" aria-label="Stages">
+<div class="navh">Stages</div>
+<a class="ni done" href="1-brief.html"><span class="dot"></span>Brief<small>Done</small></a>
+<a class="ni done" href="2-proposal-team.html"><span class="dot"></span>Proposal team<small>Done</small></a>
+<a class="ni done" href="3-client-board.html"><span class="dot"></span>Client board<small>Done</small></a>
+<a class="ni done" href="4-revisions.html"><span class="dot"></span>Revisions<small>Done</small></a>
+<a class="ni act" href="5-report.html"><span class="dot"></span>Report<small>Now</small></a>
+</nav>
+<main class="main">
+<div class="banner" role="status">
+<span class="l">VERDICT</span>
+<b>Approved with conditions</b>
+<span style="font-size:14px">Draft 1 scored 6.2. After 2 revision rounds it scored 8.0.</span>
+<span class="mut">All five board seats can proceed. Confirm two things with Northwind before the meeting: Phase 2 funding, and their data-retention rule.</span>
+</div>
+<div class="acts">
+<button class="go" type="button">Print or save as PDF</button>
+<button class="sbtn" type="button">Download this run</button>
+</div>
+<section class="kn" aria-label="Key numbers">
+<div><div class="k">Average score, scoring seats</div><div class="v">6.2 → 8.0</div><div class="s">CFO, VP, Enterprise Architect</div></div>
+<div><div class="k">Objections fixed</div><div class="v">6 of 6</div><div class="s">+2 conditions to confirm</div></div>
+<div><div class="k">Phase 1 cost</div><div class="v">$12,000</div><div class="s">≈ €11,050 · Phase 2 optional</div></div>
+<div><div class="k">Go-live</div><div class="v">Jan 18, 2027</div><div class="s">After holidays and the claim peak</div></div>
+</section>
+
+<section class="card">
+<h2>What changed since draft 1</h2>
+<p class="mut" style="margin-bottom:6px">Each change answers one objection.</p>
+<div class="ch"><span class="id">O1</span><span class="tx">One payment of $24,000 became two phases: Phase 1 at $12,000, Phase 2 optional.</span></div>
+<div class="ch"><span class="id">O2</span><span class="tx">The page reads a read-only copy, so it never calls the live claims system.</span></div>
+<div class="ch"><span class="id">O3</span><span class="tx">Added a one-minute switch-off for rollback.</span></div>
+<div class="ch"><span class="id">O4</span><span class="tx">Go-live moved from Jan 5 to Jan 18, after the early-January peak.</span></div>
+<div class="ch"><span class="id">O5</span><span class="tx">Added written change requests and phase-by-phase acceptance.</span></div>
+<div class="ch" style="border:0"><span class="id">O6</span><span class="tx">The page shows only status; access needs the claim number and a secure link.</span></div>
+</section>
+
+<section class="card doc">
+<h2>Proposal · final version (draft 3)</h2>
+<h3 style="font-size:17px;margin-top:6px">Online claim status page for Northwind Insurance</h3>
+<div class="legend"><span>Tags:</span><span class="t fb">FROM BRIEF</span><span class="t cl">CALCULATED</span><span class="t tc">TO CONFIRM</span></div>
+<h3>1. Executive summary</h3>
+<p>A self-service page where customers check their claim status any time, cutting status calls to the contact centre. Delivered in two phases; Phase 1 alone delivers the main benefit for $12,000 <span class="t cl">CALCULATED</span>.</p>
+<h3>2. Client situation</h3>
+<p>Customers phone to ask where their claim is <span class="t fb">FROM BRIEF</span></p>
+<p>Tight budget this year; six-hour claims outage last month <span class="t fb">FROM BRIEF</span></p>
+<h3>3. Proposed solution</h3>
+<p>Status page reading a read-only copy of claim data, refreshed every 15 minutes. No load on the live claims system. A claim opens only with the claim number and a secure link, and the page shows status steps and the expected payment date only. One switch turns the page off within a minute.</p>
+<h3>4. Scope</h3>
+<p><b>In:</b> claim lookup, status steps, expected payment date, secure link. <b>Out:</b> changes to the claims system, mobile app, live chat.</p>
+<h3>5. Timeline</h3>
+<p>Phase 1 build: Dec 7 – Dec 18, 2026</p>
+<p>Holiday freeze: Dec 21 – Jan 15 (holidays Dec 25, Dec 26, Jan 1) <span class="t cl">CALCULATED</span></p>
+<p>Go-live: Mon Jan 18, 2027 · Phase 2: Jan 18 – Jan 29</p>
+<h3>6. Team and cost</h3>
+<p>2 engineers · $600 per engineer-day <span class="t fb">FROM BRIEF</span></p>
+<p>Phase 1: 2 × 2 weeks × 5 days × $600 = $12,000 <span class="t cl">CALCULATED</span></p>
+<p>Phase 2 (optional): $12,000 · Total $24,000 ≈ €22,100</p>
+<p>Changes: a written change request, sized in engineer-days at the same rate, agreed before work starts. Each phase is accepted against the scope list before it is invoiced.</p>
+<h3>7. Risks and mitigations</h3>
+<ul><li>Load on claims system → read-only copy</li><li>Bad release → one-minute switch-off</li><li>January claim peak → go-live after the peak</li><li>Personal claim data → status only, secure link, access logged</li></ul>
+<h3>8. Assumptions</h3>
+<p>Phase 2 can be funded next quarter <span class="t tc">TO CONFIRM</span></p>
+<p>Claim data can be copied every 15 minutes <span class="t tc">TO CONFIRM</span></p>
+<p>The client's data-retention rule applies to the read-only copy <span class="t tc">TO CONFIRM</span></p>
+<h3>9. Next steps</h3>
+<ul><li>Confirm Phase 2 funding with Northwind's CFO</li><li>Confirm the data-retention rule with Northwind's security team</li><li>Sign Phase 1 by Dec 2 to start Dec 7</li></ul>
+</section>
+
+<section class="card">
+<h2>Board decision memo</h2>
+<div class="tw"><table>
+<thead><tr><th>Seat</th><th>Result</th><th>Score</th><th>Reason</th></tr></thead>
+<tbody>
+<tr><td>CFO</td><td><span class="pill cond">Yes, with a condition</span></td><td>7.4 / 7.0</td><td>Phasing fits the budget; Phase 2 funding to confirm</td></tr>
+<tr><td>Enterprise Architect</td><td><span class="pill ok">Approved</span></td><td>8.4 / 8.0</td><td>Claims system protected; rollback in a minute</td></tr>
+<tr><td>VP, Claims Operations</td><td><span class="pill ok">Approved</span></td><td>8.3 / 7.0</td><td>Fewer calls, launch after the January peak</td></tr>
+<tr><td>Procurement &amp; Contracts</td><td><span class="pill ok">Pass</span></td><td>gate</td><td>Time-and-materials rate, change control and acceptance terms are stated</td></tr>
+<tr><td>Security Officer</td><td><span class="pill cond">Pass, with conditions</span></td><td>gate</td><td>Access and data scope fixed; the client's retention rule to confirm</td></tr>
+</tbody></table></div>
+</section>
+
+<section class="card">
+<h2>Meeting prep</h2>
+<p class="mut" style="margin-bottom:8px;font-size:13px">Presales Lead · Haiku</p>
+<div class="two">
+<div><b style="font-size:14px">Questions to expect</b>
+<ul><li>What if Phase 2 is never funded?</li><li>How fresh is a 15-minute copy for a customer?</li><li>Who flips the switch-off, and when?</li><li>Who can see a claim, and how long is the data kept?</li></ul></div>
+<div><b style="font-size:14px">Confirm with the client</b>
+<ul><li>Phase 2 budget owner</li><li>Their IT allows the data copy</li><li>The data-retention rule</li><li>Signature date for a Dec 7 start</li></ul></div>
+</div>
+</section>
+
+<section class="card">
+<h2>See what Phase 1 could look like</h2>
+<p class="mut" style="margin-bottom:10px">The UX Designer draws one concept screen from the proposal's scope. One extra AI call, about $0.01.</p>
+<a href="Prototype.html" class="go" style="display:inline-flex;align-items:center;text-decoration:none">Show prototype preview</a>
+</section>
+
+<section class="card">
+<h2>Run timeline</h2>
+<p class="mut" style="margin-bottom:12px;font-size:13px">88 s on the clock · 94 s of agent work · bars that overlap ran at the same time</p>
+<div class="tw"><div class="tl">
+<div class="tr"><span class="nm">Business Analyst · 3.1 s</span><span class="tk"><i class="hk" style="left:0;width:3.5%"></i></span></div>
+<div class="tr"><span class="nm">Solution Architect · 7.4 s</span><span class="tk"><i class="sn" style="left:3.5%;width:8.4%"></i></span></div>
+<div class="tr"><span class="nm">Delivery Manager · 6.2 s</span><span class="tk"><i class="sn" style="left:11.9%;width:7%"></i></span></div>
+<div class="tr"><span class="nm">Risk &amp; Compliance · 12.8 s</span><span class="tk"><i class="sn" style="left:11.9%;width:14.5%"></i></span></div>
+<div class="tr"><span class="nm">Proposal Manager · 11.5 s</span><span class="tk"><i class="sn" style="left:26.4%;width:13%"></i></span></div>
+<div class="tr"><span class="nm">Board round 1 · 5 seats</span><span class="tk"><i class="bo" style="left:39.5%;width:10.5%"></i></span></div>
+<div class="tr"><span class="nm">Bid Manager round 1 · 10.2 s</span><span class="tk"><i class="sn" style="left:50%;width:11.6%"></i></span></div>
+<div class="tr"><span class="nm">QA Reviewer · 2.3 s</span><span class="tk"><i class="hk" style="left:61.6%;width:2.6%"></i></span></div>
+<div class="tr"><span class="nm">Board round 2 · 5 seats</span><span class="tk"><i class="bo" style="left:64.2%;width:10.5%"></i></span></div>
+<div class="tr"><span class="nm">Bid Manager round 2 · 8.7 s</span><span class="tk"><i class="sn" style="left:74.7%;width:9.9%"></i></span></div>
+<div class="tr"><span class="nm">QA Reviewer · 2.3 s</span><span class="tk"><i class="hk" style="left:84.6%;width:2.6%"></i></span></div>
+<div class="tr"><span class="nm">Board round 3 · 5 seats</span><span class="tk"><i class="bo" style="left:87.2%;width:8.8%"></i></span></div>
+<div class="tr"><span class="nm">Presales Lead · 3.4 s</span><span class="tk"><i class="hk" style="left:96%;width:4%"></i></span></div>
+<div class="axis"><span>0 s</span><span>22 s</span><span>44 s</span><span>66 s</span><span>88 s</span></div>
+</div></div>
+<div class="legend" style="margin-top:10px"><span><i style="display:inline-block;width:12px;height:12px;background:#4B32B8;border-radius:3px;vertical-align:middle"></i> Sonnet</span><span><i style="display:inline-block;width:12px;height:12px;background:#0B7A8F;border-radius:3px;vertical-align:middle"></i> Haiku</span><span>Both (board seats)</span></div>
+</section>
+
+<section class="card">
+<details class="sum">
+<summary>Run details</summary>
+<p class="mut" style="margin:8px 0 10px;font-size:13px">13 of 14 agents used (1 skipped, 0 failed) · 28 AI calls · 54,600 tokens in · 10,230 out · $0.16 · 94 s agent time</p>
+<div class="tw"><table>
+<thead><tr><th>Agent</th><th>Model</th><th>Calls</th><th>Tokens in / out</th><th>Cost</th><th>Time</th></tr></thead>
+<tbody>
+<tr><td>Business Analyst</td><td>Haiku</td><td>1</td><td>2,100 / 380</td><td>$0.0004</td><td>3.1 s</td></tr>
+<tr><td>Solution Architect</td><td>Sonnet</td><td>1</td><td>2,400 / 520</td><td>$0.010</td><td>7.4 s</td></tr>
+<tr><td>Delivery Manager + 2 tools</td><td>Sonnet</td><td>2</td><td>4,300 / 410</td><td>$0.013</td><td>6.2 s</td></tr>
+<tr><td>Risk &amp; Compliance Analyst + 3 tools</td><td>Sonnet</td><td>3</td><td>6,900 / 640</td><td>$0.020</td><td>12.8 s</td></tr>
+<tr><td>Proposal Manager</td><td>Sonnet</td><td>1</td><td>3,600 / 1,150</td><td>$0.019</td><td>11.5 s</td></tr>
+<tr><td>Scoring seats × 3 rounds (CFO, VP, Architect)</td><td>Sonnet</td><td>9</td><td>16,200 / 3,150</td><td>$0.064</td><td>26.0 s</td></tr>
+<tr><td>Gate seats × 3 rounds (Procurement, Security)</td><td>Haiku</td><td>6</td><td>9,000 / 1,500</td><td>$0.002</td><td>in parallel</td></tr>
+<tr><td>Bid Manager × 2</td><td>Sonnet</td><td>2</td><td>5,400 / 1,700</td><td>$0.028</td><td>18.9 s</td></tr>
+<tr><td>QA Reviewer × 2</td><td>Haiku</td><td>2</td><td>2,500 / 300</td><td>$0.0004</td><td>4.6 s</td></tr>
+<tr><td>Presales Lead</td><td>Haiku</td><td>1</td><td>2,200 / 480</td><td>$0.0005</td><td>3.4 s</td></tr>
+</tbody></table></div>
+<p class="mut" style="font-size:12px;margin-top:8px">Tokens come from each API response; cost uses Claude's list prices. Sample values for this design, to be replaced by measured numbers.</p>
+</details>
+</section>
+<div class="acts">
+<a href="1-brief.html" class="sbtn" style="display:inline-flex;align-items:center;text-decoration:none">Start a new brief</a>
+<a href="States.html" class="sbtn" style="display:inline-flex;align-items:center;text-decoration:none">How failures are handled</a>
+</div>
+</main>
+<aside class="rail" aria-label="Run summary">
+<h3>Run summary</h3>
+<p>Counted and measured, except cost (estimate from tokens).</p>
+<ol>
+<li>Agents used<span class="st">13 of 14 (1 skipped, 0 failed)</span></li>
+<li>AI calls<span class="st">28</span></li>
+<li>Time<span class="st">88 s on the clock · 94 s agent work</span></li>
+<li>Tokens<span class="st">54,600 in · 10,230 out</span></li>
+<li>Cost<span class="st">$0.16 (sample value)</span></li>
+</ol>
+</aside>
+</div>
+</div>
+</body></html>

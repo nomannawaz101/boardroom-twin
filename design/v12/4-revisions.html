@@ -1,0 +1,192 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Revisions</title><style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;background:#F4F5F7}
+*{box-sizing:border-box}
+.top{background:#101828;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 24px}
+.brand{font-weight:700;font-size:16px}
+.chip{font-size:12px;border:1px solid #475467;border-radius:999px;padding:3px 10px;color:#D0D5DD}
+.sp{flex:1 1 0}
+.tbtn{background:transparent;color:#fff;border:1px solid #667085;border-radius:8px;padding:8px 12px;font-size:13px;min-height:44px}
+.body{display:flex;flex-wrap:wrap;gap:20px;padding:20px 24px;align-items:flex-start}
+.nav{flex:0 0 200px;display:flex;flex-direction:column;gap:4px}
+.navh{font-size:12px;color:#475467;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:#101828;text-decoration:none;font-size:14px;min-height:44px}
+.ni.act{background:#fff;border:1px solid #E4E7EC;font-weight:600}
+.ni small{margin-left:auto;font-size:11px;color:#475467}
+.dot{width:10px;height:10px;border-radius:50%;background:#98A2B3;flex:none}
+.done .dot{background:#0B6B3A}.act .dot{background:#4B32B8}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.rail{flex:0 0 280px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px}
+.rail h3{margin:0 0 4px;font-size:14px}
+.rail p{margin:0 0 12px;font-size:12px;color:#475467}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rail li{display:flex;flex-direction:column;gap:2px;font-size:13px;padding-bottom:10px;border-bottom:1px solid #F2F4F7}
+.rail li .st{font-size:12px;color:#475467}
+.card{background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:20px}
+h1{margin:0;font-size:24px}h2{margin:0 0 4px;font-size:16px}
+.mut{color:#475467;font-size:14px;margin:0}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ok{background:#E3F4EA;color:#0B6B3A}.no{background:#FDECEA;color:#B42318}.cond{background:#FEF0D7;color:#8A4B06}.neu{background:#EAECF0;color:#344054}
+.path{display:flex;flex-wrap:wrap;gap:8px;align-items:center;font-size:13px}
+.path span.s{border:1px solid #E4E7EC;background:#fff;border-radius:8px;padding:6px 10px}
+.path span.stop{background:#101828;color:#fff;border-radius:8px;padding:6px 10px}
+.ag{background:#fff;border:1px solid #E4E7EC;border-radius:12px}
+.ag summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;padding:14px 18px;min-height:44px}
+.ag summary::-webkit-details-marker{display:none}
+.ag summary b{font-size:15px}
+.ag summary .sum{flex:1 1 260px;font-size:14px;color:#344054}
+.ag .in{padding:0 18px 16px;display:flex;flex-direction:column;gap:10px;font-size:14px}
+.ch{display:flex;flex-wrap:wrap;gap:6px 12px;padding:8px 0;border-bottom:1px solid #F2F4F7;line-height:1.5}
+.ch .id{font-family:ui-monospace,Consolas,monospace;font-weight:700;flex:0 0 32px}
+.ch .tx{flex:1 1 300px}
+.ch del{color:#667085}.ch ins{background:#E3F4EA;text-decoration:none;padding:0 2px}
+.qa{border:1px solid #E4E7EC;background:#F9FAFB;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5}
+.vt{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;padding:8px 0;border-bottom:1px solid #F2F4F7;font-size:14px}
+.vt b{flex:0 0 190px}.vt .sc{font-family:ui-monospace,Consolas,monospace;flex:0 0 90px}.vt .nt{flex:1 1 240px;color:#475467;font-size:13px}
+.tag{font-size:11px;font-weight:700;border-radius:999px;padding:2px 8px;background:#EAECF0;color:#344054}
+.cd{background:#EAECF0;color:#344054}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:420px}
+th{text-align:left;font-size:12px;color:#475467;padding:8px;border-bottom:1px solid #E4E7EC}
+td{padding:9px 8px;border-bottom:1px solid #F2F4F7;font-family:ui-monospace,Consolas,monospace}
+td:first-child{font-family:inherit;font-weight:600}
+.go{background:#4B32B8;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:600;min-height:48px}
+.hand{font-size:13px;color:#475467}
+.sumrow{display:flex;flex-wrap:wrap;gap:16px;font-size:13px;color:#475467;margin-top:8px}
+</style></head><body>
+<div style="width:100%;min-height:2400px;display:flex;flex-direction:column">
+<header class="top">
+<span class="brand">Boardroom Twin</span>
+<span class="chip">Simulation, not a prediction</span>
+<span class="chip">Northwind Insurance · Claim status page</span>
+<span class="chip">Sample run</span>
+<span class="sp"></span>
+<button class="tbtn" type="button">Agent activity: On</button>
+</header>
+<div class="body">
+<nav class="nav" aria-label="Stages">
+<div class="navh">Stages</div>
+<a class="ni done" href="1-brief.html"><span class="dot"></span>Brief<small>Done</small></a>
+<a class="ni done" href="2-proposal-team.html"><span class="dot"></span>Proposal team<small>Done</small></a>
+<a class="ni done" href="3-client-board.html"><span class="dot"></span>Client board<small>Done</small></a>
+<a class="ni act" href="4-revisions.html"><span class="dot"></span>Revisions<small>Now</small></a>
+<a class="ni" href="5-report.html"><span class="dot"></span>Report<small>Next</small></a>
+</nav>
+<main class="main">
+<div>
+<p class="mut" style="font-size:12px">STAGE 4 OF 5 · UP TO 2 BID MANAGER ROUNDS</p>
+<h1>The Bid Manager answered every objection in 2 rounds</h1>
+<p class="mut" style="margin-top:6px">Each round: the Bid Manager changes only what was objected to, the QA Reviewer checks every new claim, then the whole board votes again.</p>
+<div class="sumrow"><span>14 agent calls</span><span>42 s · $0.07</span></div>
+</div>
+<div class="path" aria-label="Loop path">
+<span class="s">Board round 1: 2 of 5 can proceed</span>&rarr;<span class="s">Bid round 1</span>&rarr;<span class="s">Board round 2: 4 of 5</span>&rarr;<span class="s">Bid round 2</span>&rarr;<span class="s">Board round 3: 5 of 5</span>&rarr;<span class="stop">Stopped by code</span>
+</div>
+
+<details class="ag" open>
+<summary><b>Bid Manager · round 1</b><span class="sum">Answered O1, O2, O4, O5, O6.</span></summary>
+<div class="in">
+<div class="ch"><span class="id">O1</span><span class="tx"><del>One payment of $24,000.</del> <ins>Two phases: Phase 1 status page, 2 weeks, $12,000. Phase 2 email and SMS updates, 2 weeks, $12,000, optional.</ins></span></div>
+<div class="ch"><span class="id">O2</span><span class="tx"><ins>The page reads only the read-only copy, refreshed every 15 minutes. No calls to the live claims system.</ins></span></div>
+<div class="ch"><span class="id">O4</span><span class="tx"><del>Go-live Tue Jan 5.</del> <ins>Build Dec 7–18, holiday freeze, go-live Mon Jan 18, after the early-January peak.</ins></span></div>
+<div class="ch"><span class="id">O5</span><span class="tx"><del>No terms for changes or sign-off.</del> <ins>Any scope change becomes a written change request, sized in engineer-days at the same rate, before work starts. Each phase is accepted against the scope list before it is invoiced.</ins></span></div>
+<div class="ch"><span class="id">O6</span><span class="tx"><ins>The page shows only status steps and the expected payment date, never personal details or documents. A claim opens only with the claim number and a secure link. The read-only copy holds status data only, and access is logged.</ins></span></div>
+</div>
+</details>
+
+<details class="ag" open>
+<summary><b>QA Reviewer</b><span class="tag cd">Uses Quote checker</span><span class="sum">Checked 7 new statements: 4 backed by the brief or the calculation, 3 marked "to confirm with client".</span></summary>
+<div class="in"><div class="qa">"Phase 2 can be funded next quarter", "claim data can be copied every 15 minutes" and "the client's retention rule applies to the copy" are not in the brief, so they now read as assumptions.</div></div>
+</details>
+
+<details class="ag" open>
+<summary><b>Board vote · round 2</b><span class="sum">The whole board read draft 2.</span></summary>
+<div class="in">
+<div class="vt"><b>CFO</b><span class="sc">5.3 → 7.4</span><span class="pill cond">Yes, with a condition</span><span class="nt">Phase 2 funding must be confirmed (C1)</span></div>
+<div class="vt"><b>Enterprise Architect</b><span class="sc">6.2 → 7.6</span><span class="pill no">Rejected</span><span class="nt">Still no rollback plan (O3)</span></div>
+<div class="vt"><b>VP, Claims Operations</b><span class="sc">7.1 → 8.2</span><span class="pill ok">Approved</span><span class="nt">Timing now works</span></div>
+<div class="vt"><b>Procurement &amp; Contracts</b><span class="sc tag cd" style="flex:0 0 auto">gate</span><span class="pill ok">Pass</span><span class="nt">Change control and acceptance terms are now stated</span></div>
+<div class="vt"><b>Security Officer</b><span class="sc tag cd" style="flex:0 0 auto">gate</span><span class="pill cond">Pass, with conditions</span><span class="nt">Access and data scope fixed; the client's retention rule is still to confirm (C2)</span></div>
+<div class="hand">Hands the one open objection (O3) and two conditions back to the Bid Manager.</div>
+</div>
+</details>
+
+<details class="ag" open>
+<summary><b>Bid Manager · round 2</b><span class="sum">Answered O3.</span></summary>
+<div class="in">
+<div class="ch"><span class="id">O3</span><span class="tx"><ins>Rollback: one switch turns the page off within a minute. The contact centre keeps working exactly as today.</ins></span></div>
+<div class="qa"><b>QA Reviewer:</b> 1 of 1 backed.</div>
+</div>
+</details>
+
+<details class="ag" open>
+<summary><b>Board vote · round 3</b><span class="sum">Final vote on draft 3.</span></summary>
+<div class="in">
+<div class="vt"><b>CFO</b><span class="sc">7.4 → 7.4</span><span class="pill cond">Yes, with a condition</span></div>
+<div class="vt"><b>Enterprise Architect</b><span class="sc">7.6 → 8.4</span><span class="pill ok">Approved</span></div>
+<div class="vt"><b>VP, Claims Operations</b><span class="sc">8.2 → 8.3</span><span class="pill ok">Approved</span></div>
+<div class="vt"><b>Procurement &amp; Contracts</b><span class="tag cd">gate</span><span class="pill ok">Pass</span></div>
+<div class="vt"><b>Security Officer</b><span class="tag cd">gate</span><span class="pill cond">Pass, with conditions</span><span class="nt">Retention rule still to confirm (C2)</span></div>
+</div>
+</details>
+
+<section class="card">
+<h2>Scores by round</h2>
+<p class="mut" style="margin-bottom:8px;font-size:13px">Each executive's needed score is in the header.</p>
+<div class="tw"><table>
+<thead><tr><th>Seat</th><th>Needs</th><th>R1</th><th>R2</th><th>R3</th></tr></thead>
+<tbody>
+<tr><td>CFO</td><td>7.0</td><td>5.3</td><td>7.4</td><td>7.4</td></tr>
+<tr><td>Enterprise Architect</td><td>8.0</td><td>6.2</td><td>7.6</td><td>8.4</td></tr>
+<tr><td>VP, Claims Operations</td><td>7.0</td><td>7.1</td><td>8.2</td><td>8.3</td></tr>
+</tbody></table></div>
+<h2 style="margin-top:18px">Gates by round</h2>
+<div class="tw"><table>
+<thead><tr><th>Gate</th><th>R1</th><th>R2</th><th>R3</th></tr></thead>
+<tbody>
+<tr><td>Procurement &amp; Contracts</td><td>Conditions</td><td>Pass</td><td>Pass</td></tr>
+<tr><td>Security Officer</td><td>Blocked</td><td>Conditions</td><td>Conditions</td></tr>
+</tbody></table></div>
+<p class="mut" style="font-size:12px;margin-top:6px">Each cell is also colour-coded in the real screen: red blocked, amber pass with conditions, green pass.</p>
+</section>
+
+<section class="card">
+<h2>Why the loop stopped</h2>
+<p style="margin:6px 0;font-size:14px"><b>All five seats can proceed</b> (the CFO and the Security Officer with a condition each).</p>
+<p class="mut">The limit of 2 Bid Manager rounds was also reached. Other stop rules: scores stop improving, or the budget guard trips. Code decides, never an agent.</p>
+</section>
+
+<section class="card">
+<h2>Objection tracker</h2>
+<div class="tw"><table style="min-width:360px">
+<thead><tr><th>ID</th><th>What</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>O1</td><td style="font-family:inherit">Smaller first step</td><td style="font-family:inherit">Fixed R1</td></tr>
+<tr><td>O2</td><td style="font-family:inherit">Protect claims system</td><td style="font-family:inherit">Fixed R1</td></tr>
+<tr><td>O3</td><td style="font-family:inherit">Rollback plan</td><td style="font-family:inherit">Fixed R2</td></tr>
+<tr><td>O4</td><td style="font-family:inherit">January peak</td><td style="font-family:inherit">Fixed R1</td></tr>
+<tr><td>O5</td><td style="font-family:inherit">Change control, acceptance</td><td style="font-family:inherit">Fixed R1</td></tr>
+<tr><td>O6</td><td style="font-family:inherit">Access, data protection</td><td style="font-family:inherit">Fixed R1</td></tr>
+<tr><td>C1</td><td style="font-family:inherit">Phase 2 funding</td><td style="font-family:inherit">Confirm</td></tr>
+<tr><td>C2</td><td style="font-family:inherit">Client's retention rule</td><td style="font-family:inherit">Confirm</td></tr>
+</tbody></table></div>
+<p class="mut" style="font-size:13px;margin-top:8px">An objection counts as fixed only after the seat that raised it has read the new text and agreed.</p>
+</section>
+<div><button class="go" type="button">Next: the final report &rarr;</button></div>
+</main>
+<aside class="rail" aria-label="Agent activity">
+<h3>Agent activity</h3>
+<p>Measured while the run happened.</p>
+<ol>
+<li>Bid Manager, round 1<span class="st">Done, 10.2 s, Sonnet</span></li>
+<li>QA Reviewer, round 1<span class="st">Done, Haiku, Quote checker</span></li>
+<li>Board vote, round 2<span class="st">Done, 5 seats</span></li>
+<li>Bid Manager, round 2<span class="st">Done, 8.7 s, Sonnet</span></li>
+<li>QA Reviewer, round 2<span class="st">Done, Haiku</span></li>
+<li>Board vote, round 3<span class="st">Done, 5 seats</span></li>
+<li>Loop stop rules<span class="st">Code, no model</span></li>
+</ol>
+<p style="margin-top:12px">Stage: 14 agent calls · 42 s · about $0.07 (estimate from tokens)</p>
+</aside>
+</div>
+</div>
+</body></html>

@@ -3,69 +3,78 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Boardroom Twin</title>
+  <title>Boardroom Twin: Brief</title>
+  <meta name="description" content="Rehearse a proposal in front of an AI copy of the client's board: a proposal team drafts it, the board challenges it, and fixed rules decide every score. A simulation with made-up data.">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%236d4fe0'/%3E%3Crect x='7' y='13' width='18' height='6' rx='3' fill='none' stroke='white' stroke-width='2.5'/%3E%3Cpath d='M11 13V9M16 13V8M21 13V9M11 19v4M16 19v5M21 19v4' stroke='white' stroke-width='2.5' stroke-linecap='round'/%3E%3C/svg%3E">
   <link rel="stylesheet" href="/static/css/style.css">
   <script type="module" src="/static/js/app.js"></script>
 </head>
 <body>
 <div class="page">
   <header class="site-header">
-    <div class="wrap header-row">
-      <div class="brand-row">
-        <span class="logo" aria-hidden="true">
+    <div class="header-row">
+      <span class="logo" aria-hidden="true">
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9" width="18" height="6" rx="3"></rect><path d="M7 9V6M12 9V5M17 9V6M7 15v3M12 15v4M17 15v3"></path></svg>
         </span>
-        <strong class="brand">Boardroom Twin</strong>
-        <span class="brand-sub" id="brand-sub">by Lumen Works</span>
-      </div>
-      <div class="header-chips">
-        <span class="mode-chip" id="mode-chip" hidden></span>
-        <span class="tagline">Simulation, not a prediction</span>
-      </div>
+      <strong class="brand">Boardroom Twin</strong>
+      <span class="brand-sub" id="brand-sub">by Lumen Works</span>
+      <span class="tagline">Simulation, not a prediction</span>
+      <span class="top-chip" id="client-chip" hidden></span>
+      <span class="mode-chip" id="mode-chip" hidden></span>
+      <span class="top-space"></span>
+      <button type="button" class="top-btn" id="activity-toggle" aria-controls="activity-rail" aria-pressed="true">Agent activity: On</button>
     </div>
   </header>
 
-  <nav class="stage-nav" aria-label="Run stages">
-    <div class="wrap stage-row" id="stage-nav">
-      <button type="button" class="step" data-stage="1"><span class="num">1</span> Brief</button>
-      <button type="button" class="step" data-stage="2"><span class="num">2</span> Proposal team</button>
-      <button type="button" class="step" data-stage="3"><span class="num">3</span> Client board</button>
-      <button type="button" class="step" data-stage="4"><span class="num">4</span> Revisions</button>
-      <button type="button" class="step" data-stage="5"><span class="num">5</span> Report</button>
-    </div>
-  </nav>
+  <div class="shell">
+    <nav class="stage-nav" aria-label="Run stages">
+      <span class="nav-head">Stages</span>
+      <div class="stage-list" id="stage-nav">
+        <button type="button" class="step" data-stage="1"><span class="step-dot" aria-hidden="true"></span><span class="step-name">Brief</span><small class="step-state">Next</small></button>
+        <button type="button" class="step" data-stage="2"><span class="step-dot" aria-hidden="true"></span><span class="step-name">Proposal team</span><small class="step-state">Next</small></button>
+        <button type="button" class="step" data-stage="3"><span class="step-dot" aria-hidden="true"></span><span class="step-name">Client board</span><small class="step-state">Next</small></button>
+        <button type="button" class="step" data-stage="4"><span class="step-dot" aria-hidden="true"></span><span class="step-name">Revisions</span><small class="step-state">Next</small></button>
+        <button type="button" class="step" data-stage="5"><span class="step-dot" aria-hidden="true"></span><span class="step-name">Report</span><small class="step-state">Next</small></button>
+      </div>
+    </nav>
 
-  <main class="wrap main" id="view-brief">
-    <section class="hero">
-      <h1>Rehearse your proposal in front of the client's board, before you send it.</h1>
-      <p>A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
+    <aside class="activity-rail" id="activity-rail" aria-label="Agent activity">
+      <details class="rail-card" id="rail-details" open>
+        <summary class="rail-summary"><span class="rail-summary-title">Agent activity</span><span class="rail-chip num" id="rail-chip">Idle</span></summary>
+        <div class="rail-body" id="rail-body"></div>
+      </details>
+    </aside>
+
+    <div class="views">
+  <main class="main" id="view-brief">
+    <section class="hero" aria-labelledby="hero-h">
+      <h1 id="hero-h" data-text="hero-title">Know what the client's board will challenge, before the meeting.</h1>
+      <p data-text="hero-text">A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and sign-off reviewers who can block it. A Revision Editor fixes what they object to, up to two rounds.</p>
+      <div class="hero-actions">
+        <button type="button" class="btn hero-main" disabled aria-describedby="sample-note">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          Watch the sample run
+        </button>
+        <button type="button" class="btn hero-second" id="start-with-brief">Start with this brief</button>
+      </div>
+      <span class="hero-note" id="sample-note">The recorded sample run arrives in a later build.</span>
+    </section>
+    <p class="intro-line" data-text="intro">You are the bid team at Lumen Works, a fictional services firm. Paste a client brief or try a sample.</p>
+    <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
+
+    <section class="how" aria-labelledby="how-h">
+      <h2 class="how-h" id="how-h">How it works</h2>
+      <ol class="how-steps">
+        <li><span class="how-no">1</span><div><strong data-text="how-1">Brief</strong><span data-text="how-1-sub">Paste a client brief or pick a sample. Code checks it before any AI call.</span></div></li>
+        <li><span class="how-no">2</span><div><strong data-text="how-2">The team drafts the proposal</strong><span data-text="step-1">Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Writer hand work to each other</span></div></li>
+        <li><span class="how-no">3</span><div><strong data-text="how-3">The client's board challenges it</strong><span data-text="step-2">3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span></div></li>
+        <li><span class="how-no">4</span><div><strong data-text="how-4">The Revision Editor answers each objection</strong><span data-text="step-3">Up to two rounds. A Fact Checker blocks invented statements. The board votes again</span></div></li>
+        <li><span class="how-no">5</span><div><strong data-text="how-5">You get a report you can act on</strong><span data-text="how-5-sub">Proposal, board decision memo, meeting prep, optional prototype</span></div></li>
+      </ol>
     </section>
 
-    <section class="how" aria-label="How it works">
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 1</span>
-        <strong>Proposal team drafts</strong>
-        <span>Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Manager hand work to each other</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 2</span>
-        <strong>Client board reviews</strong>
-        <span>3 to 5 seats chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 3</span>
-        <strong>Bid Manager revises</strong>
-        <span>Up to two rounds. A QA Reviewer blocks invented claims. The board votes again</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 4</span>
-        <strong>Board-ready report</strong>
-        <span>Proposal, board decision memo, meeting prep, optional prototype</span>
-      </div>
-    </section>
-
-    <div class="two-col">
-      <section class="card brief-card" aria-labelledby="brief-h">
+    <div class="brief-stack">
+      <section class="card brief-card" id="brief-card" aria-labelledby="brief-h">
         <div class="card-title-row">
           <h2 id="brief-h">Client brief</h2>
           <span class="muted small">Paste text or pick a sample</span>
@@ -132,118 +141,145 @@
 
         <div class="codechk" aria-label="Checks that run before any AI call">
           <span class="strong">Code checks before any AI call:</span>
-          <span><b aria-hidden="true">✓</b> real-data scan</span><span><b aria-hidden="true">✓</b> hidden-instruction scan</span><span><b aria-hidden="true">✓</b> "is this a client brief?"</span>
+          <span class="check-pill"><b aria-hidden="true">✓</b> real-data scan</span><span class="check-pill"><b aria-hidden="true">✓</b> hidden-instruction scan</span><span class="check-pill"><b aria-hidden="true">✓</b> "is this a client brief?"</span>
+          <span class="m-code">Code, before AI</span>
           <span class="muted full">Text inside a document is treated as data, never as instructions.</span>
         </div>
 
         <p class="privacy">Boardroom Twin is designed for fictional or publicly available information only. Automated checks find some common patterns of sensitive information but cannot guarantee complete detection. Do not submit confidential, customer or internal company information. The app does not intentionally save or log brief content.</p>
       </section>
 
-      <aside class="card start-card" aria-labelledby="start-h">
+      <section class="card start-card" aria-labelledby="start-h">
         <h2 id="start-h">Start</h2>
-        <button type="button" class="btn btn-primary" disabled aria-describedby="sample-note">
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
-          Watch the sample run
-        </button>
-        <span class="muted small tight" id="sample-note">The recorded sample run arrives in a later build.</span>
-        <div class="rule"></div>
-        <button type="button" class="btn btn-outline" id="start-live">Start a live run with my brief</button>
+        <div class="start-row">
+          <button type="button" class="btn btn-outline" disabled aria-describedby="sample-note-2">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+            Watch the sample run
+          </button>
+          <span class="muted small" id="sample-note-2">The recorded sample run arrives in a later build.</span>
+        </div>
+        <div class="pass-row">
+          <div class="pass-field">
+            <label class="label" for="passcode">Passcode for live runs</label>
+            <input class="field" id="passcode" type="password" autocomplete="off" disabled aria-describedby="passcode-note">
+          </div>
+          <button type="button" class="btn btn-primary" id="start-live">Start a live run with my brief</button>
+        </div>
+        <span class="hint" id="passcode-note">Passcodes for live runs arrive in a later build. Live runs need none for now.</span>
         <div id="start-message" role="alert"></div>
-        <dl class="facts">
-          <dt>Agent roles</dt><dd id="fact-agents">14</dd>
-          <dt>Board</dt><dd>3 to 5 seats, chosen from your brief</dd>
-          <dt>Time</dt><dd>About 2 to 3 minutes for a full run</dd>
-          <dt>Cost</dt><dd class="num">≈ $0.16 per run (estimate)</dd>
-          <dt>Mode</dt><dd id="fact-mode">Full</dd>
-        </dl>
-      </aside>
+      </section>
     </div>
+    <p class="legend-line colour-legend" data-text="legend-colours">Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.</p>
   </main>
 
-  <main class="wrap main" id="view-team" hidden>
+  <main class="main" id="view-team" hidden>
     <section class="stage-head">
       <div class="stage-intro">
         <span class="num eyebrow">STAGE 2 OF 5</span>
         <h1 id="team-title">The proposal team is writing draft 1</h1>
+        <p class="takeaway" id="team-takeaway" hidden></p>
         <p id="team-intro">Each agent hands its work to the next. Tools are plain code: the agent asks, code answers exactly.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="team-stats"></div>
     </section>
     <div id="team-notices"></div>
-    <div class="two-col">
-      <ol class="relay" id="relay" aria-label="Agent steps"></ol>
-      <aside class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></aside>
-    </div>
-    <section class="card proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
+    <ol class="relay" id="relay" aria-label="Agent steps"></ol>
+    <section class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></section>
+    <details class="card proposal-details" id="proposal-details" hidden>
+      <summary class="proposal-toggle" data-text="full-draft">Read the full draft 1, statement by statement, with tags</summary>
+      <section class="proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
+    </details>
+    <p class="legend-line colour-legend" data-text="legend-colours">Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.</p>
   </main>
 
-  <main class="wrap main" id="view-board" hidden>
+  <main class="main" id="view-board" hidden>
     <section class="stage-head">
       <div class="stage-intro">
         <span class="num eyebrow">STAGE 3 OF 5 · BOARD ROUND 1</span>
         <h1 id="board-title">The client's board is reviewing draft 1</h1>
-        <p id="board-intro">Code picked the board from the brief. Every seat reviews the draft at the same time, and code turns their answers into votes.</p>
+        <p class="takeaway" id="board-takeaway" hidden></p>
+        <p id="board-intro" data-text="board-intro">Fixed rules picked the board from the brief. Every reviewer reads the draft at the same time, and fixed rules turn their answers into votes.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="board-stats"></div>
     </section>
+    <div id="board-verdict"></div>
+    <section class="card log-card" id="board-scoreboard" aria-label="Board scoreboard" hidden></section>
     <section class="card plan-card" id="board-plan" aria-labelledby="plan-h"></section>
     <div id="board-status"></div>
     <section class="board-block" id="score-block" aria-labelledby="scores-h" hidden>
       <div class="block-head"><h2 id="scores-h">Round 1 · scores</h2><span class="muted small">Ran at the same time · the tick on each bar is the score needed</span></div>
       <div class="seat-grid" id="score-cards"></div>
-      <p class="code-note"><strong>Decided by code, not AI:</strong> score = sum of rating × weight. Below the needed score → Rejected. At or above it with anything still open → Yes, with a condition. Otherwise → Approved.</p>
+      <p class="code-note"><strong>Decided by fixed rules, not AI:</strong> score = sum of rating × weight. Below the needed score → Rejected. At or above it with anything still open → Yes, with a condition. Otherwise → Approved.</p>
     </section>
     <section class="board-block" id="gate-block" aria-labelledby="gates-h" hidden>
-      <div class="block-head"><h2 id="gates-h">Round 1 · gates</h2><span class="muted small">Gatekeepers answer three checklist questions. They do not give a score.</span></div>
+      <div class="block-head"><h2 id="gates-h" data-text="gates-title">Round 1 · sign-off checks</h2><span class="muted small" data-text="gates-intro">Sign-off reviewers answer three checklist questions. They do not give a score.</span></div>
       <div class="seat-grid gates" id="gate-cards"></div>
-      <p class="code-note"><strong>Decided by code, not AI:</strong> "Not met" on a must-have → Blocked. Any "Partly", or "Not met" on another item → Pass, with conditions. All "Met" → Pass.</p>
+      <p class="code-note"><strong>Decided by fixed rules, not AI:</strong> <span data-text="gates-rule">"Not met" on a required item → Blocked. Any "Partly", or "Not met" on another item → Signed off, with conditions. All "Met" → Signed off.</span></p>
     </section>
     <section class="card log-card" id="objections" aria-labelledby="obj-h" hidden></section>
+    <section class="card fix-card" id="fix-first" hidden></section>
+    <div id="board-next"></div>
+    <p class="legend-line colour-legend" data-text="legend-colours">Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.</p>
   </main>
 
-  <main class="wrap main" id="view-revisions" hidden>
+  <main class="main" id="view-revisions" hidden>
     <section class="stage-head">
       <div class="stage-intro">
-        <span class="num eyebrow">STAGE 4 OF 5 · UP TO 2 BID MANAGER ROUNDS</span>
-        <h1 id="loop-title">The Bid Manager is answering the objections</h1>
-        <p>Each round: the Bid Manager changes only what was objected to, then the whole board votes again. Code decides when the loop stops.</p>
+        <span class="num eyebrow" data-text="loop-eyebrow">STAGE 4 OF 5 · UP TO 2 REVISION ROUNDS</span>
+        <h1 id="loop-title" data-text="loop-title">The Revision Editor is answering the objections</h1>
+        <p class="takeaway" id="loop-takeaway" hidden></p>
+        <p data-text="loop-intro">Each round: the Revision Editor changes only what was objected to, then the whole board votes again. Fixed rules decide when the loop stops.</p>
+        <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
       </div>
       <div class="stat-chips" id="loop-stats"></div>
     </section>
     <div class="loop-chips" id="loop-chips"></div>
-    <div class="two-col">
-      <div class="loop-rounds" id="loop-rounds"></div>
-      <aside class="loop-side">
-        <section class="card side-card" id="scores-by-round"></section>
-        <section class="card side-card" id="why-stopped"></section>
-        <section class="card side-card" id="tracker-list"></section>
-        <div id="loop-next"></div>
-      </aside>
+    <div class="loop-grid">
+      <section class="card side-card" id="why-stopped"></section>
+      <section class="card side-card" id="scores-by-round"></section>
     </div>
+    <section class="card side-card tracker-card" id="tracker-list"></section>
+    <div class="loop-rounds" id="loop-rounds"></div>
+    <details class="card log-card objections-details">
+      <summary class="proposal-toggle">Objections and what changed, in one table</summary>
+      <section id="loop-objections"></section>
+    </details>
+    <div id="loop-next"></div>
+    <p class="legend-line colour-legend" data-text="legend-colours">Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.</p>
   </main>
 
-  <main class="wrap main" id="view-report" hidden>
+  <main class="main" id="view-report" hidden>
     <div id="report-status"></div>
     <div id="report-body" hidden>
+      <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
+      <p class="takeaway" id="report-takeaway"></p>
       <div id="verdict-banner"></div>
+      <section class="close-box" id="report-next" aria-label="What to do next" hidden></section>
       <section class="key-numbers" id="key-numbers" aria-label="Key numbers"></section>
+      <section class="card report-card" id="report-moves"></section>
       <section class="card report-card" id="report-changes"></section>
       <section class="card proposal-card" id="report-proposal" aria-labelledby="final-h"></section>
-      <div class="two-col">
-        <section class="card log-card memo-card" id="report-memo" aria-labelledby="memo-h"></section>
-        <aside class="card side-card prep-card" id="report-prep"></aside>
-      </div>
-      <section class="card prototype-card" id="report-prototype"></section>
+      <section class="card log-card memo-card" id="report-memo" aria-labelledby="memo-h"></section>
+      <!-- Phase 8 re-enables meeting prep and the prototype preview: their cards are still built, only hidden. -->
+      <section class="card side-card prep-card" id="report-prep" hidden></section>
+      <section class="card prototype-card" id="report-prototype" hidden></section>
+      <p class="muted small coming-soon" data-text="coming-soon">Coming in the full build: meeting questions and a prototype preview.</p>
       <div class="report-foot no-print">
         <button type="button" class="btn btn-outline small-btn" id="new-brief">Start a new brief</button>
       </div>
     </div>
+    <p class="legend-line colour-legend" data-text="legend-colours">Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.</p>
   </main>
+    </div>
+  </div>
 
   <footer class="site-footer">
     <div class="wrap footer-row">
       <span>Lumen Works is a fictional firm. All client names and briefs are made up.</span>
       <span>Every number is decided by code, not by AI.</span>
+      <a href="https://github.com/nomannawaz101/boardroom-twin" target="_blank" rel="noopener">View the source on GitHub</a>
     </div>
   </footer>
 </div>

@@ -1,12 +1,17 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, boardPlan, boardStats, button, deliveryCard, draftSummary, gateCard, h,
+  analystCard, architectCard, boardPlan, fixFirst, scoreboard, ranTogether, togetherMarker, verdictSoFar, boardStats, button, deliveryCard, draftSummary, gateCard, h,
   managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
 import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
-  loopStats, meetingPrep, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
+  loopStats, meetingPrep, objectionsTable, scoreMoves, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
+import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, setClientIds, stepName, tabTitle } from "./labels.js";
+import { boardTakeaway, loopTakeaway, reportTakeaway, teamTakeaway } from "./takeaways.js";
+import {
+  idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
+} from "./render-shell.js";
 import {
   BRIEF_MAX_CHARS, addBoard, addDraft, addRetriedSeat, addRevision, hasBoard, hasDraft, hasReport,
   loopStopped, run, setReport, startRun, stateForServer,
@@ -35,27 +40,40 @@ const els = {
   nav: $("stage-nav"),
   client: $("client"), country: $("country"), brief: $("brief"), counter: $("brief-counter"),
   confirmed: $("confirmed"), start: $("start-live"), startMessage: $("start-message"),
-  samples: $("sample-row"), modeChip: $("mode-chip"), brandSub: $("brand-sub"),
-  relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"),
+  samples: $("sample-row"), modeChip: $("mode-chip"), clientChip: $("client-chip"),
+  toggle: $("activity-toggle"), railDetails: $("rail-details"), railBody: $("rail-body"), railChip: $("rail-chip"),
+  relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"), proposalDetails: $("proposal-details"),
   stats: $("team-stats"), notices: $("team-notices"), title: $("team-title"),
-  factAgents: $("fact-agents"), factMode: $("fact-mode"),
   boardTitle: $("board-title"), boardIntro: $("board-intro"), boardStats: $("board-stats"),
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
   scoreBlock: $("score-block"), scoreCards: $("score-cards"),
   gateBlock: $("gate-block"), gateCards: $("gate-cards"), objections: $("objections"),
+  boardVerdict: $("board-verdict"), fixFirst: $("fix-first"), boardNext: $("board-next"), scoreboard: $("board-scoreboard"),
   loopTitle: $("loop-title"), loopStats: $("loop-stats"), loopChips: $("loop-chips"),
   loopRounds: $("loop-rounds"), scoresByRound: $("scores-by-round"), whyStopped: $("why-stopped"),
-  trackerList: $("tracker-list"), loopNext: $("loop-next"),
+  trackerList: $("tracker-list"), loopNext: $("loop-next"), loopObjections: $("loop-objections"),
   reportStatus: $("report-status"), reportBody: $("report-body"), verdictBanner: $("verdict-banner"),
   keyNumbers: $("key-numbers"), reportChanges: $("report-changes"), reportProposal: $("report-proposal"),
-  reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportPrototype: $("report-prototype"),
+  reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportNext: $("report-next"), reportMoves: $("report-moves"), reportPrototype: $("report-prototype"),
   newBrief: $("new-brief"),
 };
+// Each stage's takeaway line: shown when there is something to say, hidden otherwise.
+function setTakeaway(id, text) {
+  const node = $(id);
+  node.textContent = text || "";
+  node.hidden = !text;
+}
+
 const VIEWS = {
   1: $("view-brief"), 2: $("view-team"), 3: $("view-board"), 4: $("view-revisions"), 5: $("view-report"),
 };
 // Steps made before the loop started, so the loop's own calls can be counted.
 let loopStart = 0;
+let currentStage = 1;
+// The Brief screen's "This run" facts: placeholders until /api/health answers.
+const facts = { agents: "14", mode: null };
+let railParts = [];
+const NARROW = "(max-width: 1100px)";
 
 // --- Views and stage bar ---
 
@@ -69,31 +87,103 @@ function stageDone(n) {
   return Boolean(done[n]);
 }
 
-function brandLine(stage) {
-  if (stage === 1 || !run.data) return "by Lumen Works";
-  const where = { 2: "draft 1", 3: "board round 1", 4: "revisions", 5: "final report" }[stage];
-  return `${run.data.case_file.client} · ${where}`;
+function clientLine(stage) {
+  if (!run.data) return "";
+  const where = { 1: "", 2: "draft 1", 3: "board round 1", 4: "revisions", 5: "final report" }[stage];
+  return where ? `${run.data.case_file.client} · ${where}` : run.data.case_file.client;
+}
+
+// Keep the labels file's client-item ids in step with the run's tracker.
+function syncLabels() {
+  setClientIds(run.data ? run.data.tracker : []);
 }
 
 function showView(stage) {
+  syncLabels();
+  currentStage = stage;
+  document.title = tabTitle(stage);
   for (const [n, view] of Object.entries(VIEWS)) view.hidden = Number(n) !== stage;
   for (const step of els.nav.querySelectorAll(".step")) {
     const n = Number(step.dataset.stage);
     step.disabled = !stageOpen(n);
+    step.classList.toggle("done", stageDone(n));
     if (n === stage) step.setAttribute("aria-current", "step");
     else step.removeAttribute("aria-current");
-    step.lastChild.textContent = step.lastChild.textContent.replace(" ✓", "") + (stageDone(n) ? " ✓" : "");
+    step.querySelector(".step-state").textContent = stageState(n, stage, stageDone(n));
   }
-  els.brandSub.textContent = brandLine(stage);
+  els.clientChip.textContent = clientLine(stage);
+  els.clientChip.hidden = !run.data;
+  renderRail();
   window.scrollTo({ top: 0 });
+}
+
+// --- Agent activity rail ---
+
+function factRows() {
+  const mode = facts.mode || "Full";
+  return [
+    ["Agent roles", facts.agents],
+    ["Board", "3 to 5 reviewers, chosen from your brief"],
+    ["Time", "About 2 to 3 minutes for a full run"],
+    ["Cost", "≈ $0.16 per run (estimate)"],
+    ["Mode", h("span", {}, h("span", { class: "pill-ok" }, MODES[mode] || mode), modeNote(mode))],
+  ];
+}
+
+function railSteps(stage) {
+  const plan = run.data ? run.data.board_plan : null;
+  const steps = (run.data ? run.data.steps : []).map((s) => ({ ...s, label: stepName(s, plan) }));
+  if (stage === 2) return steps.filter((s) => s.stage <= 2);
+  if (stage === 3) return steps.filter((s) => s.stage === 3);
+  if (stage === 4) {
+    // Name each Bid Manager call by its round; the seats after it are that round's vote.
+    let round = 0;
+    return steps.slice(loopStart).map((s) => {
+      if (s.agent !== "bid_manager") return { ...s, label: round ? `${s.label}, vote ${round + 1}` : s.label };
+      round += 1;
+      return { ...s, label: `${s.label}, round ${round}` };
+    });
+  }
+  return steps;
+}
+
+// Redrawn on every view change and around every request; `running` names the work in progress.
+function renderRail(running = null) {
+  if (railParts.stop) railParts.stop();
+  const stage = currentStage;
+  const steps = railSteps(stage);
+  if (stage === 1 || !run.data) railParts = idleRail(factRows());
+  else if (stage === 5 && hasReport() && !running) railParts = runSummary(steps);
+  else railParts = stageRail(stage === 5 ? [] : steps, { parallel: stage === 3, running });
+  els.railBody.replaceChildren(...railParts);
+  els.railChip.textContent = railChip(stage === 1 ? [] : steps, running);
+}
+
+function storage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function setActivity(on) {
+  document.body.classList.toggle("rail-off", !on);
+  els.toggle.textContent = `Agent activity: ${on ? "On" : "Off"}`;
+  els.toggle.setAttribute("aria-pressed", String(on));
+}
+
+function fitRail() {
+  els.railDetails.open = !window.matchMedia(NARROW).matches;
 }
 
 function setMode(mode) {
   const label = MODE_LABELS[mode] || "Full";
   els.modeChip.hidden = false;
-  els.modeChip.textContent = label === "Sample" ? "Sample run" : `${label} mode`;
+  els.modeChip.textContent = MODES[label] || label;
   els.modeChip.className = `mode-chip ${label.toLowerCase()}`;
-  els.factMode.replaceChildren(h("span", { class: "pill-ok" }, label), modeNote(label));
+  facts.mode = label;
+  renderRail();
 }
 
 // --- Brief form ---
@@ -162,9 +252,11 @@ async function startLive() {
   els.relay.replaceChildren();
   els.summary.hidden = true;
   els.proposal.hidden = true;
+  els.proposalDetails.hidden = true;
   els.stats.replaceChildren();
   els.notices.replaceChildren();
   els.title.textContent = "The proposal team is writing draft 1";
+  setTakeaway("team-takeaway", null);
   showView(2);
   await discover(body);
 }
@@ -173,9 +265,11 @@ async function discover(body) {
   setBusy(true);
   const working = workingCard(1, "Business Analyst is reading the brief. Code checked it first.");
   els.relay.replaceChildren(working);
+  renderRail("Business Analyst");
   const result = await callApi("/api/discover", body);
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error && INPUT_ERRORS.has(result.error)) {
     showView(1);
     showStartMessage(message("m-err", ERROR_TITLES[result.error], result.message));
@@ -188,7 +282,7 @@ async function discover(body) {
   startRun(result);
   setMode(result.mode);
   els.notices.replaceChildren(...result.notices.map((n) => message("m-warn", "Instructions aimed at an AI.", n)));
-  els.relay.replaceChildren(analystCard(run.data, false));
+  els.relay.replaceChildren(analystCard(run.data));
   showView(2);
   await draft();
 }
@@ -197,12 +291,14 @@ async function discover(body) {
 
 async function draft() {
   setBusy(true);
-  const working = workingCard(2, "Solution Architect, then Delivery Manager, then Proposal Manager are working. This takes about a minute.");
+  const working = workingCard(2, `Solution Architect, then Delivery Manager, then ${ROLES.proposal_manager} are working. This takes about a minute.`);
   els.relay.append(working);
+  renderRail(`Solution Architect, Delivery Manager, ${ROLES.proposal_manager}`);
   const result = await callApi("/api/draft", stateForServer());
   working.stop();
   working.remove();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.relay.append(retryCard(2, result.message, () => {
       els.relay.lastChild.remove();
@@ -216,17 +312,24 @@ async function draft() {
 
 function showDraft(result) {
   const [architect, delivery, manager] = result.steps;
-  els.relay.append(
-    architectCard(2, architect, result.design, false),
-    deliveryCard(3, delivery, run.data, false),
-    managerCard(4, manager, true),
-  );
+  const cards = [
+    architectCard(2, architect, result.design),
+    deliveryCard(3, delivery, run.data),
+    managerCard(4, manager),
+  ];
+  // Mark steps whose measured times overlap; today's chain runs one after another.
+  result.steps.forEach((step, i) => {
+    if (i && ranTogether(result.steps[i - 1], step)) els.relay.append(togetherMarker());
+    els.relay.append(cards[i]);
+  });
   els.title.textContent = "The proposal team wrote draft 1";
+  setTakeaway("team-takeaway", teamTakeaway(run.data));
   els.stats.replaceChildren(...stats(run.data.steps.filter((s) => s.stage <= 2)));
   els.summary.replaceChildren(...draftSummary(run.data, board));
   els.summary.hidden = false;
   els.proposal.replaceChildren(...proposal(run.data.claims));
   els.proposal.hidden = false;
+  els.proposalDetails.hidden = false;
   showView(2);
 }
 
@@ -243,16 +346,21 @@ function countWords(count, one, many) {
 function boardIntro(round) {
   const scoring = round.seats.filter((s) => s.kind === "scoring").length;
   const gates = round.seats.length - scoring;
-  const checked = gates ? ` and ${countWords(gates, "gatekeeper", "gatekeepers")} checked it` : "";
-  return `Code picked the board from the brief. ${countWords(scoring, "executive", "executives")} scored the proposal${checked}, all at the same time. Code turned their answers into votes.`;
+  const checked = gates ? ` and ${countWords(gates, WORDS.signOffReviewer, WORDS.signOffReviewers)} checked it` : "";
+  return `Fixed rules picked the board from the brief. ${countWords(scoring, "executive", "executives")} scored the proposal${checked}, all at the same time. Fixed rules turned their answers into votes.`;
 }
 
 function setBoardLoading() {
   els.boardTitle.textContent = "The client's board is reviewing draft 1";
+  setTakeaway("board-takeaway", null);
   els.boardStats.replaceChildren();
   els.scoreBlock.hidden = true;
   els.gateBlock.hidden = true;
   els.objections.hidden = true;
+  els.boardVerdict.replaceChildren();
+  els.scoreboard.hidden = true;
+  els.fixFirst.hidden = true;
+  els.boardNext.replaceChildren();
 }
 
 async function board() {
@@ -262,11 +370,13 @@ async function board() {
   els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan));
   showView(3);
   const seats = run.data.board_plan.seats.length;
-  const working = workingCard(1, `${countWords(seats, "seat is", "seats are")} reviewing draft 1 at the same time.`);
+  const working = workingCard(1, `${countWords(seats, "reviewer is", "reviewers are")} reviewing draft 1 at the same time.`);
   els.boardStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  renderRail(`${reviewerCount(seats)}, at the same time`);
   const result = await callApi("/api/board", stateForServer());
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.boardStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, board, () => showView(2))));
     return;
@@ -276,6 +386,7 @@ async function board() {
 }
 
 function showBoard() {
+  syncLabels();
   const round = run.data.rounds.at(-1);
   const steps = Object.fromEntries(boardSteps().map((s) => [s.agent, s]));
   const card = (seat) => (seat.kind === "scoring" ? scoreCard : gateCard)(seat, steps[seat.seat_id], (event) => retrySeat(seat.seat_id, event));
@@ -283,17 +394,26 @@ function showBoard() {
   const gates = round.seats.filter((s) => s.kind === "gate");
   els.boardStatus.replaceChildren();
   els.boardTitle.textContent = "The client's board reviewed draft 1";
+  setTakeaway("board-takeaway", boardTakeaway(round));
   els.boardIntro.textContent = boardIntro(round);
-  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress, run.data.verdictLabel));
+  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress));
+  els.boardVerdict.replaceChildren(run.data.verdictLabel ? verdictSoFar(run.data.verdictLabel, round.progress) : "");
+  els.scoreboard.replaceChildren(...scoreboard(round, run.data.tracker));
+  els.scoreboard.hidden = false;
+  els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan, round));
   els.scoreCards.replaceChildren(...scoring.map(card));
   els.gateCards.replaceChildren(...gates.map(card));
   els.scoreBlock.hidden = scoring.length === 0;
   els.gateBlock.hidden = gates.length === 0;
   const next = loopStopped()
     ? { label: "Next: the final report →", onClick: showReport, stopped: true }
-    : { label: "Next: the Bid Manager answers the objections →", onClick: startLoop };
-  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, next));
+    : { label: `Next: the ${ROLES.bid_manager} answers the objections →`, onClick: startLoop };
+  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, { stopped: next.stopped }));
   els.objections.hidden = false;
+  const fix = fixFirst(run.data.tracker, round.seats);
+  els.fixFirst.replaceChildren(...fix);
+  els.fixFirst.hidden = !fix.length;
+  els.boardNext.replaceChildren(button(next.label, "btn btn-primary", next.onClick));
   showView(3);
 }
 
@@ -301,13 +421,13 @@ async function retrySeat(seatId, event) {
   if (run.busy) return;
   const trigger = event.currentTarget;
   trigger.disabled = true;
-  trigger.textContent = "Retrying this seat…";
+  trigger.textContent = WORDS.retryingReviewer;
   setBusy(true);
   const result = await callApi("/api/board/retry", { state: stateForServer(), seat_id: seatId });
   setBusy(false);
   if (result.error) {
     trigger.disabled = false;
-    trigger.textContent = "Retry this seat";
+    trigger.textContent = WORDS.retryReviewer;
     trigger.after(message("m-err", null, result.message));
     return;
   }
@@ -328,22 +448,26 @@ function bidSteps() {
 function loopTitle() {
   const answered = new Set(run.data.revisions.flatMap((r) => r.answered));
   const rounds = run.data.revisions.length;
-  if (!loopStopped()) return "The Bid Manager is answering the objections";
-  if (!rounds) return "Code stopped the loop before a Bid Manager round";
-  return `The Bid Manager answered ${answered.size} ${answered.size === 1 ? "objection" : "objections"} in ${rounds} ${rounds === 1 ? "round" : "rounds"}`;
+  if (!loopStopped()) return `The ${ROLES.bid_manager} is answering the objections`;
+  if (!rounds) return `Fixed rules stopped the loop before a ${ROLES.bid_manager} round`;
+  return `The ${ROLES.bid_manager} answered ${answered.size} ${answered.size === 1 ? "objection" : "objections"} in ${rounds} ${rounds === 1 ? "round" : "rounds"}`;
 }
 
 function renderLoop(running) {
+  syncLabels();
   const { rounds, revisions, tracker, stop } = run.data;
   const steps = bidSteps();
   els.loopTitle.textContent = loopTitle();
+  setTakeaway("loop-takeaway", loopStopped() ? loopTakeaway(revisions, tracker, rounds[0].seats) : null);
   els.loopStats.replaceChildren(...loopStats(loopSteps()));
   els.loopChips.replaceChildren(...loopChips(rounds, stop, running));
+  // The latest round is open; earlier rounds collapse to their one-line summary.
   els.loopRounds.replaceChildren(...revisions.map((rev, i) =>
-    bidRoundCard(rev, steps[i], rounds[i], rounds[i + 1], tracker, loopStopped() && i === revisions.length - 1)));
-  els.scoresByRound.replaceChildren(...scoresByRound(rounds), ...gatesByRound(rounds));
-  els.whyStopped.replaceChildren(...whyStopped(stop));
+    bidRoundCard(rev, steps[i], rounds[i], rounds[i + 1], tracker, loopStopped() && i === revisions.length - 1, i === revisions.length - 1)));
+  els.scoresByRound.replaceChildren(...scoresByRound(rounds));
+  els.whyStopped.replaceChildren(...whyStopped(stop), ...gatesByRound(rounds));
   els.trackerList.replaceChildren(...trackerList(tracker));
+  els.loopObjections.replaceChildren(...objectionsTable(tracker, rounds[0].seats, revisions));
   els.loopNext.replaceChildren(loopStopped() ? button("Next: the final report →", "btn btn-primary wide-btn", showReport) : "");
 }
 
@@ -363,12 +487,14 @@ async function nextRound() {
   }
   setBusy(true);
   const roundNo = run.data.revisions.length + 1;
-  const working = workingCard(roundNo, `Bid Manager round ${roundNo}, then the whole board votes again.`);
+  const working = workingCard(roundNo, `${ROLES.bid_manager} round ${roundNo}, then the whole board votes again.`);
   const holder = h("ol", { class: "relay" }, working);
   els.loopRounds.append(holder);
+  renderRail(`${ROLES.bid_manager}, round ${roundNo}, then the board`);
   const result = await callApi("/api/revise", { state: stateForServer(), round_no: roundNo });
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.loopChips.replaceChildren(...loopChips(run.data.rounds, run.data.stop, false));
     holder.replaceChildren(retryCard(roundNo, result.message, () => { holder.remove(); nextRound(); }, () => showView(3)));
@@ -394,13 +520,21 @@ function downloadRun() {
 }
 
 function renderReport() {
+  syncLabels();
   const report = run.data.report;
+  setTakeaway("report-takeaway", reportTakeaway(report));
   els.verdictBanner.replaceChildren(verdictBanner(report, () => window.print(), downloadRun));
   els.keyNumbers.replaceChildren(...keyNumbers(report.numbers));
-  els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || []));
+  const moves = scoreMoves(run.data.rounds);
+  els.reportMoves.replaceChildren(...moves);
+  els.reportMoves.hidden = !moves.length;
+  els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || [], run.data.tracker));
   els.reportProposal.replaceChildren(...finalProposal(run.data.claims, run.data.draft_no, run.data.case_file.client));
   els.reportMemo.replaceChildren(...decisionMemo(report.memo));
-  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client, report.decisions || []));
+  const next = whatNext(report.confirm_with_client, report.decisions || []);
+  els.reportNext.replaceChildren(...next);
+  els.reportNext.hidden = !next.length;
+  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client));
   els.reportPrototype.replaceChildren(...prototypeCard());
   els.reportBody.hidden = false;
 }
@@ -416,9 +550,11 @@ async function showReport() {
   els.reportBody.hidden = true;
   const working = workingCard(1, "Code is assembling the final report.");
   els.reportStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  renderRail("Code assembles the report");
   const result = await callApi("/api/report", stateForServer());
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.reportStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, showReport, () => showView(4))));
     return;
@@ -437,20 +573,41 @@ function openStage(n) {
   showView(n);
 }
 
+// Static page texts come from the labels file too, so a rename is one edit.
+function applyPageText() {
+  for (const node of document.querySelectorAll("[data-text]")) {
+    if (PAGE_TEXT[node.dataset.text]) node.textContent = PAGE_TEXT[node.dataset.text];
+  }
+}
+
 async function init() {
+  applyPageText();
   els.brief.addEventListener("input", updateCounter);
   els.start.addEventListener("click", startLive);
+  $("start-with-brief").addEventListener("click", () => {
+    $("brief-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    els.brief.focus({ preventScroll: true });
+  });
   els.newBrief.addEventListener("click", () => showView(1));
   for (const step of els.nav.querySelectorAll(".step")) {
     step.addEventListener("click", () => openStage(Number(step.dataset.stage)));
   }
+  setActivity(readActivity(storage()));
+  els.toggle.addEventListener("click", () => {
+    const on = document.body.classList.contains("rail-off");
+    setActivity(on);
+    writeActivity(storage(), on);
+  });
+  fitRail();
+  window.matchMedia(NARROW).addEventListener("change", fitRail);
   showView(1);
   updateCounter();
   const health = await getJson("/api/health");
   if (health) {
     Object.assign(configured, health.models);
     setMode(health.mode);
-    els.factAgents.textContent = `${health.agents}, with ${health.tools} tools so far`;
+    facts.agents = `${health.agents}, with ${health.tools} tools so far`;
+    renderRail();
   }
   await loadSamples();
 }

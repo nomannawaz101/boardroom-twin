@@ -171,3 +171,65 @@ A short record of each choice, including ones still unconfirmed.
 - **The commercial model claim.** The Proposal Manager prompt said "time and materials with a cap", copied from the plan's section list. It now says to state only the contract type from the flag. Code also checks the draft: if a claim mentions a cap, ceiling or not-to-exceed and the brief does not, the claim becomes "The commercial model is time and materials." (or "fixed price"), taken from the flag. If the flag is unclear, it becomes an assumption asking the client for the commercial model.
 - **Decisions for Lumen Works.** An open O item that asks to change our commercial terms is flagged `decision`. That means it asks for a cap, ceiling, not-to-exceed, discount or lower rate or price, or the other contract type (a firm fixed price on a time-and-materials brief). The tracker shows it as "Needs a Lumen Works decision", and the report lists it under "Decisions for Lumen Works" in the meeting-prep card. The Bid Manager sees it marked, must not change the contract model, and is not retried for it.
 - **Follow-up 2 gate (local, Gemini, 28 Nov 2026):** Northwind 3 votes, stopped by "round limit", Not ready yet (6.2 → 7.2, 5 of 8 fixed). Harbor Freight 2 votes, "no gain", Not ready yet (6.5 → 5.7). Summit Ridge 3 votes, "round limit", Not ready yet (6.4 → 7.0, 6 of 10 fixed). No draft claimed a cap, and no assumption lacked its tag. The retry ran four times. Summit Ridge round 2 still left O1 and O7 unanswered, and they are listed. In Harbor Freight and Summit Ridge, change control was answered by a real commitment ("Scope changes are handled through a written change request that states the effect on engineer-days and cost."). In Northwind, Procurement raised change control as client-only (C1, `needs_client`), so code allowed only an assumption. Open point: a gate item about our own terms should never be client-only.
+
+## Phase 4b: front-end redesign (design v12)
+
+- **Scope:** front end only (`static/`, `tests/js/`). No API, schema, agent, prompt, rule, score or loop logic changed, and no dependency was added. The feature inventory taken before the redesign, with every line ticked and the changes listed, is `docs/frontend-inventory.md`.
+- **Shell:** dark top bar with "by Lumen Works", "Simulation, not a prediction", a client chip, the mode chip and "Agent activity: On/Off". Left stage list with Done / Now / Next. Right Agent activity rail: on the Brief it shows "This run" (the existing facts and placeholders, unchanged) and the idle agents. On later stages it shows each measured step: name, status, seconds, short model label with the full name in a tooltip, and tool count. A live "Running" line shows while a request is out, and the stage total is marked "estimate from tokens". On the Report it shows a run summary of counted values. The toggle is remembered in localStorage inside try/catch and defaults to on. Below 1100 px the rail is a collapsed summary chip above the content; below 760 px the stage list is a horizontal strip.
+- **Model labels:** the server's badge, or the model's own name cut to 14 characters with "…", never wrapping; the full name and tier are in the tooltip (`shortModel`, `modelTitle` in `render.js`).
+- **Adopted items A to I** from the v12 README are built as specified:
+  - A: hero with "Watch the sample run" (disabled, existing hint) and "Start with this brief".
+  - B: seats strip.
+  - C: threshold line, ratings behind "Ratings and reasons".
+  - D: gate chips from the gate answer only.
+  - E: objections table, without "What changed" on the Client board and with it on Revisions.
+  - F: score ring read from the report's "Average score, scoring seats" value, never computed in the browser, hidden in print.
+  - G: "Close these items" box.
+  - H: four shared message boxes.
+  - I: tracker item layout.
+- **"What to fix first"** is ordered by code in the browser from the open O items: blockers first, then objections of scoring seats below their needed score, then the rest. A Lumen Works decision is labelled as such. C items are left out, since only the client can settle them.
+- **Kept although the mockups show less:** model badge and time on each agent block and seat card, the full tagged draft 1 (collapsed), scores by round as bars with the needed tick, the per-round change lists, "Nothing is waiting for the client.", and the "Decided by code" notes.
+- **Not built, by plan phase:** run timeline and run details (Phase 7, no placeholder existed), QA Reviewer card (Phase 7), Risk & Compliance Analyst and public-API tool rows (Phase 5; the "PUBLIC API" tag style exists, unused), Presales Lead questions and prototype (Phase 8, existing placeholders kept), upload and passcode (switched off, with hints), the link to the states screen (Phase 6). There is no "live runs left" count, because the run data has no such number.
+- **Deviations from the mockups:**
+  - The hero keeps the app's existing heading and paragraph rather than the mockup's new sentence, so no honest label disappears.
+  - Agent blocks are open at every width.
+  - The upload box keeps today's hint rather than the planned limits, because upload is off.
+  - The verdict banner keeps today's colours (green, amber, red by verdict), as README item F says.
+- **Checks:** Playwright is not installed, and adding it would be a new dependency. Screenshots were therefore taken by driving the installed Edge over the DevTools protocol, using Node's built-in WebSocket, with a scratch script that is not in the repo. That script replays one real Northwind run recorded on Gemini, through the real page, at 1280 and 390 px wide. It also checks horizontal overflow (0 px on every screen at both widths) and prints the report to PDF (4 pages). The screenshots are in `docs/screenshots/v12/`.
+
+### Phase 4b follow-up 1 (wording, scoreboard, report and Revisions layout)
+
+- **Labels file:** every display name for an internal code, id or role comes from `static/js/labels.js`, including the static page texts (filled into `[data-text]` elements at start-up). `docs/wording.md` lists each display name and what it replaces. Internal codes, ids, the API and the run JSON are unchanged.
+- **Code-written server text** (step labels, summaries, handoff lines, stop lines, report summary, key-number labels and notes) is shown through `codeText()`, which maps the old words to the new ones and ids O1 → #1, C1 → Q1. Model-written text is never rewritten.
+- **Renames (display only):**
+  - gates → sign-off checks; Pass → Signed off; MUST → Required
+  - seats → reviewers; "can proceed" → "can approve"
+  - claims → statements
+  - Bid Manager → Revision Editor; Proposal Manager → Proposal Writer; QA Reviewer → Fact Checker
+  - Answered → Changed, awaiting re-read; Fixed R1 → Resolved in round 1; Confirm → Ask the client
+  - Needs a Lumen Works decision → Needs your decision
+  - Code, no AI → Fixed rules; Context flags → Key facts from the brief; Full mode → Live run
+  - Shown ids: #1 (objections), Q1 (client items), S1 (statements)
+- **Average score, like for like (server, `domain/report.py`):** the report's "Average score" and its headline averaged whichever scoring seats answered in each round. A seat that was Not reviewed in the last round still counted in draft 1, so the two numbers could cover different reviewers. Both now average only the scoring seats that answered in both rounds. The note says "(N of M reviewers answered in both rounds)" when that is fewer than all of them. `average_score` and the "no gain" stop rule are unchanged; no scoring, verdict or loop rule changed. Unit tests are in `tests/unit/test_report.py`.
+- **Client board:** a "Board scoreboard" table under the verdict shows reviewer, role, score (needed), result, and the biggest open issue. The biggest issue is picked in the browser: a blocker before a condition, an objection the proposal can fix before a client item, then tracker order, cut to 80 characters.
+- **Proposal team:** content is in lists, a key-value table and tiles; chips are kept for tags and statuses only.
+- **Report:**
+  - "What to do next" sits under the verdict, with the two lists in two columns; it is shown nowhere else.
+  - Key numbers and the headline use the body font with tabular figures, and the Go-live tile never wraps.
+  - "Scores by reviewer, draft 1 → final" shows each move with ▲, ▼ or =, and the note that scores can move either way.
+  - "What changed" shows each objection in words (90 characters, full text in the tooltip) and then its #id.
+  - The proposal title reads "Final draft (draft N)".
+- **Revisions:** the page reads top-down: loop path, then "Why the loop stopped" (with sign-off checks by round) beside "Scores by round", then the compact tracker. Rounds follow as collapsible blocks, with the latest open and earlier ones summarised in one line ("Round 1: 8 changes, 3 reviewers up, 0 down"). The objections table is collapsed. With the recorded Northwind run the page went from 7,589 px to 3,485 px at 1280 wide, and from 10,029 px to 5,799 px at 390.
+- **Legends:** under each stage intro, "AI = written by a model. Fixed rules = decided by code, the same every time."; at the foot of each stage page, the colour legend. Both are hidden in print.
+- **Additional items (same follow-up):**
+  - The Client board shows "Verdict so far" once, in the coloured box under the header; the duplicate header chip is gone, and its explanation is now the box's tooltip.
+  - The activity rail names each reviewer by its board title once the board plan is known (`stepName()` in `labels.js`). Before that, and for every other agent, it uses the role label.
+  - In code-written text, "C1" becomes "Q1" only when C1 is a client-only item in the current tracker (`setClientIds()`). Any other "C1", such as a statement id, is left as written.
+  - In both objection tables, the fixed columns are narrower, the Challenge and What changed texts get the width, and each is clamped to two lines with the full text in the tooltip.
+  - Report average edge case (server, `domain/report.py: score_number` only): when no scoring reviewer answered in both rounds, the value is "—" with the note "No reviewer answered in both rounds". The headline is unchanged and shows "—" in that case.
+
+### Phase 4b follow-up 2 (plain words)
+
+- Takeaway sentences are built in the browser by `static/js/takeaways.js` from run data only. A clause whose data is missing is left out. The board's "biggest gap" is the scoring reviewer furthest below its needed score, else the first Blocked sign-off check.
+- The Presales Lead and prototype placeholders are hidden, not removed, so Phase 8 can switch them back on. One muted line replaces them.
+- The footer links to the project's GitHub source. `tests/unit/test_static_page.py` allows that single URL next to the SVG namespace; the page still fetches nothing from outside, and the favicon is an inline data URI.

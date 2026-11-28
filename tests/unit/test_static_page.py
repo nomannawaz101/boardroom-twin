@@ -8,6 +8,9 @@ from tests.fixtures import briefs
 
 STATIC = config.PROJECT_ROOT / "static"
 SVG_NAMESPACE = "http://www.w3.org/2000/svg"
+# The one outside link: a plain footer link to the project's source, opened in a new tab. It
+# loads nothing into the page.
+SOURCE_LINK = "https://github.com/nomannawaz101/boardroom-twin"
 HTML_SINKS = ("innerHTML", "outerHTML", "insertAdjacentHTML", "document.write", "eval(")
 
 
@@ -36,7 +39,7 @@ def test_no_html_sinks_anywhere_in_the_page_code() -> None:
 
 def test_no_cdn_or_outside_urls() -> None:
     for name, text in page_files() + [("style.css", (STATIC / "css" / "style.css").read_text())]:
-        urls = set(re.findall(r"https?://[^\s\"')]+", text)) - {SVG_NAMESPACE}
+        urls = set(re.findall(r"https?://[^\s\"')]+", text)) - {SVG_NAMESPACE, SOURCE_LINK}
         assert not urls, f"outside URL in {name}: {urls}"
 
 

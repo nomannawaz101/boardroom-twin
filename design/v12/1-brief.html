@@ -1,0 +1,148 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Brief</title><style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;background:#F4F5F7}
+*{box-sizing:border-box}
+.top{background:#101828;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 24px}
+.brand{font-weight:700;font-size:16px}
+.by{font-size:12px;color:#D0D5DD}
+.chip{font-size:12px;border:1px solid #475467;border-radius:999px;padding:3px 10px;color:#D0D5DD}
+.sp{flex:1 1 0}
+.tbtn{background:transparent;color:#fff;border:1px solid #667085;border-radius:8px;padding:8px 12px;font-size:13px;min-height:44px}
+.body{display:flex;flex-wrap:wrap;gap:20px;padding:20px 24px;align-items:flex-start}
+.nav{flex:0 0 200px;display:flex;flex-direction:column;gap:4px}
+.navh{font-size:12px;color:#475467;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:#101828;text-decoration:none;font-size:14px;min-height:44px}
+.ni.act{background:#fff;border:1px solid #E4E7EC;font-weight:600}
+.ni small{margin-left:auto;font-size:11px;color:#475467}
+.dot{width:10px;height:10px;border-radius:50%;background:#98A2B3;flex:none}
+.done .dot{background:#0B6B3A}.act .dot{background:#4B32B8}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.rail{flex:0 0 280px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.rail h3{margin:0 0 4px;font-size:14px}
+.rail p{margin:0 0 8px;font-size:12px;color:#475467}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.rail li{display:flex;flex-direction:column;gap:2px;font-size:13px;padding-bottom:8px;border-bottom:1px solid #F2F4F7}
+.rail li .st{font-size:12px;color:#475467}
+.facts{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;font-size:13px;margin:0}
+.facts dt{color:#475467}.facts dd{margin:0;font-weight:600}
+.card{background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:20px}
+h1{margin:0;font-size:24px}h2{margin:0 0 4px;font-size:16px}
+.mut{color:#475467;font-size:14px;margin:0}
+label{font-size:13px;font-weight:600;display:block;margin-bottom:6px}
+input[type=text],textarea,select{width:100%;border:1px solid #D0D5DD;border-radius:8px;padding:10px 12px;font:inherit;font-size:14px;background:#fff;color:#101828;min-height:44px}
+textarea{min-height:170px;resize:vertical;line-height:1.5}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.sample{background:#fff;border:1px solid #D0D5DD;border-radius:10px;padding:10px 14px;font-size:14px;min-height:44px;color:#101828;text-align:left;display:flex;flex-direction:column;flex:1 1 200px}
+.sample small{color:#475467;font-size:12px}
+.go{background:#4B32B8;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:600;min-height:48px}
+.sbtn{background:#fff;border:1px solid #4B32B8;color:#4B32B8;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:600;min-height:48px}
+.steps{display:flex;flex-wrap:wrap;gap:12px}
+.steps div{flex:1 1 180px;border:1px solid #E4E7EC;border-radius:10px;padding:12px;font-size:13px;background:#fff;line-height:1.45}
+.steps b{display:block;font-size:12px;color:#4B32B8;margin-bottom:2px}
+.hint{font-size:12px;color:#475467;margin:4px 0 0}
+.checks{display:flex;flex-wrap:wrap;gap:8px 18px;font-size:13px;margin:8px 0 0;padding:0;list-style:none}
+.checks li:before{content:"\2713  ";color:#0B6B3A;font-weight:700}
+.priv{font-size:12px;color:#475467;line-height:1.5;margin:0}
+.pass{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:12px}
+.pass>div{flex:1 1 220px}
+</style></head><body>
+<div style="width:100%;min-height:1200px;display:flex;flex-direction:column">
+<header class="top">
+<span class="brand">Boardroom Twin</span><span class="by">by Lumen Works</span>
+<span class="chip">Simulation, not a prediction</span>
+<span class="sp"></span>
+<button class="tbtn" type="button">Agent activity: On</button>
+</header>
+<div class="body">
+<nav class="nav" aria-label="Stages">
+<div class="navh">Stages</div>
+<a class="ni act" href="1-brief.html"><span class="dot"></span>Brief<small>Now</small></a>
+<a class="ni" href="2-proposal-team.html"><span class="dot"></span>Proposal team<small>Next</small></a>
+<a class="ni" href="3-client-board.html"><span class="dot"></span>Client board<small>Next</small></a>
+<a class="ni" href="4-revisions.html"><span class="dot"></span>Revisions<small>Next</small></a>
+<a class="ni" href="5-report.html"><span class="dot"></span>Report<small>Next</small></a>
+</nav>
+<main class="main">
+<div>
+<h1>Rehearse your proposal in front of the client's board, before you send it.</h1>
+<p class="mut" style="margin-top:6px">A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
+</div>
+<section class="steps" aria-label="How it works">
+<div><b>STEP 1</b>Proposal team drafts: Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Manager hand work to each other.</div>
+<div><b>STEP 2</b>Client board reviews: 3 to 5 seats chosen from your brief vote at the same time.</div>
+<div><b>STEP 3</b>Bid Manager revises: up to two rounds. A QA Reviewer blocks invented claims. The board votes again.</div>
+<div><b>STEP 4</b>Board-ready report: proposal, board decision memo, meeting prep, optional prototype.</div>
+</section>
+<section class="card">
+<h2>Client brief</h2>
+<p class="mut" style="margin-bottom:14px">Paste text, pick a sample, or upload a document.</p>
+<label>Try a sample brief</label>
+<div class="row" style="margin-bottom:16px">
+<button class="sample" type="button">Northwind Insurance · claim status page<small>Time and materials · personal data</small></button>
+<button class="sample" type="button">Harbor Freight · support extension<small>Time and materials · $450 per day</small></button>
+<button class="sample" type="button">Summit Ridge Credit Union · change request<small>Fixed price · $40,000 change budget</small></button>
+</div>
+<div class="row" style="align-items:flex-start;margin-bottom:14px">
+<div style="flex:2 1 260px"><label for="cn">Client name</label><input id="cn" type="text" value="Northwind Insurance"></div>
+<div style="flex:1 1 200px"><label for="cc">Client's country</label>
+<select id="cc"><option>Germany</option><option>United Kingdom</option><option>United States</option><option>Pakistan</option></select>
+<p class="hint">Used for public holidays and currency</p></div>
+</div>
+<label for="br">Client brief</label>
+<textarea id="br">Northwind Insurance (Germany). Customers phone the contact centre to ask where their home-insurance claim is. We want an online claim status page. Planned: 2 engineers for 4 weeks, starting Dec 7, billed time-and-materials at $600 per engineer-day. Budget is tight this year. The claims system had a six-hour outage last month. Claim calls peak in early January. Customers identify themselves today by claim number.</textarea>
+<div class="row" style="justify-content:space-between"><p class="hint">Free text is fine: an email, meeting notes or bullet points. Agents use only what is written here. Missing details are marked "to confirm", never invented.</p><p class="hint">452 / 15,000 characters</p></div>
+<div style="margin-top:16px;border:1px dashed #98A2B3;border-radius:10px;padding:14px">
+<label for="file">Or upload a client document</label>
+<p class="hint" style="margin-bottom:10px">PDF with selectable text (first 20 pages), Word .docx, or .txt. Up to 3.5 MB. The text appears in the box above, so you can check and edit it before you start.</p>
+<input id="file" type="file" accept=".pdf,.docx,.txt,.md" style="font:inherit;font-size:14px;min-height:44px">
+</div>
+<div class="row" style="margin-top:16px;align-items:flex-start">
+<input id="ok" type="checkbox" style="width:20px;height:20px;margin-top:2px"><label for="ok" style="margin:0;font-weight:400;flex:1 1 300px">This is public or made-up information. It is not real client, customer or company data.</label>
+</div>
+<div style="margin-top:14px">
+<p class="mut" style="font-size:13px"><b>Code checks before any AI call:</b></p>
+<ul class="checks"><li>real-data scan</li><li>hidden-instruction scan</li><li>"is this a client brief?"</li></ul>
+<p class="hint">Text inside a document is treated as data, never as instructions.</p>
+</div>
+<p class="priv" style="margin-top:12px">Boardroom Twin is designed for fictional or publicly available information only. Automated checks find some common patterns of sensitive information but cannot guarantee complete detection. Do not submit confidential, customer or internal company information. The app does not intentionally save or log brief content.</p>
+</section>
+<section class="card">
+<h2>Start</h2>
+<div class="row" style="margin-top:8px">
+<button class="sbtn" type="button">Watch the sample run</button>
+<span class="mut">A real run, recorded on Claude. Instant, uses no AI budget.</span>
+</div>
+<div class="pass">
+<div><label for="pc">Passcode for live runs</label><input id="pc" type="text" value=""></div>
+<button class="go" type="button">Start a live run with my brief</button>
+</div>
+<p class="hint" style="margin-top:8px">Live runs left in this browser: 3 of 3. After that, the sample run is still free.</p>
+</section>
+<p class="priv"><a href="States.html" style="color:#4B32B8">What happens when something fails</a> &nbsp;·&nbsp; Lumen Works is a fictional firm. Northwind Insurance is a made-up client.</p>
+</main>
+<aside class="rail" aria-label="Agent activity">
+<div>
+<h3>This run</h3>
+<dl class="facts">
+<dt>Agent roles</dt><dd>14, with 5 tools</dd>
+<dt>Board</dt><dd>3 to 5 seats, chosen from your brief</dd>
+<dt>Time</dt><dd>About 2 to 3 minutes</dd>
+<dt>Cost</dt><dd>About $0.16 per run (estimate)</dd>
+<dt>Mode</dt><dd>Full</dd>
+<dt>Models</dt><dd>Sonnet and Haiku</dd>
+</dl>
+</div>
+<div>
+<h3>Agent activity</h3>
+<p>Idle. Agents appear here once the run starts.</p>
+<ol>
+<li>Business Analyst<span class="st">Waiting</span></li>
+<li>Solution Architect<span class="st">Waiting</span></li>
+<li>Delivery Manager<span class="st">Waiting</span></li>
+<li>Risk &amp; Compliance Analyst<span class="st">Waiting</span></li>
+<li>Proposal Manager<span class="st">Waiting</span></li>
+</ol>
+</div>
+</aside>
+</div>
+</div>
+</body></html>
