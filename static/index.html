@@ -260,8 +260,10 @@
       <section class="card report-card" id="report-changes"></section>
       <section class="card proposal-card" id="report-proposal" aria-labelledby="final-h"></section>
       <section class="card log-card memo-card" id="report-memo" aria-labelledby="memo-h"></section>
-      <section class="card side-card prep-card" id="report-prep"></section>
-      <section class="card prototype-card" id="report-prototype"></section>
+      <!-- Phase 8 re-enables meeting prep and the prototype preview: their cards are still built, only hidden. -->
+      <section class="card side-card prep-card" id="report-prep" hidden></section>
+      <section class="card prototype-card" id="report-prototype" hidden></section>
+      <p class="muted small coming-soon" data-text="coming-soon">Coming in the full build: meeting questions and a prototype preview.</p>
       <div class="report-foot no-print">
         <button type="button" class="btn btn-outline small-btn" id="new-brief">Start a new brief</button>
       </div>

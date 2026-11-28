@@ -120,6 +120,7 @@ export function trimmed(text, max) {
 // Static page texts, filled into every [data-text] element when the page starts.
 export const PAGE_TEXT = {
   "legend-ai": LEGEND_AI,
+  "coming-soon": "Coming in the full build: meeting questions and a prototype preview.",
   "legend-colours": LEGEND_COLOURS,
   "hero-title": "Know what the client's board will challenge, before the meeting.",
   "hero-text": `A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and ${WORDS.signOffReviewers} who can block it. A ${ROLES.bid_manager} fixes what they object to, up to two rounds.`,
