@@ -169,4 +169,28 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.deepEqual(item.children.map((c) => c.className), ["num tracker-id", "tracker-text", "tracker-status"]);
 }
 
+// v12: the score ring reads the report's own average (F); "Close these items" (G).
+{
+  const numbers = [{ label: "Average score, scoring seats", value: "5.9 → 6.5", note: "" }];
+  assert.equal(loop.finalAverage(numbers), "6.5");
+  assert.equal(loop.finalAverage([{ label: "Average score, scoring seats", value: "To confirm" }]), null);
+  assert.equal(loop.finalAverage([]), null);
+  const report = { verdict_code: "not_ready", verdict: "Not ready yet", headline: "Draft 1 scored 5.9. After 2 revision rounds it scored 6.5.", summary: "", numbers };
+  const banner = loop.verdictBanner(report, () => {}, () => {});
+  const ring = byClass(banner, "score-ring")[0];
+  assert.equal(ring.attrs.style, "--p: 65");
+  assert.equal(ring.attrs["aria-label"], "Final average score 6.5 of 10");
+  assert.match(banner.textContent, /6\.5of 10/);
+  assert.equal(byClass(banner, "no-print").length, 1);
+  assert.equal(byClass(loop.verdictBanner({ ...report, numbers: [] }, () => {}, () => {}), "score-ring").length, 0);
+  const both = holderOf(loop.meetingPrep(["Retention rule"], ["A firm fixed price"]));
+  assert.equal(byClass(both, "close-box").length, 1);
+  assert.match(both.textContent, /Close these itemsConfirm with the clientRetention ruleDecisions for Lumen WorksA firm fixed price/);
+  const onlyDecision = holderOf(loop.meetingPrep([], ["A firm fixed price"])).textContent;
+  assert.match(onlyDecision, /Nothing is waiting for the client\./);
+  assert.doesNotMatch(onlyDecision, /Confirm with the client/);
+  const none = holderOf(loop.meetingPrep([], []));
+  assert.equal(byClass(none, "close-box").length, 0);
+}
+
 process.stdout.write("loop screens: all checks passed\n");

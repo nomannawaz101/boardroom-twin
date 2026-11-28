@@ -232,8 +232,27 @@ export function loopStats(steps) {
 
 // --- The final report ---
 
+// The ring shows the final average of the scoring seats, read from the report's own key number
+// ("6.2 → 7.2"), never computed here. Without that number there is no ring.
+const AVERAGE_LABEL = "Average score, scoring seats";
+export function finalAverage(numbers) {
+  const average = (numbers || []).find((n) => n.label === AVERAGE_LABEL);
+  if (!average) return null;
+  const last = average.value.split("→").pop().trim();
+  return /^\d+(\.\d+)?$/.test(last) ? last : null;
+}
+
+function scoreRing(numbers) {
+  const value = finalAverage(numbers);
+  if (value === null) return null;
+  const percent = Math.max(0, Math.min(100, Math.round(Number(value) * 10)));
+  return h("div", { class: "score-ring", style: `--p: ${percent}`, role: "img", "aria-label": `Final average score ${value} of 10` },
+    h("span", { class: "ring-in" }, h("span", { class: "num" }, value), h("small", {}, "of 10")));
+}
+
 export function verdictBanner(report, onPrint, onDownload) {
   return h("section", { class: `verdict ${VERDICT_CLASSES[report.verdict_code] || "verdict-warn"}`, "aria-labelledby": "verdict-h" },
+    scoreRing(report.numbers),
     h("div", { class: "verdict-text" },
       h("span", { class: "num eyebrow-light" }, "VERDICT"),
       h("h1", { id: "verdict-h" }, report.verdict),
@@ -290,16 +309,18 @@ export function decisionMemo(memo) {
   ];
 }
 
+// Meeting prep with the "Close these items" box (design v12, item G): the two lists the run
+// already has, shown only here. An empty list is hidden; so is the box when both are empty.
 export function meetingPrep(confirm, decisions = []) {
+  const lists = [
+    confirm.length ? [h("h3", {}, "Confirm with the client"), h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))] : [],
+    decisions.length ? [h("h3", {}, "Decisions for Lumen Works"), h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d)))] : [],
+  ].flat();
   return [
     h("h2", {}, "Meeting prep"),
     h("p", { class: "muted small" }, "The Presales Lead's questions and next steps arrive in a later build."),
-    h("strong", { class: "small" }, "Confirm with the client"),
-    confirm.length
-      ? h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))
-      : h("p", { class: "muted small" }, "Nothing is waiting for the client."),
-    decisions.length ? h("strong", { class: "small" }, "Decisions for Lumen Works") : null,
-    decisions.length ? h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d))) : null,
+    confirm.length ? null : h("p", { class: "muted small" }, "Nothing is waiting for the client."),
+    lists.length ? h("div", { class: "close-box" }, h("strong", { class: "close-title" }, "Close these items"), ...lists) : null,
   ].filter(Boolean);
 }
 
