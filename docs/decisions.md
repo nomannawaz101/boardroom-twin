@@ -221,3 +221,9 @@ A short record of each choice, including ones still unconfirmed.
   - The proposal title reads "Final draft (draft N)".
 - **Revisions:** the page reads top-down: loop path, then "Why the loop stopped" (with sign-off checks by round) beside "Scores by round", then the compact tracker. Rounds follow as collapsible blocks, with the latest open and earlier ones summarised in one line ("Round 1: 8 changes, 3 reviewers up, 0 down"). The objections table is collapsed. With the recorded Northwind run the page went from 7,589 px to 3,485 px at 1280 wide, and from 10,029 px to 5,799 px at 390.
 - **Legends:** under each stage intro, "AI = written by a model. Fixed rules = decided by code, the same every time."; at the foot of each stage page, the colour legend. Both are hidden in print.
+- **Additional items (same follow-up):**
+  - The Client board shows "Verdict so far" once, in the coloured box under the header; the duplicate header chip is gone, and its explanation is now the box's tooltip.
+  - The activity rail names each reviewer by its board title once the board plan is known (`stepName()` in `labels.js`). Before that, and for every other agent, it uses the role label.
+  - In code-written text, "C1" becomes "Q1" only when C1 is a client-only item in the current tracker (`setClientIds()`). Any other "C1", such as a statement id, is left as written.
+  - In both objection tables, the fixed columns are narrower, the Challenge and What changed texts get the width, and each is clamped to two lines with the full text in the tooltip.
+  - Report average edge case (server, `domain/report.py: score_number` only): when no scoring reviewer answered in both rounds, the value is "—" with the note "No reviewer answered in both rounds". The headline is unchanged and shows "—" in that case.

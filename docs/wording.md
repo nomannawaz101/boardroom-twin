@@ -73,8 +73,12 @@ Other role names are unchanged: Business Analyst, Solution Architect, Delivery M
 
 ## Code-written server text
 
-Step labels, summaries, handoff lines, stop lines, the report summary and the key-number labels and notes are written by code on the server. `codeText()` in `labels.js` shows them in the words above: role names, Pass → Signed off, seat → reviewer, claim → statement, gate → sign-off check, context flags → key facts, conditions to confirm → items for the client to confirm, and ids O1 → #1, C1 → Q1. Model-written text (objections, quotes, conditions, reasons, proposal statements) is never rewritten.
+Step labels, summaries, handoff lines, stop lines, the report summary and the key-number labels and notes are written by code on the server. `codeText()` in `labels.js` shows them in the words above: role names, Pass → Signed off, seat → reviewer, claim → statement, gate → sign-off check, context flags → key facts, conditions to confirm → items for the client to confirm, and ids O1 → #1, and C1 → Q1 only when C1 is a client-only item in the current tracker (a statement id such as C7 stays as written). Model-written text (objections, quotes, conditions, reasons, proposal statements) is never rewritten.
 
 ## Tests that assert display strings (updated with the renames)
 
 `tests/js/board_screen.test.mjs` and `tests/js/loop_screens.test.mjs`: the not-reviewed texts, "Retry this reviewer", shown ids (#1, Q1, S7), "Ask the client", reviewer counts, "Required item", "Signed off", the tracker statuses, "Revision Editor" lines, "items for the client to confirm", "Decisions for you". The assertions on internal codes, classes and attributes are unchanged.
+
+## Reviewer names
+
+Every screen, including the activity rail, names a reviewer by its seat title from the board plan (for example "VP, Customer Support"). Before the board plan is known, and for every other agent, the role label is used (`stepName()` in `labels.js`).

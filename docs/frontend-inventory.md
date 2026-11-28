@@ -133,3 +133,6 @@ No existing assertion in `tests/js` had to change: every class, attribute and te
 - Revisions: same content, reordered top-down; earlier rounds and the objections table are collapsed (open on click). Sign-off checks by round moved into the "Why the loop stopped" card.
 - Report: the "Confirm with the client" and "Decisions for you" lists moved from Meeting prep to "What to do next" under the verdict; "Nothing is waiting for the client." stays in Meeting prep. New "Scores by reviewer" card. "What changed" shows the objection in words with its #id.
 - Legend lines added under each stage intro and at each page foot (hidden in print).
+- Client board: the "Verdict so far" header chip was removed because the same verdict shows in the box below it; the chip's tooltip moved to the box.
+- Activity rail: reviewers are named by their board titles, the same as on the board.
+- Objection tables: text columns clamp to two lines; the full text is in the tooltip.
