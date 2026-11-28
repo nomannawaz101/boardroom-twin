@@ -7,7 +7,7 @@ import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
   loopStats, meetingPrep, objectionsTable, scoreMoves, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
-import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, setClientIds, stepName } from "./labels.js";
+import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, setClientIds, stepName, tabTitle } from "./labels.js";
 import { boardTakeaway, loopTakeaway, reportTakeaway, teamTakeaway } from "./takeaways.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
@@ -101,6 +101,7 @@ function syncLabels() {
 function showView(stage) {
   syncLabels();
   currentStage = stage;
+  document.title = tabTitle(stage);
   for (const [n, view] of Object.entries(VIEWS)) view.hidden = Number(n) !== stage;
   for (const step of els.nav.querySelectorAll(".step")) {
     const n = Number(step.dataset.stage);

@@ -35,6 +35,9 @@ assert.equal(labels.keyLabel("Objections fixed"), "Objections resolved");
 
 assert.equal(labels.codeText("Hands to Solution Architect and Board composer: the case file."), "Passes to Solution Architect and board picker: the summary of the brief.");
 
+assert.equal(labels.tabTitle(4), "Boardroom Twin: Revisions");
+assert.equal(labels.tabTitle(9), "Boardroom Twin: Brief");
+
 // Gate outcomes and statuses.
 assert.equal(labels.OUTCOMES.pass_with_conditions, "Signed off, with conditions");
 assert.equal(labels.STATUS.resolvedIn(2), "Resolved in round 2");

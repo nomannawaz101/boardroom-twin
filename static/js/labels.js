@@ -72,6 +72,12 @@ export const STATUS = {
   condition: "Condition",
 };
 
+export const STAGE_NAMES = { 1: "Brief", 2: "Proposal team", 3: "Client board", 4: "Revisions", 5: "Report" };
+
+export function tabTitle(stage) {
+  return `Boardroom Twin: ${STAGE_NAMES[stage] || STAGE_NAMES[1]}`;
+}
+
 export const MODES = { Full: "Live run", Lite: "Lite run", Sample: "Sample run" };
 
 export const LEGEND_AI = "AI = written by a model. Fixed rules = decided by code, the same every time.";
