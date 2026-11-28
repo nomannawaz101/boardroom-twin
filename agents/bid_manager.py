@@ -10,7 +10,7 @@ from agents.registry import passed_line, received_line
 from config import CLAIM_MAX_WORDS
 from domain.revision import answered_ids
 from llm.client import AgentResult, Runtime, run_agent
-from schemas.answers import BidManagerAnswer
+from schemas.answers import BidManagerAnswer, Change
 from schemas.board import BoardPlan
 from schemas.case_file import CaseFile
 from schemas.claims import Claim
@@ -25,7 +25,37 @@ REFUSALS = {
     "unknown_objection": "no open objection with that id",
     "empty": "no text",
     "client_only": "a client item can only be an assumption",
+    "protected": "commercial facts, dates and brief claims can only change through an assumption",
+    "duplicate": "the same assumption is already in the proposal",
 }
+
+
+def order_open(open_items: list[TrackerItem]) -> list[TrackerItem]:
+    """Blockers first, then conditions; the tracker order within each."""
+    return sorted(open_items, key=lambda t: t.severity != "blocker")
+
+
+def missing_ids(open_items: list[TrackerItem], changes: list[Change]) -> list[str]:
+    """Open fixable objections no change names, blockers first."""
+    named = {c.objection_id for c in changes}
+    return [t.id for t in order_open(open_items) if t.kind == "O" and t.id not in named]
+
+
+def merge_steps(first: StepRecord, retry: StepRecord) -> StepRecord:
+    """One card for the call and its retry: the time, tokens and cost of both."""
+    return retry.model_copy(
+        update={
+            "start_ms": first.start_ms,
+            "duration_ms": retry.start_ms + retry.duration_ms - first.start_ms,
+            "tokens_in": first.tokens_in + retry.tokens_in,
+            "tokens_out": first.tokens_out + retry.tokens_out,
+            "cost_usd": first.cost_usd + retry.cost_usd,
+            "attempts": first.attempts + retry.attempts,
+            "tool_calls": [*first.tool_calls, *retry.tool_calls],
+            "flags": sorted({*first.flags, *retry.flags, "retried"}),
+            "status": "retried" if retry.status == "ok" else retry.status,
+        }
+    )
 
 
 def objection_lines(open_items: list[TrackerItem], plan: BoardPlan) -> list[dict[str, object]]:
@@ -50,8 +80,10 @@ async def run(
     case_file: CaseFile,
     plan: BoardPlan,
     runtime: Runtime,
+    missing: list[str] | None = None,
 ) -> AgentResult[BidManagerAnswer]:
-    payload = {
+    """`missing` names the objections a first answer left out: the retry answers those."""
+    payload: dict[str, object] = {
         "open_objections": objection_lines(open_items, plan),
         "proposal": [
             line | {"locked": claim.locked}
@@ -62,14 +94,21 @@ async def run(
             "warnings": [w.text for w in case_file.warnings],
         },
     }
+    if missing:
+        payload["answer_these_now"] = missing
     system = system_prompt(AGENT_ID, max_words=CLAIM_MAX_WORDS)
     return await run_agent(
         AGENT_ID, system, inputs_block(payload), BidManagerAnswer, runtime=runtime
     )
 
 
-def describe(step: StepRecord, changes: list[AppliedChange], bid_round: int) -> StepRecord:
-    """Written by code: what was answered, and anything code refused."""
+def describe(
+    step: StepRecord,
+    changes: list[AppliedChange],
+    bid_round: int,
+    not_answered: list[str] | None = None,
+) -> StepRecord:
+    """Written by code: what was answered, anything code refused, and anything left out."""
     answered = answered_ids(changes)
     refused = [c for c in changes if c.outcome != "applied"]
     summary = (
@@ -79,6 +118,8 @@ def describe(step: StepRecord, changes: list[AppliedChange], bid_round: int) -> 
     if refused:
         reasons = ", ".join(sorted({REFUSALS[c.outcome] for c in refused}))
         summary += f" Code refused {plural(len(refused), 'change')}: {reasons}."
+    if not_answered:
+        summary += f" Not answered by the Bid Manager: {', '.join(not_answered)}."
     return step.model_copy(
         update={
             "summary": summary,

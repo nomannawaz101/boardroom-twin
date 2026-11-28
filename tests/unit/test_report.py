@@ -25,7 +25,7 @@ def test_cost_and_go_live_from_code() -> None:
     assert (cost.value, cost.note) == ("$12,000", "Total $24,000")
     assert (go_live.value, go_live.note) == (
         "Mon Jan 4, 2027",
-        "Weekends counted; holidays not checked yet",
+        "Weekends skipped; public holidays not checked yet",
     )
 
 

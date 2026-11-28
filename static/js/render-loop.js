@@ -17,7 +17,15 @@ const REFUSAL_WORDS = {
   unknown_objection: "no open objection with that id",
   empty: "no text",
   client_only: "only the client can settle this, so it can only be an assumption",
+  protected: "commercial facts, dates and brief claims can only change through an assumption",
+  duplicate: "the same assumption is already in the proposal",
 };
+
+function notAnsweredRow(id) {
+  return h("div", { class: "change refused" },
+    h("span", { class: "num change-id" }, id),
+    h("span", { class: "muted" }, "Not answered by the Bid Manager."));
+}
 
 function plural(count, one, many) {
   return `${count} ${count === 1 ? one : many}`;
@@ -90,7 +98,8 @@ export function bidRoundCard(bidRound, step, before, after, tracker, stopped) {
       h("strong", {}, `Bid Manager · round ${bidRound.no}`),
       step ? modelChip(step) : null,
       h("span", { class: "num agent-time" }, `${step ? seconds(step.duration_ms) : ""} · ${answered}`)),
-    h("div", { class: "change-list" }, ...bidRound.changes.map(changeRow)),
+    h("div", { class: "change-list" }, ...bidRound.changes.map(changeRow),
+      ...(bidRound.not_answered || []).map(notAnsweredRow)),
     h("div", { class: "vote-list" }, ...after.seats.map((s) => voteRow(s, previous[s.seat_id], tracker))),
     handBack);
 }
@@ -196,7 +205,7 @@ export function keyNumbers(numbers) {
     n.note ? h("span", { class: "muted small" }, n.note) : null));
 }
 
-export function changesSince(changes) {
+export function changesSince(changes, notAnswered = []) {
   const rows = changes.length
     ? changes.map((c) => h("li", { class: "change-line" },
         h("span", { class: "num change-id" }, c.objection_id),
@@ -207,7 +216,14 @@ export function changesSince(changes) {
     h("div", { class: "card-title-row" }, h("h2", {}, "What changed since draft 1"),
       h("span", { class: "muted small" }, "Each change answers one objection")),
     h("ol", { class: "changes-list" }, ...rows),
-  ];
+    notAnswered.length ? h("strong", { class: "small" }, "Not answered by the Bid Manager") : null,
+    notAnswered.length
+      ? h("ol", { class: "changes-list" }, ...notAnswered.map((c) => h("li", { class: "change-line" },
+          h("span", { class: "num change-id" }, c.objection_id),
+          h("span", { class: "change-action" }, `round ${c.round}`),
+          h("span", {}, c.text))))
+      : null,
+  ].filter(Boolean);
 }
 
 export function finalProposal(claims, draftNo, client) {

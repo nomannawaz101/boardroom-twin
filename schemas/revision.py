@@ -7,7 +7,14 @@ from pydantic import BaseModel
 
 StopReason = Literal["all_proceed", "no_gain", "max_rounds", "guard"]
 ChangeOutcome = Literal[
-    "applied", "locked", "unknown_claim", "unknown_objection", "empty", "client_only"
+    "applied",
+    "locked",
+    "unknown_claim",
+    "unknown_objection",
+    "empty",
+    "client_only",
+    "protected",
+    "duplicate",
 ]
 
 
@@ -27,6 +34,8 @@ class BidRound(BaseModel):
     draft_no: int  # the draft this round produced
     changes: list[AppliedChange]
     answered: list[str]  # objection ids the Bid Manager answered (not "fixed": seats decide that)
+    # Open fixable objections the Bid Manager left out, even after one retry naming them.
+    not_answered: list[str] = []
 
 
 class StopDecision(BaseModel):
@@ -69,3 +78,4 @@ class Report(BaseModel):
     memo: list[MemoRow]
     confirm_with_client: list[str]
     stop: StopDecision
+    not_answered: list[ReportChange] = []  # still open, never answered by the Bid Manager

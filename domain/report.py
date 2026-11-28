@@ -4,8 +4,9 @@ Every number here comes from code: the seats' scores, the tracker, the cost calc
 working-day schedule. The verdict follows section 4.7.
 """
 
-from domain.claims import format_date, format_money
+from domain.claims import format_date, format_money, normalize_text
 from domain.loop import average_score, final_verdict
+from domain.tracker import checklist_text
 from schemas.board import BoardRound, SeatResult
 from schemas.revision import KeyNumber, MemoRow, Report, ReportChange, StopDecision
 from schemas.state import RunState, TrackerItem
@@ -13,6 +14,8 @@ from schemas.state import RunState, TrackerItem
 TO_CONFIRM = "To confirm"
 ACTION_WORDS = {"replace": "Changed", "remove": "Removed", "add": "Added", "assume": "Assumption"}
 NO_STOP = StopDecision(stopped=False, reasons=[], lines=[])
+
+NOT_ANSWERED = "Not answered by the Bid Manager"
 
 
 def score_text(score: float | None) -> str:
@@ -34,8 +37,12 @@ def headline(rounds: list[BoardRound], revisions: int) -> str:
 
 
 def open_conditions(tracker: list[TrackerItem]) -> list[str]:
-    """Items only the client can confirm, still open: they go to the meeting."""
-    return [t.text for t in tracker if t.kind == "C" and t.status == "open"]
+    """Items only the client can confirm, still open: they go to the meeting, each once."""
+    texts: dict[str, str] = {}
+    for item in tracker:
+        if item.kind == "C" and item.status == "open":
+            texts.setdefault(normalize_text(item.text), item.text)
+    return list(texts.values())
 
 
 def summary(latest: BoardRound, client: str, confirm: list[str]) -> str:
@@ -76,7 +83,7 @@ def go_live_number(state: RunState) -> KeyNumber:
     note = (
         "After public holidays"
         if schedule.holidays_checked
-        else "Weekends counted; holidays not checked yet"
+        else "Weekends skipped; public holidays not checked yet"
     )
     return KeyNumber(label="Go-live", value=format_date(schedule.go_live), note=note)
 
@@ -105,8 +112,8 @@ def seat_reason(seat: SeatResult, tracker: list[TrackerItem]) -> str:
         return "Did not answer, so this seat is not reviewed. Retry the seat."
     open_texts = [t.text for t in tracker if t.seat == seat.seat_id and t.status == "open"]
     if seat.kind == "gate":
-        gaps = [f"{i.label}: {i.status.replace('_', ' ')}" for i in seat.items if i.status != "met"]
-        return "; ".join(gaps) if gaps else "Every checklist item is met."
+        gaps = [checklist_text(i) for i in seat.items if i.status not in ("met", "missing")]
+        return " ".join(gaps) if gaps else "Every checklist item is met."
     if seat.condition:
         return seat.condition
     if open_texts:
@@ -131,6 +138,21 @@ def memo(latest: BoardRound, tracker: list[TrackerItem]) -> list[MemoRow]:
     ]
 
 
+def not_answered(state: RunState) -> list[ReportChange]:
+    """Objections the Bid Manager left out in a round and that are still open, each once with
+    the last round that left it out."""
+    still_open = {t.id: t for t in state.tracker if t.status == "open"}
+    rows: dict[str, ReportChange] = {}
+    for bid_round in state.revisions:
+        for item_id in bid_round.not_answered:
+            if item_id in still_open:
+                text = still_open[item_id].text
+                rows[item_id] = ReportChange(
+                    objection_id=item_id, round=bid_round.no, action=NOT_ANSWERED, text=text
+                )
+    return list(rows.values())
+
+
 def build_report(state: RunState) -> Report:
     rounds, tracker = state.rounds, state.tracker
     latest = rounds[-1]
@@ -152,4 +174,5 @@ def build_report(state: RunState) -> Report:
         memo=memo(latest, tracker),
         confirm_with_client=confirm,
         stop=state.stop or NO_STOP,
+        not_answered=not_answered(state),
     )

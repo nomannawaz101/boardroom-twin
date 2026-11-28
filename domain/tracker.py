@@ -9,6 +9,7 @@ Items start open; Phase 4 marks one fixed only when the seat that raised it re-r
 from dataclasses import dataclass
 from typing import Literal
 
+from domain.claims import normalize_text
 from schemas.answers import GateObjection, PreviousState, ScoringObjection
 from schemas.board import ChecklistResult
 from schemas.common import match_key as criterion_key
@@ -37,12 +38,39 @@ def next_tracker_id(tracker: list[TrackerItem], kind: Kind) -> str:
     return f"{kind}{max(numbers, default=0) + 1}"
 
 
+def same_client_item(tracker: list[TrackerItem], draft: ItemDraft) -> TrackerItem | None:
+    """An open client-only item this draft repeats: the same seat on the same claim, or the
+    same text (lower case, no punctuation) from any seat."""
+    if draft.kind != "C":
+        return None
+    wanted = normalize_text(draft.text)
+    for item in tracker:
+        if item.kind != "C" or item.status != "open":
+            continue
+        same_claim = (
+            item.seat == draft.seat and draft.claim_ids and item.claim_ids == list(draft.claim_ids)
+        )
+        if same_claim or normalize_text(item.text) == wanted:
+            return item
+    return None
+
+
 def add_items(
     tracker: list[TrackerItem], drafts: list[ItemDraft], round_no: int
 ) -> list[TrackerItem]:
-    """Append items in order, each with the next free id of its kind."""
+    """Append items in order, each with the next free id of its kind. A client-only item raised
+    again updates the existing item (same id) instead of opening a new one."""
     added = list(tracker)
     for draft in drafts:
+        repeat = same_client_item(added, draft)
+        if repeat is not None:
+            if repeat.seat == draft.seat:
+                update = {
+                    "text": draft.text,
+                    "resolve_hint": draft.resolve_hint or repeat.resolve_hint,
+                }
+                added = [t.model_copy(update=update) if t.id == repeat.id else t for t in added]
+            continue
         added.append(
             TrackerItem(
                 id=next_tracker_id(added, draft.kind),
@@ -99,17 +127,33 @@ def gate_drafts(
             continue
         objection = by_item.get(item.id) or by_item.get(criterion_key(item.label))
         text = objection.text.strip() if objection and objection.text.strip() else ""
+        hint = objection.resolve_hint.strip() if objection else ""
         drafts.append(
             ItemDraft(
                 seat=seat_id,
                 kind=kind_of(objection.needs_client if objection else False),
                 severity="blocker" if item.must and item.status == "not_met" else "condition",
-                text=text or f"{item.label}: {STATUS_WORDS[item.status]}.",
+                text=text or checklist_text(item),
                 item_id=item.id,
-                resolve_hint=objection.resolve_hint.strip() if objection else "",
+                resolve_hint=hint or checklist_hint(item),
             )
         )
     return drafts
+
+
+def checklist_text(item: ChecklistResult) -> str:
+    """A gate item in the seat's own words: "Access control: <the seat's reason>"."""
+    reason = item.reason.strip().rstrip(".")
+    return f"{item.label}: {reason}." if reason else f"{item.label}: {STATUS_WORDS[item.status]}."
+
+
+def checklist_hint(item: ChecklistResult) -> str:
+    """What would resolve a gate item, from the seat's own reason, for the Bid Manager."""
+    reason = item.reason.strip().rstrip(".")
+    label = item.label[0].lower() + item.label[1:]
+    if reason:
+        return f"Add {label} as the seat described: {reason}."
+    return f"Add {label} to the proposal so the seat can mark it met."
 
 
 def open_items(tracker: list[TrackerItem], seat_id: str) -> list[TrackerItem]:

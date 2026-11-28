@@ -3,6 +3,7 @@
 Each revise request calls the Bid Manager first, then every selected seat in board-plan order.
 """
 
+import json
 from typing import Any
 
 import pytest
@@ -96,6 +97,8 @@ BID_ROUND_ONE = {
         {"objection_id": "X9", "action": "remove", "claim_id": "C1"},
     ]
 }
+# The retry names O4 to O7 (the gates' items) and adds nothing: the gates' re-reads settle them.
+NO_MORE: dict[str, Any] = {"changes": []}
 REVOTE_ONE = [
     CFO
     | {
@@ -138,7 +141,10 @@ def test_northwind_loop_fixes_only_what_the_raising_seat_resolves(
 ) -> None:
     assert round_one["stop"]["stopped"] is False
     body = revise(
-        scripted, round_one, 1, [reply_json(BID_ROUND_ONE)] + [reply_json(a) for a in REVOTE_ONE]
+        scripted,
+        round_one,
+        1,
+        [reply_json(BID_ROUND_ONE), reply_json(NO_MORE)] + [reply_json(a) for a in REVOTE_ONE],
     )
     outcomes = [(c["objection_id"], c["outcome"]) for c in body["bid_round"]["changes"]]
     assert outcomes == [
@@ -179,9 +185,12 @@ def test_seats_get_their_own_open_items_and_the_changes_in_a_revote(
     scripted: Scripted, round_one: dict[str, Any]
 ) -> None:
     revise(
-        scripted, round_one, 1, [reply_json(BID_ROUND_ONE)] + [reply_json(a) for a in REVOTE_ONE]
+        scripted,
+        round_one,
+        1,
+        [reply_json(BID_ROUND_ONE), reply_json(NO_MORE)] + [reply_json(a) for a in REVOTE_ONE],
     )
-    cfo_request = scripted.model.requests[1]
+    cfo_request = scripted.model.requests[2]  # after the Bid Manager and its retry
     system, user = cfo_request.messages[0]["content"], cfo_request.messages[1]["content"]
     assert "your_open_items" in system and '"resolved", "partly" or "open"' in system
     assert '"your_open_items": [{"id": "O1"' in user
@@ -193,7 +202,10 @@ def test_the_report_after_the_loop_is_built_by_code(
     scripted: Scripted, round_one: dict[str, Any]
 ) -> None:
     body = revise(
-        scripted, round_one, 1, [reply_json(BID_ROUND_ONE)] + [reply_json(a) for a in REVOTE_ONE]
+        scripted,
+        round_one,
+        1,
+        [reply_json(BID_ROUND_ONE), reply_json(NO_MORE)] + [reply_json(a) for a in REVOTE_ONE],
     )
     final = report_of(after_revision(round_one, body))
     assert (final["verdict"], final["verdict_code"]) == (
@@ -229,7 +241,10 @@ def test_the_report_after_the_loop_is_built_by_code(
 
 def test_no_round_after_the_loop_stopped(scripted: Scripted, round_one: dict[str, Any]) -> None:
     body = revise(
-        scripted, round_one, 1, [reply_json(BID_ROUND_ONE)] + [reply_json(a) for a in REVOTE_ONE]
+        scripted,
+        round_one,
+        1,
+        [reply_json(BID_ROUND_ONE), reply_json(NO_MORE)] + [reply_json(a) for a in REVOTE_ONE],
     )
     model = scripted.load([])
     again = client.post(
@@ -266,6 +281,7 @@ def harbor_revote(cfo_rating: float) -> list[FakeStep]:
     }
     return [
         reply_json(bid),
+        reply_json(NO_MORE),
         reply_json(cfo),
         reply_json(VP | {"objections": []}),
         reply_json(PROCUREMENT | {"objections": []}),
@@ -453,3 +469,73 @@ def test_after_a_retry_the_verdict_is_computed_again(scripted: Scripted) -> None
     current = current | {"rounds": [retried["round"]], "tracker": retried["tracker"]}
     assert retried["verdict"]["label"] == "Approved"
     assert report_of(current)["verdict"] == "Approved"
+
+
+# --- Phase 4 follow-up: commercial facts stay, and no open objection is skipped silently ---
+
+PARTIAL_BID = {
+    "changes": [
+        BID_ROUND_ONE["changes"][0],
+        BID_ROUND_ONE["changes"][1],
+        {
+            "objection_id": "O2",
+            "action": "add",
+            "claim_id": "C3",
+            "text": "Lumen Works offers a fixed price of $24,000.",
+        },
+    ]
+}
+RETRY_BID = {
+    "changes": [
+        {"objection_id": "O4", "action": "add", "section": "risks", "text": "Staff sign in."},
+        {"objection_id": "O1", "action": "remove", "claim_id": "C1"},  # answered already: dropped
+    ]
+}
+
+
+def test_a_skipped_objection_gets_one_retry_then_shows_as_not_answered(
+    scripted: Scripted, round_one: dict[str, Any]
+) -> None:
+    open_fixable = [t for t in round_one["tracker"] if t["kind"] == "O"]
+    blockers_first = sorted(open_fixable, key=lambda t: t["severity"] != "blocker")
+    left_out = [t["id"] for t in blockers_first if t["id"] not in ("O1", "O2", "O3")]
+    body = revise(
+        scripted,
+        round_one,
+        1,
+        [reply_json(PARTIAL_BID), reply_json(RETRY_BID)] + [reply_json(a) for a in REVOTE_ONE],
+    )
+    retry_user = scripted.model.requests[1].messages[1]["content"]
+    assert f'"answer_these_now": {json.dumps(left_out)}' in retry_user
+    outcomes = [(c["objection_id"], c["outcome"]) for c in body["bid_round"]["changes"]]
+    assert outcomes == [
+        ("O1", "applied"),
+        ("O3", "applied"),
+        ("O2", "protected"),
+        ("O4", "applied"),
+    ]
+    still_missing = [i for i in left_out if i != "O4"]
+    assert body["bid_round"]["not_answered"] == still_missing
+    added = next(c for c in body["claims"] if c["text"] == "Staff sign in.")
+    assert added["section"] == "risks"
+    assert not any("fixed price" in c["text"] for c in body["claims"])
+    manager = body["steps"][0]
+    assert manager["status"] == "retried" and manager["attempts"] == 2
+    assert f"Not answered by the Bid Manager: {', '.join(still_missing)}." in manager["summary"]
+    assert "commercial facts, dates and brief claims" in manager["summary"]
+
+
+def test_a_full_answer_needs_no_retry(scripted: Scripted, round_one: dict[str, Any]) -> None:
+    every = {
+        "changes": [
+            *BID_ROUND_ONE["changes"],
+            *(
+                {"objection_id": f"O{n}", "action": "add", "text": f"Point {n}."}
+                for n in range(4, 8)
+            ),
+        ]
+    }
+    body = revise(scripted, round_one, 1, [reply_json(every)] + [reply_json(a) for a in REVOTE_ONE])
+    assert body["bid_round"]["not_answered"] == []
+    assert body["steps"][0]["status"] == "ok"
+    assert len(scripted.model.requests) == 1 + len(REVOTE_ONE)

@@ -55,21 +55,34 @@ async def revise(state: RunState, round_no: int, runtime: Runtime) -> RevisionRe
     case_file, plan = require_draft(state)
     check_round(state, round_no)
     brief = recheck_brief(state.brief)
-    open_now = [t for t in state.tracker if t.status == "open"]
+    open_now = bid_manager.order_open([t for t in state.tracker if t.status == "open"])
     manager = await bid_manager.run(open_now, state.claims, case_file, plan, runtime)
     log_step(state.run_id, manager.step)
     if manager.answer is None:
         raise StepFailed()
-    claims, changes, tracker = apply_bid_changes(
-        state.claims, state.tracker, manager.answer.changes, round_no
-    )
+    answer, step = list(manager.answer.changes), manager.step
+    missing = bid_manager.missing_ids(open_now, answer)
+    if missing:  # one retry naming the objections it left out, blockers first
+        retry = await bid_manager.run(
+            open_now, state.claims, case_file, plan, runtime, missing=missing
+        )
+        log_step(state.run_id, retry.step)
+        extra = retry.answer.changes if retry.answer is not None else []
+        answer += [c for c in extra if c.objection_id in missing]
+        step = bid_manager.merge_steps(step, retry.step)
+        missing = bid_manager.missing_ids(open_now, answer)
+    claims, changes, tracker = apply_bid_changes(state.claims, state.tracker, answer, round_no)
     claims = guard_changed(claims, changes, brief, state)
     draft = Draft(claims=claims, draft_no=state.draft_no + 1, changes=changes)
     board_round, tracker, seat_steps = await vote(state, draft, tracker, round_no + 1, runtime)
-    steps = [bid_manager.describe(manager.step, changes, round_no), *seat_steps]
+    steps = [bid_manager.describe(step, changes, round_no, missing), *seat_steps]
     return RevisionResponse(
         bid_round=BidRound(
-            no=round_no, draft_no=draft.draft_no, changes=changes, answered=answered_ids(changes)
+            no=round_no,
+            draft_no=draft.draft_no,
+            changes=changes,
+            answered=answered_ids(changes),
+            not_answered=missing,
         ),
         round=board_round,
         claims=claims,

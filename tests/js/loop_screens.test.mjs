@@ -118,11 +118,29 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(memo, /gate/);
   assert.match(memo, /8\.0 \/ 7\.0/);
   assert.match(holderOf(loop.changesSince(report.changes)).textContent, /O1Changed, round 1Two phases\./);
+  assert.doesNotMatch(holderOf(loop.changesSince(report.changes)).textContent, /Not answered/);
+  const skipped = holderOf(loop.changesSince(report.changes, [{ objection_id: "O3", round: 1, action: "Not answered by the Bid Manager", text: "Access control: no single sign-on." }])).textContent;
+  assert.match(skipped, /Not answered by the Bid Manager/);
+  assert.match(skipped, /O3round 1Access control: no single sign-on\./);
   const prep = holderOf(loop.meetingPrep(report.confirm_with_client)).textContent;
   assert.match(prep, /arrive in a later build/);
   assert.match(prep, /Retention rule/);
   const approved = loop.verdictBanner({ ...report, verdict_code: "approved_with_conditions" }, () => {}, () => {});
   assert.ok(approved.className.includes("verdict-good"));
+}
+
+// Phase 4 follow-up: a refused commercial change and an objection the Bid Manager left out.
+{
+  const round = {
+    ...bidRound,
+    not_answered: ["O3"],
+    changes: [{ objection_id: "O2", action: "add", claim_id: "C3", old_text: null, new_text: null, outcome: "protected" }],
+  };
+  const text = loop.bidRoundCard(round, step, roundOne, roundTwo, tracker, false).textContent;
+  assert.match(text, /Refused by code: commercial facts, dates and brief claims can only change through an assumption \(C3\)\./);
+  assert.match(text, /O3Not answered by the Bid Manager\./);
+  const plain = loop.bidRoundCard(bidRound, step, roundOne, roundTwo, tracker, false).textContent;
+  assert.doesNotMatch(plain, /Not answered/);
 }
 
 process.stdout.write("loop screens: all checks passed\n");

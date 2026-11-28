@@ -145,9 +145,9 @@ def test_tracker_ids_kinds_severities_and_claim_ids() -> None:
         ("O3", "enterprise_architect", "O", "blocker", [], "No rollback plan"),  # C99 dropped
         ("O4", "vp_director", "O", "condition", ["C16"], "Go-live lands in the January peak"),
         ("O5", "procurement", "O", "condition", [], "No change control process"),
-        ("O6", "procurement", "O", "condition", [], "Acceptance and payment terms: partly met."),
-        ("O7", "security", "O", "condition", [], "Data protection: partly met."),
-        ("O8", "security", "O", "blocker", [], "Access control: not met."),
+        ("O6", "procurement", "O", "condition", [], "Acceptance and payment terms: r."),
+        ("O7", "security", "O", "condition", [], "Data protection: r."),
+        ("O8", "security", "O", "blocker", [], "Access control: r."),
         ("C1", "security", "C", "condition", [], "Retention rule unknown"),
     ]
     assert all(t.status == "open" and t.raised_round == 1 for t in tracker)
