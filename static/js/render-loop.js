@@ -5,7 +5,7 @@ import {
   button, decisionPill, decisionText, h, handLine, modelChip, proposal, scoreText, seconds,
 } from "./render.js";
 import {
-  CHANGE_TEXT_MAX, SCORES_MOVE, keyLabel, needsText, outOf10, WEEKDAYS, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
+  CHANGE_TEXT_MAX, SCORES_MOVE, keyLabel, keyNote, needsText, outOf10, WEEKDAYS, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
 } from "./labels.js";
 
 const GATE_CLASSES = { pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad" };
@@ -303,7 +303,7 @@ export function keyNumbers(numbers) {
     return h("div", { class: "card key-number" },
       h("span", { class: "muted small" }, keyLabel(n.label)),
       ...value,
-      n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null);
+      n.note ? h("span", { class: "muted small" }, keyNote(n.note)) : null);
   });
 }
 
@@ -366,7 +366,7 @@ export function decisionMemo(memo) {
   return [
     h("div", { class: "log-head" }, h("h2", { id: "memo-h" }, "Board decision memo")),
     h("div", { class: "table-wrap" }, h("table", {},
-      h("thead", {}, h("tr", {}, ...["Reviewer", "Result", "Score", "Reason"].map((c) => h("th", { scope: "col" }, c)))),
+      h("thead", {}, h("tr", {}, ...["Reviewer", "Result", "Score", "What they need"].map((c) => h("th", { scope: "col" }, c)))),
       h("tbody", {}, ...rows))),
   ];
 }

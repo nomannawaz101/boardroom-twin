@@ -18,7 +18,7 @@ assert.equal(labels.statementId("C7"), "S7");
 assert.equal(labels.codeText("Hands to Bid Manager: the open objections, each with its id."), "Hands to Revision Editor: the open objections, each with its id.");
 assert.equal(labels.codeText("Wrote draft 1 as 15 short claims in 9 sections."), "Wrote draft 1 as 15 short statements in 9 sections.");
 assert.equal(labels.codeText("Code decided: Pass, with conditions."), "Code decided: Signed off, with conditions.");
-assert.equal(labels.codeText("3 of 5 board seats can proceed."), "3 of 5 reviewers can approve.");
+assert.equal(labels.codeText("3 of 5 board seats can proceed."), "3 of 5 reviewers can approve this draft.");
 labels.setClientIds([{ id: "C2", kind: "C" }, { id: "O4", kind: "O" }]);
 assert.equal(labels.codeText("Not answered by the Bid Manager: O4, C2."), "Not answered by the Revision Editor: #4, Q2.");
 // A statement id that looks like a client id is left alone unless the tracker has that client item.
@@ -29,6 +29,9 @@ assert.equal(labels.codeText("+4 conditions to confirm"), "+4 items for the clie
 assert.equal(labels.codeText("and set 5 context flags."), "and set 5 key facts.");
 assert.equal(labels.codeText("the case file. The 5 flags choose the board."), "the case file. The 5 key facts choose the board.");
 assert.equal(labels.codeText(undefined), "");
+
+assert.equal(labels.keyNote("+4 conditions to confirm"), "4 items for the client to confirm");
+assert.equal(labels.keyLabel("Objections fixed"), "Objections resolved");
 
 // Gate outcomes and statuses.
 assert.equal(labels.OUTCOMES.pass_with_conditions, "Signed off, with conditions");

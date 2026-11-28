@@ -112,7 +112,7 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   downloadButton.listeners.click();
   assert.ok(printed && downloaded);
   assert.equal(byClass(banner, "no-print").length, 1);
-  assert.match(holderOf(loop.keyNumbers(report.numbers)).textContent, /1 of 3\+1 item for the client to confirm/);
+  assert.match(holderOf(loop.keyNumbers(report.numbers)).textContent, /Objections resolved1 of 31 item for the client to confirm/);
   const memo = holderOf(loop.decisionMemo(report.memo)).textContent;
   assert.match(memo, /Blocked/);
   assert.match(memo, /sign-off/);

@@ -93,10 +93,16 @@ export function weightText(weight) {
 // Key-number labels as the server writes them, and what the user sees.
 export const KEY_LABELS = {
   "Average score, scoring seats": "Average score of the scoring reviewers (out of 10)",
+  "Objections fixed": "Objections resolved",
 };
 
 export function keyLabel(label) {
   return KEY_LABELS[label] || codeText(label);
+}
+
+// A key number's note in words: "+4 conditions to confirm" reads "4 items for the client to confirm".
+export function keyNote(note) {
+  return codeText(note).replace(/^\+(?=\d)/, "");
 }
 export const SCORES_MOVE = "Scores can move either way: each reviewer re-reads the whole draft from scratch, and AI ratings vary between reads.";
 export const WEEKDAYS = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
@@ -195,6 +201,7 @@ const CODE_TEXT = [
   [/\bgatekeepers\b/g, WORDS.signOffReviewers],
   [/\bgates\b/g, WORDS.signOffs],
   [/\bgate\b/g, WORDS.signOff],
+  [/\b(\d+ of \d+ reviewers can approve)\./g, "$1 this draft."],
   [/\bO(\d+)\b/g, "#$1"],
 ];
 
