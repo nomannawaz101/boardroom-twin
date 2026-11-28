@@ -166,9 +166,17 @@ const CODE_TEXT = [
   [/\bgates\b/g, WORDS.signOffs],
   [/\bgate\b/g, WORDS.signOff],
   [/\bO(\d+)\b/g, "#$1"],
-  [/\bC(\d+)\b/g, "Q$1"],
 ];
 
+// Client-only item ids of the current run. "C1" in code-written text becomes "Q1" only when C1
+// is one of them; a statement id that looks the same (also "C1") is left as it is.
+let clientIds = new Set();
+
+export function setClientIds(tracker) {
+  clientIds = new Set((tracker || []).filter((t) => t.kind === "C").map((t) => t.id));
+}
+
 export function codeText(text) {
-  return CODE_TEXT.reduce((out, [pattern, to]) => out.replace(pattern, to), String(text || ""));
+  const words = CODE_TEXT.reduce((out, [pattern, to]) => out.replace(pattern, to), String(text || ""));
+  return words.replace(/\bC(\d+)\b/g, (id, n) => (clientIds.has(id) ? `Q${n}` : id));
 }

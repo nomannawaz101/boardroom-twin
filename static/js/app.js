@@ -7,7 +7,7 @@ import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
   loopStats, meetingPrep, objectionsTable, scoreMoves, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
-import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, stepName } from "./labels.js";
+import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, setClientIds, stepName } from "./labels.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
 } from "./render-shell.js";
@@ -85,7 +85,13 @@ function clientLine(stage) {
   return where ? `${run.data.case_file.client} · ${where}` : run.data.case_file.client;
 }
 
+// Keep the labels file's client-item ids in step with the run's tracker.
+function syncLabels() {
+  setClientIds(run.data ? run.data.tracker : []);
+}
+
 function showView(stage) {
+  syncLabels();
   currentStage = stage;
   for (const [n, view] of Object.entries(VIEWS)) view.hidden = Number(n) !== stage;
   for (const step of els.nav.querySelectorAll(".step")) {
@@ -368,6 +374,7 @@ async function board() {
 }
 
 function showBoard() {
+  syncLabels();
   const round = run.data.rounds.at(-1);
   const steps = Object.fromEntries(boardSteps().map((s) => [s.agent, s]));
   const card = (seat) => (seat.kind === "scoring" ? scoreCard : gateCard)(seat, steps[seat.seat_id], (event) => retrySeat(seat.seat_id, event));
@@ -434,6 +441,7 @@ function loopTitle() {
 }
 
 function renderLoop(running) {
+  syncLabels();
   const { rounds, revisions, tracker, stop } = run.data;
   const steps = bidSteps();
   els.loopTitle.textContent = loopTitle();
@@ -498,6 +506,7 @@ function downloadRun() {
 }
 
 function renderReport() {
+  syncLabels();
   const report = run.data.report;
   els.verdictBanner.replaceChildren(verdictBanner(report, () => window.print(), downloadRun));
   els.keyNumbers.replaceChildren(...keyNumbers(report.numbers));
