@@ -177,4 +177,51 @@ const gate = {
   assert.equal(byTag(card, "button").length, 0);
 }
 
+// v12: the seats strip shows each seat's vote once voted; the threshold line; gate chips.
+{
+  const plan = { seats: [{ id: "cfo", kind: "scoring", title: "CFO", why: "Owns the budget." }], skipped: [] };
+  const before = new FakeNode("section");
+  before.append(...render.boardPlan(plan));
+  assert.equal(byClass(before, "pill").length, 0); // no vote chip before the vote
+  const after = new FakeNode("section");
+  after.append(...render.boardPlan(plan, { seats: [answered] }));
+  assert.match(after.textContent, /Why: Owns the budget\.Rejected/);
+  assert.match(render.scoreCard(answered, step, () => {}).textContent, /The black tick is the score the CFO needs\. Below it means Rejected\./);
+  const chips = byClass(render.gateCard(gate, undefined, () => {}), "chk-chip").map((n) => n.textContent);
+  assert.deepEqual(chips, ["Partly", "Not met", "Met"]);
+}
+
+// What to fix first: blockers, then seats below their needed score, then the rest; C items
+// and fixed items are left out; a Lumen Works decision says so.
+{
+  const seats = [
+    { seat_id: "cfo", title: "CFO", score: 5.3, needed: 7.0 },
+    { seat_id: "vp_director", title: "VP", score: 7.5, needed: 7.0 },
+    { seat_id: "security", title: "Security Officer", score: null },
+  ];
+  const tracker = [
+    { id: "O1", seat: "vp_director", kind: "O", severity: "condition", text: "Peak week", status: "open" },
+    { id: "O2", seat: "cfo", kind: "O", severity: "condition", text: "Smaller step", status: "open", decision: true },
+    { id: "O3", seat: "security", kind: "O", severity: "blocker", text: "Access control", status: "open" },
+    { id: "O4", seat: "cfo", kind: "O", severity: "blocker", text: "Done", status: "fixed" },
+    { id: "C1", seat: "security", kind: "C", severity: "condition", text: "Retention", status: "open" },
+  ];
+  const list = new FakeNode("section");
+  list.append(...render.fixFirst(tracker, seats));
+  const items = byTag(list, "li").map((li) => li.textContent);
+  assert.deepEqual(items, [
+    "O3 (Security Officer, blocker): Access control",
+    "O2 (CFO, seat below its needed score, needs a Lumen Works decision): Smaller step",
+    "O1 (VP): Peak week",
+  ]);
+  assert.equal(render.fixFirst([], seats).length, 0);
+}
+
+// The verdict so far, in a message box by verdict.
+{
+  const box = render.verdictSoFar({ code: "not_ready", label: "Not ready yet" }, { able: 2, total: 5 });
+  assert.ok(box.className.includes("m-err"));
+  assert.match(box.textContent, /Verdict so far: Not ready yet2 of 5 seats can proceed\./);
+}
+
 process.stdout.write("board screen: all checks passed\n");

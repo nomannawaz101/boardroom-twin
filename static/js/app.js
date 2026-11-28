@@ -1,6 +1,6 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, boardPlan, ranTogether, togetherMarker, boardStats, button, deliveryCard, draftSummary, gateCard, h,
+  analystCard, architectCard, boardPlan, fixFirst, ranTogether, togetherMarker, verdictSoFar, boardStats, button, deliveryCard, draftSummary, gateCard, h,
   managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
 import {
@@ -46,6 +46,7 @@ const els = {
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
   scoreBlock: $("score-block"), scoreCards: $("score-cards"),
   gateBlock: $("gate-block"), gateCards: $("gate-cards"), objections: $("objections"),
+  boardVerdict: $("board-verdict"), fixFirst: $("fix-first"), boardNext: $("board-next"),
   loopTitle: $("loop-title"), loopStats: $("loop-stats"), loopChips: $("loop-chips"),
   loopRounds: $("loop-rounds"), scoresByRound: $("scores-by-round"), whyStopped: $("why-stopped"),
   trackerList: $("tracker-list"), loopNext: $("loop-next"),
@@ -328,6 +329,9 @@ function setBoardLoading() {
   els.scoreBlock.hidden = true;
   els.gateBlock.hidden = true;
   els.objections.hidden = true;
+  els.boardVerdict.replaceChildren();
+  els.fixFirst.hidden = true;
+  els.boardNext.replaceChildren();
 }
 
 async function board() {
@@ -362,6 +366,8 @@ function showBoard() {
   els.boardTitle.textContent = "The client's board reviewed draft 1";
   els.boardIntro.textContent = boardIntro(round);
   els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress, run.data.verdictLabel));
+  els.boardVerdict.replaceChildren(run.data.verdictLabel ? verdictSoFar(run.data.verdictLabel, round.progress) : "");
+  els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan, round));
   els.scoreCards.replaceChildren(...scoring.map(card));
   els.gateCards.replaceChildren(...gates.map(card));
   els.scoreBlock.hidden = scoring.length === 0;
@@ -369,8 +375,12 @@ function showBoard() {
   const next = loopStopped()
     ? { label: "Next: the final report →", onClick: showReport, stopped: true }
     : { label: "Next: the Bid Manager answers the objections →", onClick: startLoop };
-  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, next));
+  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, { stopped: next.stopped }));
   els.objections.hidden = false;
+  const fix = fixFirst(run.data.tracker, round.seats);
+  els.fixFirst.replaceChildren(...fix);
+  els.fixFirst.hidden = !fix.length;
+  els.boardNext.replaceChildren(button(next.label, "btn btn-primary", next.onClick));
   showView(3);
 }
 

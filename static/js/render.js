@@ -379,6 +379,7 @@ const DECISION_PILLS = {
   pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad",
 };
 const FILLS = { approved: "fill-good", yes_with_condition: "fill-cond", rejected: "fill-bad" };
+const CHIP_CLASSES = { met: "chip-good", partly: "chip-cond", not_met: "chip-bad", missing: "chip-none" };
 const ITEM_ICONS = {
   met: ["✓", "ic-m", "Met"],
   partly: ["~", "ic-p", "Partly"],
@@ -411,15 +412,17 @@ function seatHead(result, step) {
     decisionPill(result));
 }
 
-export function boardPlan(plan) {
+export function boardPlan(plan, round = null) {
+  const voted = Object.fromEntries((round ? round.seats : []).map((s) => [s.seat_id, s]));
   const joined = plan.seats.map((s) => h("div", { class: "plan-seat" },
     h("strong", {}, s.title),
     h("span", { class: "muted" }, s.kind === "scoring" ? "Scores the proposal" : "Passes or blocks it"),
-    h("span", {}, `Why: ${s.why}`)));
+    h("span", { class: "why" }, `Why: ${s.why}`),
+    voted[s.id] ? decisionPill(voted[s.id]) : null));
   const skipped = plan.skipped.map((s) => h("div", { class: "plan-seat skipped" },
     h("strong", {}, s.title),
     h("span", { class: "muted" }, "Not invited"),
-    h("span", {}, `Why not: ${s.why_not}`)));
+    h("span", { class: "why" }, `Why not: ${s.why_not}`)));
   return [
     h("div", { class: "card-title-row" },
       h("div", { class: "stack-8" },
@@ -464,17 +467,21 @@ export function scoreCard(result, step, onRetry) {
   if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
   const criteria = result.criteria.map((c) => h("div", { class: "crit", title: c.reason || null },
     h("span", {}, `${c.label} ×${c.weight.toFixed(2)}`),
-    h("span", { class: "num" }, c.rating === null ? "not rated (0)" : ratingText(c.rating))));
+    h("span", { class: "num" }, c.rating === null ? "not rated (0)" : ratingText(c.rating)),
+    c.reason ? h("span", { class: "crit-reason" }, c.reason) : null));
   return h("article", { class: "card seat-card" },
     head,
     h("div", { class: "score-row" },
       h("span", { class: "num score-big" }, scoreText(result.score)),
       h("span", { class: "num muted" }, `needs ${result.needed.toFixed(1)}`)),
     scoreBar(result),
-    h("div", { class: "crit-list" }, ...criteria),
+    h("p", { class: "threshold" }, `The black tick is the score the ${result.title} needs. Below it means Rejected.`),
+    quoteLine(result),
     result.condition ? h("p", { class: "seat-note" }, `Condition: ${result.condition}`) : null,
     result.partial ? h("p", { class: "seat-note" }, "Partial answer: a criterion was not rated, so code counted it as 0.") : null,
-    quoteLine(result));
+    h("details", { class: "ratings" },
+      h("summary", {}, "Ratings and reasons"),
+      h("div", { class: "crit-list" }, ...criteria)));
 }
 
 function checklist(items) {
@@ -483,9 +490,10 @@ function checklist(items) {
     const reason = item.status === "met" ? item.reason : `${word}: ${item.reason}`;
     return h("div", { class: "chk" },
       h("span", { class: `ic ${cls}`, role: "img", "aria-label": word }, icon),
-      h("div", {}, h("strong", {}, item.label), item.must ? h("span", { class: "must" }, "MUST") : null),
-      h("span", {}),
-      h("span", {}, reason));
+      h("div", { class: "chk-body" },
+        h("div", {}, h("strong", {}, item.label), item.must ? h("span", { class: "must" }, "MUST") : null),
+        h("span", { class: "chk-reason" }, reason)),
+      h("span", { class: `chk-chip ${CHIP_CLASSES[item.status]}` }, word));
   });
   return h("div", { class: "chk-list" }, ...rows);
 }
@@ -526,7 +534,7 @@ export function objectionsLog(tracker, seats, next = null) {
     h("td", {}, trackerPill(t))));
   const table = rows.length
     ? h("div", { class: "table-wrap" }, h("table", {},
-        h("thead", {}, h("tr", {}, ...["ID", "Raised by", "Objection", "Status"].map((c) => h("th", { scope: "col" }, c)))),
+        h("thead", {}, h("tr", {}, ...["ID", "Raised by", "Challenge", "Status"].map((c) => h("th", { scope: "col" }, c)))),
         h("tbody", {}, ...rows)))
     : h("p", { class: "log-foot muted" }, "No objections were raised.");
   return [
@@ -538,8 +546,40 @@ export function objectionsLog(tracker, seats, next = null) {
       h("span", { class: "muted small" }, next && next.stopped
         ? "Code stopped the loop here: nothing for the Bid Manager to do."
         : "The Bid Manager answers each objection by its ID, then the board votes again."),
-      next ? button(next.label, "btn btn-primary", next.onClick) : null),
+      next && next.onClick ? button(next.label, "btn btn-primary", next.onClick) : null),
   ];
+}
+
+// What to fix first, ordered by code from the open objections: blockers first, then the
+// objections of seats below their needed score, then the rest.
+export function fixFirst(tracker, seats) {
+  const bySeat = Object.fromEntries(seats.map((s) => [s.seat_id, s]));
+  const below = (t) => {
+    const seat = bySeat[t.seat];
+    return Boolean(seat && seat.score !== null && seat.score !== undefined && seat.score < seat.needed);
+  };
+  const rank = (t) => (t.severity === "blocker" ? 0 : below(t) ? 1 : 2);
+  const open = tracker.filter((t) => t.kind === "O" && t.status === "open")
+    .sort((a, b) => rank(a) - rank(b) || byTrackerOrder(a, b));
+  if (!open.length) return [];
+  const why = ["blocker", "seat below its needed score", null];
+  return [
+    h("h2", {}, "What to fix first"),
+    h("p", { class: "muted small" }, "Ordered by code: blockers first, then objections from seats below their needed score, then the rest."),
+    h("ol", { class: "fix-list" }, ...open.map((t) => {
+      const seat = bySeat[t.seat] ? bySeat[t.seat].title : t.seat;
+      const notes = [why[rank(t)], t.decision ? "needs a Lumen Works decision" : null].filter(Boolean);
+      return h("li", {}, h("strong", { class: "num" }, t.id), ` (${[seat, ...notes].join(", ")}): `, t.text);
+    })),
+  ];
+}
+
+// The verdict so far, in one of the shared message boxes.
+const VERDICT_BOXES = { not_ready: "m-err", review_incomplete: "m-warn", approved_with_conditions: "m-warn", approved: "m-ok" };
+export function verdictSoFar(verdict, progress) {
+  return h("div", { class: `msg ${VERDICT_BOXES[verdict.code] || "m-info"} verdict-so-far` },
+    h("strong", {}, `Verdict so far: ${verdict.label}`),
+    h("span", {}, `${progress.able} of ${progress.total} seats can proceed. Code decided it from the seats' answers.`));
 }
 
 export function boardStats(steps, progress, verdict) {
