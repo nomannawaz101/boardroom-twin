@@ -50,7 +50,7 @@ const step = (fields) => ({
   ];
   const holder = holderOf(shell.stageRail(steps));
   assert.match(holder.textContent, /Business AnalystDone, 3\.1 s, Haiku/);
-  assert.match(holder.textContent, /Delivery ManagerDone, 6\.2 s, Sonnet, 2 tools/);
+  assert.match(holder.textContent, /Delivery ManagerDone, 6\.2 s, Sonnet, 2 code calculations/);
   assert.match(holder.textContent, /Stage: 9 s · about \$0\.02 \(estimate from tokens\)/);
   assert.equal(byClass(holder, "rail-model")[1].attrs.title, "Answered by claude-haiku-5-5 (sonnet tier)");
   // Seats run at the same time: the stage time is the span, not the sum.
@@ -67,7 +67,7 @@ const step = (fields) => ({
 // Run summary on the Report: counted values and the cost marked as an estimate.
 {
   const text = holderOf(shell.runSummary([step({}), step({ duration_ms: 1900 })])).textContent;
-  assert.match(text, /Agent calls2/);
+  assert.match(text, /AI steps2/);
   assert.match(text, /5 s of agent work/);
   assert.match(text, /2,400 in · 600 out/);
   assert.match(text, /about \$0\.01 \(estimate from tokens\)/);

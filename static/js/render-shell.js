@@ -1,7 +1,7 @@
 // The page shell: stage list states, the Agent activity rail and short model labels. Every value
 // shown comes from the step records the server measured; AI text goes in as text nodes.
 
-import { ROLES, codeText } from "./labels.js";
+import { ROLES, WORDS, calculationCount, codeText } from "./labels.js";
 import { h, modelTitle, seconds, shortModel } from "./render.js";
 
 const IDLE_AGENTS = ["Business Analyst", "Solution Architect", "Delivery Manager", ROLES.proposal_manager];
@@ -36,7 +36,7 @@ function stepItem(step) {
   return h("li", {},
     h("span", { class: "rail-name" }, codeText(step.label)),
     h("span", { class: "rail-st" }, `${status}, ${seconds(step.duration_ms)}, `, model,
-      tools ? `, ${plural(tools, "tool", "tools")}` : ""));
+      tools ? `, ${calculationCount(tools)}` : ""));
 }
 
 function runningItem(text) {
@@ -83,9 +83,9 @@ export function runSummary(steps) {
   const tokensIn = steps.reduce((n, s) => n + s.tokens_in, 0);
   const tokensOut = steps.reduce((n, s) => n + s.tokens_out, 0);
   const rows = [
-    ["Agent calls", String(steps.length)],
+    [WORDS.aiSteps, String(steps.length)],
     ["Time", `${Math.round(stageSeconds(steps, false))} s of agent work`],
-    ["Tokens", `${tokensIn.toLocaleString("en-US")} in · ${tokensOut.toLocaleString("en-US")} out`],
+    [WORDS.tokens, `${tokensIn.toLocaleString("en-US")} in · ${tokensOut.toLocaleString("en-US")} out`],
     ["Cost", `about $${cost(steps).toFixed(2)} (estimate from tokens)`],
   ];
   return [

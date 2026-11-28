@@ -53,9 +53,9 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(text, /Confirm the peak \(#2, #3\)/);
   assert.match(text, /sign-off/);
   assert.equal(byClass(card, "m-sonnet")[0].textContent, "Sonnet");
-  assert.match(text, /Hands to Revision Editor: the open objections \(#2, #3\) and 1 condition\./);
+  assert.match(text, /Passes to Revision Editor: the open objections \(#2, #3\) and 1 condition\./);
   const last = loop.bidRoundCard(bidRound, step, roundOne, roundTwo, tracker, true);
-  assert.doesNotMatch(last.textContent, /Hands to Bid Manager/);
+  assert.doesNotMatch(last.textContent, /Passes to/);
 }
 
 // Loop chips and the stop.

@@ -40,6 +40,10 @@ export const WORDS = {
   confirmWithClient: "Confirm with the client",
   whatToDoNext: "What to do next",
   finalDraft: "Final draft",
+  passesTo: "Passes to",
+  lockedCost: "Cost fixed by code",
+  aiSteps: "AI steps",
+  tokens: "Tokens (AI text units)",
 };
 
 // What each seat kind does.
@@ -153,6 +157,10 @@ export function reviewerCount(count) {
   return plural(count, WORDS.reviewer, WORDS.reviewers);
 }
 
+export function calculationCount(count) {
+  return plural(count, "code calculation", "code calculations");
+}
+
 export function statementCount(count) {
   return plural(count, WORDS.statement, WORDS.statements);
 }
@@ -185,6 +193,10 @@ export function stepName(step, plan) {
 // in the words the user sees. Model-written text never passes through here.
 const CODE_TEXT = [
   ...ROLE_WORDS.map(([from, to]) => [new RegExp(`\\b${from}\\b`, "g"), to]),
+  [/\bHands to\b/g, WORDS.passesTo],
+  [/\bBoard composer\b/g, "board picker"],
+  [/\ba case file\b/g, "a summary of the brief"],
+  [/\bthe case file\b/g, "the summary of the brief"],
   [/\bPass, with conditions\b/g, OUTCOMES.pass_with_conditions],
   [/\bPass\b/g, OUTCOMES.pass],
   [/\bcontext flags\b/g, "key facts"],

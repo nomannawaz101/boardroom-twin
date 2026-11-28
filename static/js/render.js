@@ -2,7 +2,7 @@
 // no HTML string is ever parsed (guard G12).
 
 import {
-  BOARD_SUBTITLE, ISSUE_TEXT_MAX, needsText, outOf10, weightText, ITEM_WORDS, KIND_SHORT, KINDS, NO_OPEN, trimmed, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
+  BOARD_SUBTITLE, ISSUE_TEXT_MAX, calculationCount, needsText, outOf10, weightText, ITEM_WORDS, KIND_SHORT, KINDS, NO_OPEN, trimmed, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
   statementCount, statementId,
 } from "./labels.js";
 
@@ -120,9 +120,9 @@ function codeChip() {
 
 export function handLine(text) {
   const arrow = svg(14, "M5 12h14M13 6l6 6-6 6", "#5B3CC4");
-  const match = /^Hands to (.+?): (.*)$/.exec(text || "");
+  const match = /^(?:Hands|Passes) to (.+?): (.*)$/.exec(text || "");
   if (!match) return h("div", { class: "hand" }, arrow, text || "");
-  return h("div", { class: "hand" }, arrow, "Hands to ", h("b", {}, match[1]), `: ${match[2]}`);
+  return h("div", { class: "hand" }, arrow, `${WORDS.passesTo} `, h("b", {}, match[1]), `: ${match[2]}`);
 }
 
 function flagNotes(step) {
@@ -142,7 +142,7 @@ function rail(index, last, waiting = false) {
 // open by default. Model and time stay on the block too, so nothing depends on the rail.
 function agentCard(index, step, body) {
   const tools = step.tool_calls.length;
-  const time = tools ? `${seconds(step.duration_ms)} · ${tools} ${tools === 1 ? "tool" : "tools"}` : seconds(step.duration_ms);
+  const time = tools ? `${seconds(step.duration_ms)} · ${calculationCount(tools)}` : seconds(step.duration_ms);
   const block = h(
     "details", { class: "card agent-block", open: true },
     h("summary", { class: "agent-sum" },
@@ -264,7 +264,7 @@ export function deliveryCard(index, step, data, last) {
     const phases = estimate.phases.map((p) => `${p.engineers} × ${p.days} days`).join(" + ");
     body.push(h(
       "div", { class: "tool" },
-      h("span", { class: "tname" }, "Locked cost"), codeChip(),
+      h("span", { class: "tname" }, WORDS.lockedCost), codeChip(),
       h("span", { class: "num" }, `${phases} × ${money(estimate.phases[0].rate, estimate.currency)}`),
       h("strong", { class: "num tool-result" }, `= ${money(estimate.total, estimate.currency)}`),
     ));
@@ -366,7 +366,7 @@ export function stats(steps) {
   const cost = steps.reduce((n, s) => n + s.cost_usd, 0);
   return [
     h("span", {}, `${steps.length} agents`),
-    h("span", {}, `${tools} tool ${tools === 1 ? "call" : "calls"}`),
+    h("span", {}, calculationCount(tools)),
     h(
       "span",
       { class: "num", title: "Estimated from token counts at list prices. It is not a bill." },

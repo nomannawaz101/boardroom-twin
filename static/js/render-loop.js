@@ -119,7 +119,7 @@ export function bidRoundCard(bidRound, step, before, after, tracker, stopped, ex
   const conditions = open.filter((t) => t.kind === "C").length;
   const handBack = stopped || !open.length
     ? null
-    : handLine(`Hands to ${ROLES.bid_manager}: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
+    : handLine(`${W.passesTo} ${ROLES.bid_manager}: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
   // Two cards per round (design v12): what the Revision Editor changed, then the board's vote on
   // it, in one block that collapses to a one-line summary.
   return h("details", { class: "round-pair", open: expanded },
@@ -255,7 +255,7 @@ export function loopStats(steps) {
   const ms = steps.reduce((n, s) => n + s.duration_ms, 0);
   const cost = steps.reduce((n, s) => n + s.cost_usd, 0);
   return [
-    h("span", {}, plural(steps.length, "agent call", "agent calls")),
+    h("span", {}, plural(steps.length, "AI step", "AI steps")),
     h("span", { class: "num", title: "Agent time added up. Cost is estimated from token counts at list prices; it is not a bill." },
       `${Math.round(ms / 1000)} s · $${cost.toFixed(2)} est.`),
   ];
