@@ -22,6 +22,7 @@ assert.equal(labels.codeText("3 of 5 board seats can proceed."), "3 of 5 reviewe
 assert.equal(labels.codeText("Not answered by the Bid Manager: O4, C2."), "Not answered by the Revision Editor: #4, Q2.");
 assert.equal(labels.codeText("+4 conditions to confirm"), "+4 items for the client to confirm");
 assert.equal(labels.codeText("and set 5 context flags."), "and set 5 key facts.");
+assert.equal(labels.codeText("the case file. The 5 flags choose the board."), "the case file. The 5 key facts choose the board.");
 assert.equal(labels.codeText(undefined), "");
 
 // Gate outcomes and statuses.

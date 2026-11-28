@@ -2,8 +2,8 @@
 // no HTML string is ever parsed (guard G12).
 
 import {
-  BOARD_SUBTITLE, ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementCount,
-  statementId,
+  BOARD_SUBTITLE, ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
+  statementCount, statementId,
 } from "./labels.js";
 
 const SVG_NS = "http://www.w3.org/2000/svg";
@@ -201,46 +201,51 @@ function toolBox(call) {
 
 // --- Stage 1: Business Analyst ---
 
-function flagChip(label, value) {
-  return h("span", { class: "flag" }, h("b", {}, `${label}:`), ` ${value}`);
-}
-
-function boardStrip(plan) {
-  const seats = plan.seats.map((s) => h("span", { class: "seat", title: s.why }, s.title));
-  const skipped = plan.skipped.map((s) => h("span", { class: "seat skipped", title: s.why_not }, `${s.title} (not needed)`));
-  return h("div", { class: "chips" }, h("span", { class: "chips-label" }, "Board for this brief"), codeChip(), ...seats, ...skipped);
-}
-
 function inputChecks(checks) {
   const injection = checks.injection === "notice" ? "instruction-like text kept as data" : "no hidden instructions";
-  return h(
-    "div", { class: "tool" },
-    h("span", { class: "tname" }, "Input checks"), codeChip(),
-    h("span", { class: "ok-text" }, `No real personal data · ${injection} · looks like a client brief`),
-  );
+  return h("div", { class: "msg m-ok input-ok" },
+    codeChip(),
+    h("span", {}, h("strong", {}, "Input checks: "), `No real personal data · ${injection} · looks like a client brief`));
 }
 
-export function analystCard(data, last) {
+function keyFacts(flags) {
+  const rows = [
+    ["Personal data", yesNo(flags.personal_data)],
+    ["Existing systems", yesNo(flags.existing_systems)],
+    ["Contract", CONTRACT[flags.contract_type] || "unclear"],
+    ["Function", flags.function || "unclear"],
+    ["Deal level", LEVEL[flags.seniority] || "unclear"],
+  ];
+  return [
+    h("h3", { class: "block-h" }, WORDS.keyFacts),
+    h("table", { class: "kv-table" }, h("tbody", {}, ...rows.map(([k, v]) => h("tr", {}, h("th", { scope: "row" }, k), h("td", {}, v))))),
+    h("p", { class: "muted small" }, "Set by the Business Analyst. Code uses these to choose the board."),
+  ];
+}
+
+function boardLine(plan) {
+  const names = plan.seats.map((s) => s.title).join(", ");
+  const skipped = plan.skipped.length ? ` · not needed: ${plan.skipped.map((s) => s.title).join(", ")}` : "";
+  return h("p", { class: "board-line" },
+    `Board chosen by fixed rules: ${reviewerCount(plan.seats.length)} `,
+    h("span", { class: "muted" }, `(${names})${skipped}`));
+}
+
+export function analystCard(data) {
   const step = data.steps.find((s) => s.agent === "business_analyst");
   const caseFile = data.case_file;
-  const flags = data.flags;
-  const signals = h(
-    "div", { class: "signal-grid" },
-    h("div", { class: "stack-6" }, h("span", { class: "chips-label" }, "Goals"),
-      h("div", { class: "chips" }, ...caseFile.goals.map((g) => h("span", { class: "chip-goal" }, `Goal: ${g}`)))),
-    h("div", { class: "stack-6" }, h("span", { class: "chips-label" }, "Warning signs"),
-      h("div", { class: "chips" }, ...caseFile.warnings.map((w) => h("span", { class: "chip-warn", title: `"${w.quote}"` }, `Warning: ${w.text}`)))),
-  );
-  const flagRow = h(
-    "div", { class: "chips" },
-    h("span", { class: "chips-label" }, WORDS.keyFacts),
-    flagChip("Personal data", yesNo(flags.personal_data)),
-    flagChip("Existing systems", yesNo(flags.existing_systems)),
-    flagChip("Contract", CONTRACT[flags.contract_type] || "unclear"),
-    flagChip("Function", flags.function || "unclear"),
-    flagChip("Level", LEVEL[flags.seniority] || "unclear"),
-  );
-  return agentCard(1, step, [signals, flagRow, inputChecks(data.checks), boardStrip(data.board_plan)]);
+  const facts = 5;
+  const top = h("strong", { class: "block-top" },
+    `${plural(caseFile.goals.length, "goal", "goals")}, ${plural(caseFile.warnings.length, "warning sign", "warning signs")}, ${facts} key facts.`);
+  const wants = [
+    h("h3", { class: "block-h" }, "What the client wants"),
+    h("ul", { class: "plain-list" }, ...caseFile.goals.map((g) => h("li", {}, g))),
+    h("h3", { class: "block-h" }, "Watch out for"),
+    h("ul", { class: "plain-list watch-list" }, ...caseFile.warnings.map((w) => h("li", {},
+      h("span", {}, w.text), h("span", { class: "quote-line" }, `"${w.quote}"`)))),
+  ];
+  const columns = h("div", { class: "two-cols" }, h("div", {}, ...wants), h("div", {}, ...keyFacts(data.flags)));
+  return agentCard(1, step, [top, columns, inputChecks(data.checks), boardLine(data.board_plan)]);
 }
 
 // --- Stage 2: Solution Architect, Delivery Manager, Proposal Manager ---
@@ -332,7 +337,7 @@ export function draftSummary(data, onNext) {
     h("strong", { class: "draft-title" }, `Proposal for ${data.case_file.client}`),
     h("dl", { class: "kv" },
       ...facts.map(([label, value, mono]) => h("div", {}, h("dt", {}, label), h("dd", { class: mono ? "num" : null }, value)))),
-    h("ol", { class: "section-chips" }, ...Object.values(SECTION_TITLES).map((t) => h("li", {}, t))),
+    h("ol", { class: "section-cols" }, ...Object.values(SECTION_TITLES).map((t) => h("li", {}, t))),
     h("div", {}, button("Next: send it to the client board →", "btn btn-primary", onNext)),
   ];
 }

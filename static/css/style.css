@@ -255,8 +255,21 @@ a:hover { color: var(--primary-ink); }
 .kv > div { border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; min-width: 0; }
 .kv dt { font-size: 12px; color: var(--text-2); }
 .kv dd { margin: 2px 0 0; font-size: 15px; font-weight: 700; overflow-wrap: anywhere; }
-.section-chips { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
-.section-chips li { font-size: 12px; background: #f2f4f7; border-radius: 6px; padding: 3px 8px; }
+.section-cols { margin: 0; padding-left: 22px; columns: 2; column-gap: 28px; font-size: 13.5px; line-height: 1.7; color: var(--text-3); }
+.block-top { font-size: 14.5px; }
+.two-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px 28px; }
+.block-h { margin: 4px 0 4px; font-size: 13px; color: var(--text-3); }
+.plain-list { margin: 0 0 8px; padding-left: 18px; font-size: 14px; line-height: 1.55; }
+.watch-list { list-style: none; padding-left: 0; }
+.watch-list li { position: relative; padding-left: 16px; margin-bottom: 6px; }
+.watch-list li::before { content: ""; position: absolute; left: 2px; top: 8px; width: 7px; height: 7px; border-radius: 50%; background: #d98e1f; }
+.quote-line { display: block; font-size: 12.5px; color: var(--muted); }
+.kv-table { border-collapse: collapse; font-size: 13.5px; width: 100%; }
+.kv-table th { text-align: left; font-weight: 500; color: var(--text-2); padding: 4px 12px 4px 0; white-space: nowrap; vertical-align: top; }
+.kv-table td { padding: 4px 0; font-weight: 600; }
+.kv-table tr + tr th, .kv-table tr + tr td { border-top: 1px solid #f2f4f7; }
+.input-ok { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; padding: 10px 12px; }
+.board-line { margin: 0; font-size: 14px; }
 .proposal-details { padding: 0; }
 .proposal-toggle { cursor: pointer; padding: 14px 20px; min-height: 44px; font-weight: 600; color: var(--link); }
 .proposal-details[open] .proposal-toggle { border-bottom: 1px solid var(--border); }
@@ -491,6 +504,7 @@ a:hover { color: var(--primary-ink); }
   .agent-in { padding: 0 14px 14px; }
   .agent-sum { padding: 12px 14px; }
   .agent-meta { margin-left: 0; }
+  .section-cols { columns: 1; }
   .dot { width: 28px; height: 28px; }
 }
 

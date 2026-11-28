@@ -139,6 +139,7 @@ const CODE_TEXT = [
   [/\bPass, with conditions\b/g, OUTCOMES.pass_with_conditions],
   [/\bPass\b/g, OUTCOMES.pass],
   [/\bcontext flags\b/g, "key facts"],
+  [/\bflags\b/g, "key facts"],
   [/\bconditions to confirm\b/g, "items for the client to confirm"],
   [/\bcondition to confirm\b/g, "item for the client to confirm"],
   [/\bscoring seats\b/g, WORDS.scoringReviewers],
