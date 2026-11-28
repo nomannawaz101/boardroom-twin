@@ -622,14 +622,19 @@ export function scoreboard(round, tracker) {
 }
 
 // The verdict so far, in one of the shared message boxes.
+const VERDICT_RULE = "Decided by fixed rules: a known Rejected or Blocked wins; otherwise a reviewer not reviewed gives Review incomplete.";
 const VERDICT_BOXES = { not_ready: "m-err", review_incomplete: "m-warn", approved_with_conditions: "m-warn", approved: "m-ok" };
 export function verdictSoFar(verdict, progress) {
-  return h("div", { class: `msg ${VERDICT_BOXES[verdict.code] || "m-info"} verdict-so-far` },
+  return h("div", {
+    class: `msg ${VERDICT_BOXES[verdict.code] || "m-info"} verdict-so-far`,
+    title: VERDICT_RULE,
+  },
     h("strong", {}, `Verdict so far: ${verdict.label}`),
     h("span", {}, `${progress.able} of ${reviewerCount(progress.total)} can approve. Fixed rules decided it from the reviewers' answers.`));
 }
 
-export function boardStats(steps, progress, verdict) {
+// The verdict so far is shown once, in its message box under the header, not as a chip here.
+export function boardStats(steps, progress) {
   const starts = steps.map((s) => s.start_ms);
   const ends = steps.map((s) => s.start_ms + s.duration_ms);
   const spanMs = steps.length ? Math.max(...ends) - Math.min(...starts) : 0;
@@ -637,7 +642,6 @@ export function boardStats(steps, progress, verdict) {
   return [
     h("span", {}, reviewerCount(steps.length)),
     h("span", {}, `${progress.able} of ${reviewerCount(progress.total)} can approve`),
-    verdict ? h("span", { title: "Decided by fixed rules: a known Rejected or Blocked wins; otherwise a reviewer not reviewed gives Review incomplete." }, `Verdict so far: ${verdict.label}`) : null,
     h("span", { class: "num", title: "Time from the first reviewer starting to the last one finishing. Cost is estimated from token counts at list prices; it is not a bill." },
       `${Math.round(spanMs / 1000)} s · $${cost.toFixed(2)} est.`),
   ].filter(Boolean); // replaceChildren would print an empty slot as the word "null"

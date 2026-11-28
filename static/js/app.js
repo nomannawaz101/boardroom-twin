@@ -375,7 +375,7 @@ function showBoard() {
   els.boardStatus.replaceChildren();
   els.boardTitle.textContent = "The client's board reviewed draft 1";
   els.boardIntro.textContent = boardIntro(round);
-  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress, run.data.verdictLabel));
+  els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress));
   els.boardVerdict.replaceChildren(run.data.verdictLabel ? verdictSoFar(run.data.verdictLabel, round.progress) : "");
   els.scoreboard.replaceChildren(...scoreboard(round, run.data.tracker));
   els.scoreboard.hidden = false;

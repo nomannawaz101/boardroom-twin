@@ -130,9 +130,8 @@ const gate = {
   assert.match(holder.textContent, /2 of 5 reviewers can approve/);
   assert.match(holder.textContent, /9 s · \$0\.02 est\./);
   assert.equal(holder.children.length, 3); // no empty slot when there is no verdict yet
-  const withVerdict = new FakeNode("div");
-  withVerdict.append(...render.boardStats(steps, { able: 2, total: 5 }, { code: "not_ready", label: "Not ready yet" }));
-  assert.match(withVerdict.textContent, /Verdict so far: Not ready yet/);
+  // The verdict so far is shown once, in its box, never as a header chip.
+  assert.doesNotMatch(holder.textContent, /Verdict so far/);
 }
 
 // Partial gate answer, Not reviewed: the answered items, the missing one in words, and Retry.
@@ -221,6 +220,7 @@ const gate = {
 {
   const box = render.verdictSoFar({ code: "not_ready", label: "Not ready yet" }, { able: 2, total: 5 });
   assert.ok(box.className.includes("m-err"));
+  assert.match(box.attrs.title, /a known Rejected or Blocked wins/);
   assert.match(box.textContent, /Verdict so far: Not ready yet2 of 5 reviewers can approve\./);
 }
 
