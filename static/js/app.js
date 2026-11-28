@@ -1,11 +1,15 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, boardPlan, boardStats, deliveryCard, draftSummary, gateCard, h,
+  analystCard, architectCard, boardPlan, boardStats, button, deliveryCard, draftSummary, gateCard, h,
   managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
 import {
-  BRIEF_MAX_CHARS, addBoard, addDraft, addRetriedSeat, hasBoard, hasDraft, run, startRun,
-  stateForServer,
+  bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
+  loopStats, meetingPrep, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
+} from "./render-loop.js";
+import {
+  BRIEF_MAX_CHARS, addBoard, addDraft, addRetriedSeat, addRevision, hasBoard, hasDraft, hasReport,
+  loopStopped, run, setReport, startRun, stateForServer,
 } from "./state.js";
 
 // Errors the user fixes by changing the brief, so they are shown on the brief screen.
@@ -39,22 +43,35 @@ const els = {
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
   scoreBlock: $("score-block"), scoreCards: $("score-cards"),
   gateBlock: $("gate-block"), gateCards: $("gate-cards"), objections: $("objections"),
+  loopTitle: $("loop-title"), loopStats: $("loop-stats"), loopChips: $("loop-chips"),
+  loopRounds: $("loop-rounds"), scoresByRound: $("scores-by-round"), whyStopped: $("why-stopped"),
+  trackerList: $("tracker-list"), loopNext: $("loop-next"),
+  reportStatus: $("report-status"), reportBody: $("report-body"), verdictBanner: $("verdict-banner"),
+  keyNumbers: $("key-numbers"), reportChanges: $("report-changes"), reportProposal: $("report-proposal"),
+  reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportPrototype: $("report-prototype"),
+  newBrief: $("new-brief"),
 };
-const VIEWS = { 1: $("view-brief"), 2: $("view-team"), 3: $("view-board") };
+const VIEWS = {
+  1: $("view-brief"), 2: $("view-team"), 3: $("view-board"), 4: $("view-revisions"), 5: $("view-report"),
+};
+// Steps made before the loop started, so the loop's own calls can be counted.
+let loopStart = 0;
 
 // --- Views and stage bar ---
 
 function stageOpen(n) {
-  return n === 1 || (n === 2 && Boolean(run.data)) || (n === 3 && hasDraft());
+  const open = { 1: true, 2: Boolean(run.data), 3: hasDraft(), 4: hasBoard(), 5: hasBoard() && loopStopped() };
+  return Boolean(open[n]);
 }
 
 function stageDone(n) {
-  return (n === 1 && Boolean(run.data)) || (n === 2 && hasDraft()) || (n === 3 && hasBoard());
+  const done = { 1: Boolean(run.data), 2: hasDraft(), 3: hasBoard(), 4: loopStopped(), 5: hasReport() };
+  return Boolean(done[n]);
 }
 
 function brandLine(stage) {
   if (stage === 1 || !run.data) return "by Lumen Works";
-  const where = stage === 3 ? "board round 1" : "draft 1";
+  const where = { 2: "draft 1", 3: "board round 1", 4: "revisions", 5: "final report" }[stage];
   return `${run.data.case_file.client} · ${where}`;
 }
 
@@ -272,7 +289,10 @@ function showBoard() {
   els.gateCards.replaceChildren(...gates.map(card));
   els.scoreBlock.hidden = scoring.length === 0;
   els.gateBlock.hidden = gates.length === 0;
-  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats));
+  const next = loopStopped()
+    ? { label: "Next: the final report →", onClick: showReport, stopped: true }
+    : { label: "Next: the Bid Manager answers the objections →", onClick: startLoop };
+  els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, next));
   els.objections.hidden = false;
   showView(3);
 }
@@ -295,13 +315,134 @@ async function retrySeat(seatId, event) {
   showBoard();
 }
 
+// --- Stage 4: the revision loop, one Bid Manager round per request ---
+
+function loopSteps() {
+  return run.data.steps.slice(loopStart);
+}
+
+function bidSteps() {
+  return run.data.steps.filter((s) => s.agent === "bid_manager");
+}
+
+function loopTitle() {
+  const answered = new Set(run.data.revisions.flatMap((r) => r.answered));
+  const rounds = run.data.revisions.length;
+  if (!loopStopped()) return "The Bid Manager is answering the objections";
+  if (!rounds) return "Code stopped the loop before a Bid Manager round";
+  return `The Bid Manager answered ${answered.size} ${answered.size === 1 ? "objection" : "objections"} in ${rounds} ${rounds === 1 ? "round" : "rounds"}`;
+}
+
+function renderLoop(running) {
+  const { rounds, revisions, tracker, stop } = run.data;
+  const steps = bidSteps();
+  els.loopTitle.textContent = loopTitle();
+  els.loopStats.replaceChildren(...loopStats(loopSteps()));
+  els.loopChips.replaceChildren(...loopChips(rounds, stop, running));
+  els.loopRounds.replaceChildren(...revisions.map((rev, i) =>
+    bidRoundCard(rev, steps[i], rounds[i], rounds[i + 1], tracker, loopStopped() && i === revisions.length - 1)));
+  els.scoresByRound.replaceChildren(...scoresByRound(rounds), ...gatesByRound(rounds));
+  els.whyStopped.replaceChildren(...whyStopped(stop));
+  els.trackerList.replaceChildren(...trackerList(tracker));
+  els.loopNext.replaceChildren(loopStopped() ? button("Next: the final report →", "btn btn-primary wide-btn", showReport) : "");
+}
+
+async function startLoop() {
+  if (run.busy) return;
+  loopStart = run.data.steps.length;
+  showView(4);
+  renderLoop(true);
+  await nextRound();
+}
+
+async function nextRound() {
+  if (loopStopped()) {
+    renderLoop(false);
+    showView(4);
+    return;
+  }
+  setBusy(true);
+  const roundNo = run.data.revisions.length + 1;
+  const working = workingCard(roundNo, `Bid Manager round ${roundNo}, then the whole board votes again.`);
+  const holder = h("ol", { class: "relay" }, working);
+  els.loopRounds.append(holder);
+  const result = await callApi("/api/revise", { state: stateForServer(), round_no: roundNo });
+  working.stop();
+  setBusy(false);
+  if (result.error) {
+    els.loopChips.replaceChildren(...loopChips(run.data.rounds, run.data.stop, false));
+    holder.replaceChildren(retryCard(roundNo, result.message, () => { holder.remove(); nextRound(); }, () => showView(3)));
+    return;
+  }
+  addRevision(result);
+  renderLoop(!loopStopped());
+  showView(4);
+  if (!loopStopped()) await nextRound();
+}
+
+// --- Stage 5: the final report ---
+
+function downloadRun() {
+  const payload = { ...stateForServer(), report: run.data.report };
+  const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+  const url = URL.createObjectURL(blob);
+  const link = h("a", { href: url, download: `boardroom-twin-run-${run.data.run_id}.json` });
+  document.body.append(link); // some browsers ignore a click on a link that is not on the page
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+}
+
+function renderReport() {
+  const report = run.data.report;
+  els.verdictBanner.replaceChildren(verdictBanner(report, () => window.print(), downloadRun));
+  els.keyNumbers.replaceChildren(...keyNumbers(report.numbers));
+  els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || []));
+  els.reportProposal.replaceChildren(...finalProposal(run.data.claims, run.data.draft_no, run.data.case_file.client));
+  els.reportMemo.replaceChildren(...decisionMemo(report.memo));
+  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client, report.decisions || []));
+  els.reportPrototype.replaceChildren(...prototypeCard());
+  els.reportBody.hidden = false;
+}
+
+async function showReport() {
+  if (run.busy) return;
+  showView(5);
+  if (hasReport()) {
+    renderReport();
+    return;
+  }
+  setBusy(true);
+  els.reportBody.hidden = true;
+  const working = workingCard(1, "Code is assembling the final report.");
+  els.reportStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  const result = await callApi("/api/report", stateForServer());
+  working.stop();
+  setBusy(false);
+  if (result.error) {
+    els.reportStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, showReport, () => showView(4))));
+    return;
+  }
+  els.reportStatus.replaceChildren();
+  setReport(result.report);
+  renderReport();
+  showView(5);
+}
+
 // --- Start up ---
+
+function openStage(n) {
+  if (n === 4) renderLoop(false);
+  if (n === 5 && hasReport()) renderReport();
+  showView(n);
+}
 
 async function init() {
   els.brief.addEventListener("input", updateCounter);
   els.start.addEventListener("click", startLive);
+  els.newBrief.addEventListener("click", () => showView(1));
   for (const step of els.nav.querySelectorAll(".step")) {
-    step.addEventListener("click", () => showView(Number(step.dataset.stage)));
+    step.addEventListener("click", () => openStage(Number(step.dataset.stage)));
   }
   showView(1);
   updateCounter();

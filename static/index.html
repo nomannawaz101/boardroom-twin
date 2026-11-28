@@ -201,6 +201,45 @@
     <section class="card log-card" id="objections" aria-labelledby="obj-h" hidden></section>
   </main>
 
+  <main class="wrap main" id="view-revisions" hidden>
+    <section class="stage-head">
+      <div class="stage-intro">
+        <span class="num eyebrow">STAGE 4 OF 5 · UP TO 2 BID MANAGER ROUNDS</span>
+        <h1 id="loop-title">The Bid Manager is answering the objections</h1>
+        <p>Each round: the Bid Manager changes only what was objected to, then the whole board votes again. Code decides when the loop stops.</p>
+      </div>
+      <div class="stat-chips" id="loop-stats"></div>
+    </section>
+    <div class="loop-chips" id="loop-chips"></div>
+    <div class="two-col">
+      <div class="loop-rounds" id="loop-rounds"></div>
+      <aside class="loop-side">
+        <section class="card side-card" id="scores-by-round"></section>
+        <section class="card side-card" id="why-stopped"></section>
+        <section class="card side-card" id="tracker-list"></section>
+        <div id="loop-next"></div>
+      </aside>
+    </div>
+  </main>
+
+  <main class="wrap main" id="view-report" hidden>
+    <div id="report-status"></div>
+    <div id="report-body" hidden>
+      <div id="verdict-banner"></div>
+      <section class="key-numbers" id="key-numbers" aria-label="Key numbers"></section>
+      <section class="card report-card" id="report-changes"></section>
+      <section class="card proposal-card" id="report-proposal" aria-labelledby="final-h"></section>
+      <div class="two-col">
+        <section class="card log-card memo-card" id="report-memo" aria-labelledby="memo-h"></section>
+        <aside class="card side-card prep-card" id="report-prep"></aside>
+      </div>
+      <section class="card prototype-card" id="report-prototype"></section>
+      <div class="report-foot no-print">
+        <button type="button" class="btn btn-outline small-btn" id="new-brief">Start a new brief</button>
+      </div>
+    </div>
+  </main>
+
   <footer class="site-footer">
     <div class="wrap footer-row">
       <span>Lumen Works is a fictional firm. All client names and briefs are made up.</span>

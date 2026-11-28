@@ -11,7 +11,7 @@ Rules:
 - Never compute a total, a score or a vote: code does that from your ratings.
 - condition: one sentence if you would accept only with a condition, otherwise null.
 - quote: one sentence in your own voice, as your seat would say it in the meeting.
-- previous: an empty list (this is the first round).
+- previous: {previous_rule}
 
 JSON shape:
 {"ratings": [{"criterion": "criterion_id", "rating": 7, "reason": "..."}], "objections": [{"claim_id": "C7", "text": "...", "severity": "blocker", "needs_client": false, "resolve_hint": "..."}], "condition": null, "quote": "...", "previous": []}

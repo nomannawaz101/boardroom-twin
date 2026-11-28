@@ -121,10 +121,10 @@ def test_add_and_assume_get_new_ids() -> None:
     added = apply_change(
         claims, Change(objection_id="O2", action="add", claim_id="C1", text="More.")
     )
-    new = added.claims[-1]
+    new = added.claims[-1]  # code assigns the id; the claim_id the model gave is ignored
     assert (new.id, new.section, new.origin) == (
         next_claim_id(claims),
-        "executive_summary",
+        "proposed_solution",
         "proposal",
     )
     assumed = apply_change(

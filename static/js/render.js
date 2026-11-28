@@ -79,7 +79,7 @@ export function longDate(iso) {
   return text.replace(",", "");
 }
 
-function seconds(ms) {
+export function seconds(ms) {
   return `${(ms / 1000).toFixed(1)} s`;
 }
 
@@ -302,12 +302,12 @@ export function draftSummary(data, onNext) {
   ];
 }
 
-function tagFor(origin) {
+export function tagFor(origin) {
   const tag = TAGS[origin];
   return tag ? h("span", { class: `tag ${tag[1]}` }, tag[0]) : null;
 }
 
-export function proposal(claims) {
+export function proposal(claims, title = "Proposal, draft 1", headingId = "proposal-h") {
   const legend = h("div", { class: "legend" }, "Tags:",
     ...Object.values(TAGS).map(([text, cls]) => h("span", { class: `tag ${cls}` }, text)),
     "Recommendations carry no tag.");
@@ -317,7 +317,7 @@ export function proposal(claims) {
     const list = h("ul", {}, ...items.map((c) => h("li", {}, h("span", { class: "num claim-id" }, c.id), c.text, " ", tagFor(c.origin))));
     return h("div", { class: "sec" }, h("h3", {}, `${i + 1}. ${title}`), list);
   });
-  return [h("h2", { id: "proposal-h" }, "Proposal, draft 1"), legend, ...sections];
+  return [h("h2", { id: headingId }, title), legend, ...sections];
 }
 
 export function stats(steps) {
@@ -366,7 +366,7 @@ export function scoreText(score) {
   return fixed.endsWith("0") ? score.toFixed(1) : fixed;
 }
 
-function decisionPill(result) {
+export function decisionPill(result) {
   const key = result.vote || result.outcome;
   return h("span", { class: `pill ${DECISION_PILLS[key] || "pill-none"}` }, result.decision);
 }
@@ -486,7 +486,7 @@ function trackerPill(item) {
     : h("span", { class: "pill pill-cond" }, "Condition");
 }
 
-export function objectionsLog(tracker, seats) {
+export function objectionsLog(tracker, seats, next = null) {
   const titles = Object.fromEntries(seats.map((s) => [s.seat_id, s.title]));
   const open = tracker.filter((t) => t.status === "open");
   const rows = [...tracker].sort(byTrackerOrder).map((t) => h("tr", {},
@@ -505,8 +505,10 @@ export function objectionsLog(tracker, seats) {
       h("span", { class: "muted small" }, `${open.length} open · O items the proposal can fix, C items only the client can confirm`)),
     table,
     h("div", { class: "log-foot next-row" },
-      h("span", { class: "muted small" }, "The Bid Manager, who answers each objection by its ID, arrives in the next build."),
-      button("Next: the Bid Manager answers the objections →", "btn btn-primary", null, true)),
+      h("span", { class: "muted small" }, next && next.stopped
+        ? "Code stopped the loop here: nothing for the Bid Manager to do."
+        : "The Bid Manager answers each objection by its ID, then the board votes again."),
+      next ? button(next.label, "btn btn-primary", next.onClick) : null),
   ];
 }
 

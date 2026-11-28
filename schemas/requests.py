@@ -18,3 +18,10 @@ class SeatRetryRequest(BaseModel):
 
     state: RunState
     seat_id: str
+
+
+class RevisionRequest(BaseModel):
+    """One Bid Manager round: `round_no` must be the next round (1 or 2)."""
+
+    state: RunState
+    round_no: int

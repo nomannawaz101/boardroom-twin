@@ -4,6 +4,7 @@ A model can never edit a calculated claim; every rebuild recreates them from the
 """
 
 import math
+import re
 from dataclasses import dataclass
 from datetime import date
 from typing import Literal, get_args
@@ -11,12 +12,11 @@ from typing import Literal, get_args
 import config
 from domain.cost import weeks_to_days
 from schemas.answers import Change
-from schemas.claims import Claim, DraftClaim, Section
+from schemas.claims import ASSUMPTION_PREFIX, Claim, DraftClaim, Section
 from schemas.cost import CostEstimate, PhaseEffort
 from schemas.timeline import Schedule
 
 CLAIM_PREFIX = "C"
-ASSUMPTION_PREFIX = "Confirm with the client: "
 # The on-screen tags (plan section 7.2). Recommendations carry no tag.
 ORIGIN_TAGS: dict[str, str] = {
     "brief": "FROM BRIEF",
@@ -26,9 +26,35 @@ ORIGIN_TAGS: dict[str, str] = {
 COST_SECTION: Section = "team_cost"
 TIMELINE_SECTION: Section = "timeline"
 DEFAULT_ADD_SECTION: Section = "proposed_solution"
+PROTECTED_ORIGINS = ("brief", "calculated")
+PROTECTED_SECTIONS: tuple[Section, ...] = ("team_cost", "timeline")
+NOT_WORD_OR_SPACE = re.compile(r"[^\w\s]")
+# A sentence that sets a commercial fact: the contract type or a cap, a rate or price, an
+# amount of money, a number of people or of days, weeks or months, or a calendar date. Words
+# such as "cost" or "engineer-days" alone are fine: "a change request states the effect on
+# engineer-days and cost" is our own term, not a new figure.
+NUMBER_WORD = r"(?:\d[\d,.]*|one|two|three|four|five|six|seven|eight|nine|ten|twelve)"
+MONTH = r"(?:jan|feb|mar|apr|may|jun|jul|aug|sep|sept|oct|nov|dec)[a-z]*\.?"
+COMMERCIAL_FACT = re.compile(
+    r"fixed[- ]price|time[- ]and[- ]materials|\bt&m\b|not[- ]to[- ]exceed|\bcap(?:ped)?\b"
+    r"|\bceiling\b|\bdiscount|\bfirm price\b|\bcontract type\b"
+    r"|\b(?:day|daily|hourly)\s+rates?\b|\brates?\s+(?:of|to|at|drops?|falls?)\b"
+    r"|\bper\s+(?:engineer-)?(?:day|hour)\b"
+    r"|\b(?:lower|reduced?|new|total)\s+(?:price|cost|fee)\b"
+    r"|[$€£]\s?\d|\b\d[\d,.]*\s?(?:usd|eur|gbp|k)\b"
+    rf"|\b{NUMBER_WORD}\s+(?:more\s+|extra\s+|additional\s+|fewer\s+)?"
+    r"(?:engineers?|people|developers?|ftes?|weeks?|months?|days?|working days|engineer-days?)\b"
+    rf"|\b{MONTH}\s+\d{{1,2}}\b|\b\d{{1,2}}\s+{MONTH}(?=\s|$|[,.])|\b{MONTH}\s+\d{{4}}\b"
+    r"|\b\d{4}-\d{2}-\d{2}\b",
+    re.IGNORECASE,
+)
+CAP_TERMS = re.compile(r"\b(?:cap|capped|ceiling)\b|not[- ]to[- ]exceed", re.IGNORECASE)
+CONTRACT_WORDS = {"fixed": "fixed price", "tm": "time and materials"}
+COMMERCIAL_MODEL_TEXT = "The commercial model is {kind}."
+UNKNOWN_MODEL = "the commercial model (fixed price or time and materials)."
 MISSING_COST = "the day rate and team size, so the cost can be calculated."
 MISSING_START = "the start date, so the dates can be calculated."
-HOLIDAYS_NOT_CHECKED = "the dates count weekends only; local public holidays are not checked yet."
+HOLIDAYS_NOT_CHECKED = "the dates count weekdays only; public holidays are not checked yet."
 DURATION_TEXT = (
     "Duration: {weeks} ({days} working days) from the start date. Start date to confirm."
 )
@@ -46,7 +72,7 @@ SECTION_TITLES: dict[Section, str] = {
     "next_steps": "Next steps",
 }
 
-RefusalReason = Literal["locked", "unknown_claim"]
+RefusalReason = Literal["locked", "unknown_claim", "protected", "duplicate"]
 CalculatedText = tuple[Section, str]
 
 
@@ -208,16 +234,21 @@ def assemble_claims(
     claims: list[Claim] = []
     for draft in drafts:
         origin = "derived" if draft.origin == "calculated" else draft.origin
-        claim = Claim(
-            id=next_claim_id(claims),
-            section=draft.section,
-            text=draft.text,
-            origin=origin,
-            quote=draft.quote,
+        claim = tagged(
+            Claim(
+                id=next_claim_id(claims),
+                section=draft.section,
+                text=draft.text,
+                origin=origin,
+                quote=draft.quote,
+            )
         )
+        if claim.origin == "assumption" and has_assumption(claims, claim.text):
+            continue  # the same assumption once is enough
         claims.append(claim)
     for gap in code_assumptions(estimate, schedule):
-        claims.append(assumption_claim(next_claim_id(claims), gap))
+        if not has_assumption(claims, gap):
+            claims.append(assumption_claim(next_claim_id(claims), gap))
     for section, text in calculated_texts(estimate, schedule, efforts):
         claims.append(locked_claim(next_claim_id(claims), section, text))
     return fill_empty_sections(claims)
@@ -248,24 +279,105 @@ def find_claim(claims: list[Claim], claim_id: str | None) -> Claim | None:
     return next((c for c in claims if c.id == claim_id), None)
 
 
-def apply_change(claims: list[Claim], change: Change) -> ChangeOutcome:
-    """Apply one Bid Manager change. Locked claims and unknown ids are refused, never edited."""
-    target = find_claim(claims, change.claim_id)
+def normalize_text(text: str) -> str:
+    """For spotting near-identical texts: lower case, no punctuation, no "Confirm with the
+    client:" prefix, single spaces."""
+    plain = text.strip().removeprefix(ASSUMPTION_PREFIX.strip()).lower()
+    plain = plain.removeprefix(ASSUMPTION_PREFIX.strip().lower())
+    return " ".join(NOT_WORD_OR_SPACE.sub(" ", plain).split())
+
+
+def states_commercial_fact(text: str) -> bool:
+    """True when a sentence is about contract type, rate, price, cost, team size or dates."""
+    return COMMERCIAL_FACT.search(text) is not None
+
+
+def is_protected(claim: Claim) -> bool:
+    """Claims the Bid Manager may never replace or remove: the client's own facts, code's
+    numbers, and anything about the commercial terms or the dates."""
+    return (
+        claim.locked
+        or claim.origin in PROTECTED_ORIGINS
+        or claim.section in PROTECTED_SECTIONS
+        or states_commercial_fact(claim.text)
+    )
+
+
+def tagged(claim: Claim) -> Claim:
+    """A claim in Assumptions, or starting "Confirm with the client:", is an assumption and
+    shows the TO CONFIRM tag. Calculated claims never change."""
+    is_assumption = claim.section == "assumptions" or claim.text.strip().lower().startswith(
+        ASSUMPTION_PREFIX.strip().lower()
+    )
+    if claim.locked or claim.origin == "assumption" or not is_assumption:
+        return claim
+    return claim.model_copy(update={"origin": "assumption", "quote": None})
+
+
+def honest_commercial_model(
+    claims: list[Claim], contract_type: str | None, brief: str
+) -> list[Claim]:
+    """A cap, ceiling or not-to-exceed the brief never mentions is invented: such a claim
+    becomes the plain contract type from the brief's flag, or an assumption if it is unclear."""
+    if CAP_TERMS.search(brief):
+        return claims
+    kind = CONTRACT_WORDS.get(contract_type or "")
+    honest = []
+    for claim in claims:
+        if claim.locked or not CAP_TERMS.search(claim.text):
+            honest.append(claim)
+        elif kind is not None:
+            text = COMMERCIAL_MODEL_TEXT.format(kind=kind)
+            honest.append(
+                claim.model_copy(update={"text": text, "origin": "derived", "quote": None})
+            )
+        else:
+            update = {
+                "text": ASSUMPTION_PREFIX + UNKNOWN_MODEL,
+                "origin": "assumption",
+                "quote": None,
+            }
+            honest.append(claim.model_copy(update=update))
+    return honest
+
+
+def has_assumption(claims: list[Claim], text: str) -> bool:
+    wanted = normalize_text(text)
+    return any(c.origin == "assumption" and normalize_text(c.text) == wanted for c in claims)
+
+
+def apply_change(
+    claims: list[Claim], change: Change, fallback: Section | None = None
+) -> ChangeOutcome:
+    """Apply one Bid Manager change. Locked, protected and unknown claims are refused, never
+    edited; commercial facts can only arrive as an assumption ("Confirm with the client: ...").
+    `fallback` is the section of the claim the objection points to, for an added statement."""
+    # "add" and "assume" make a new claim: code assigns its id, so any claim_id is ignored.
+    target = find_claim(claims, change.claim_id) if change.action in ("replace", "remove") else None
     if change.action in ("replace", "remove"):
         if target is None:
             return ChangeOutcome(claims, refused="unknown_claim")
         if target.locked:
             return ChangeOutcome(claims, refused="locked")
-        if change.action == "remove":
-            return ChangeOutcome([c for c in claims if c.id != target.id])
-        updated = target.model_copy(
-            update={"text": change.text, "origin": "proposal", "quote": None}
+        if is_protected(target):
+            return ChangeOutcome(claims, refused="protected")
+    if change.action in ("replace", "add") and states_commercial_fact(change.text):
+        return ChangeOutcome(claims, refused="protected")
+    if change.action == "remove" and target is not None:
+        return ChangeOutcome([c for c in claims if c.id != target.id])
+    if change.action == "replace" and target is not None:
+        updated = tagged(
+            target.model_copy(update={"text": change.text, "origin": "proposal", "quote": None})
         )
         return ChangeOutcome([updated if c.id == target.id else c for c in claims])
-    return ChangeOutcome([*claims, new_claim(claims, change, target)])
+    if change.action == "assume" and has_assumption(claims, change.text):
+        return ChangeOutcome(claims, refused="duplicate")
+    return ChangeOutcome([*claims, new_claim(claims, change, None, fallback)])
 
 
-def new_claim(claims: list[Claim], change: Change, near: Claim | None) -> Claim:
+def new_claim(
+    claims: list[Claim], change: Change, near: Claim | None, fallback: Section | None = None
+) -> Claim:
     if change.action == "assume":
         text = change.text.removeprefix(ASSUMPTION_PREFIX)
         return Claim(
@@ -274,5 +386,7 @@ def new_claim(claims: list[Claim], change: Change, near: Claim | None) -> Claim:
             text=ASSUMPTION_PREFIX + text,
             origin="assumption",
         )
-    section = near.section if near is not None else DEFAULT_ADD_SECTION
-    return Claim(id=next_claim_id(claims), section=section, text=change.text, origin="proposal")
+    near_section = near.section if near is not None else None
+    section = change.section or fallback or near_section or DEFAULT_ADD_SECTION
+    claim = Claim(id=next_claim_id(claims), section=section, text=change.text, origin="proposal")
+    return tagged(claim)
