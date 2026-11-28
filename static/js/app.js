@@ -7,7 +7,7 @@ import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
   loopStats, meetingPrep, objectionsTable, scoreMoves, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
-import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount } from "./labels.js";
+import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, stepName } from "./labels.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
 } from "./render-shell.js";
@@ -116,7 +116,8 @@ function factRows() {
 }
 
 function railSteps(stage) {
-  const steps = run.data ? run.data.steps : [];
+  const plan = run.data ? run.data.board_plan : null;
+  const steps = (run.data ? run.data.steps : []).map((s) => ({ ...s, label: stepName(s, plan) }));
   if (stage === 2) return steps.filter((s) => s.stage <= 2);
   if (stage === 3) return steps.filter((s) => s.stage === 3);
   if (stage === 4) {

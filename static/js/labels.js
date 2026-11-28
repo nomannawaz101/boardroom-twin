@@ -137,6 +137,13 @@ export function roleName(agentId, fallback) {
   return ROLES[agentId] || fallback;
 }
 
+// One name per reviewer on every screen: once the board plan is known, a seat's step shows the
+// seat title the board shows; before that, and for every other agent, the role label.
+export function stepName(step, plan) {
+  const seat = plan && plan.seats ? plan.seats.find((s) => s.id === step.agent) : null;
+  return seat ? seat.title : roleName(step.agent, codeText(step.label));
+}
+
 // Code-written server text (step labels, summaries, handoff lines, stop lines, report notes)
 // in the words the user sees. Model-written text never passes through here.
 const CODE_TEXT = [

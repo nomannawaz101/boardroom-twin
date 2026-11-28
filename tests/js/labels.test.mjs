@@ -32,4 +32,13 @@ assert.equal(labels.MODES.Full, "Live run");
 assert.equal(labels.reviewerCount(1), "1 reviewer");
 assert.equal(labels.statementCount(17), "17 statements");
 
+// One name per reviewer: the seat title once the plan is known, the role label otherwise.
+{
+  const plan = { seats: [{ id: "vp_director", title: "VP, Customer Support" }] };
+  assert.equal(labels.stepName({ agent: "vp_director", label: "VP or Director" }, plan), "VP, Customer Support");
+  assert.equal(labels.stepName({ agent: "vp_director", label: "VP or Director" }, null), "VP or Director");
+  assert.equal(labels.stepName({ agent: "bid_manager", label: "Bid Manager" }, plan), "Revision Editor");
+  assert.equal(labels.stepName({ agent: "business_analyst", label: "Business Analyst" }, plan), "Business Analyst");
+}
+
 process.stdout.write("labels: all checks passed\n");
