@@ -58,10 +58,10 @@ const gate = {
   let retried = false;
   const card = render.scoreCard(notReviewed, undefined, () => { retried = true; });
   assert.match(card.textContent, /Not reviewed/);
-  assert.match(card.textContent, /other seats' votes still count/);
+  assert.match(card.textContent, /This reviewer did not answer\. The Enterprise Architect is shown as not reviewed\. The other reviewers' votes still count\./);
   const buttons = byTag(card, "button");
   assert.equal(buttons.length, 1);
-  assert.equal(buttons[0].textContent, "Retry this seat");
+  assert.equal(buttons[0].textContent, "Retry this reviewer");
   buttons[0].listeners.click();
   assert.equal(retried, true);
   assert.equal(byClass(card, "bar").length, 0);
@@ -70,8 +70,8 @@ const gate = {
 // Not reviewed gate: its own wording.
 {
   const card = render.gateCard({ ...notReviewed, seat_id: "security", kind: "gate", title: "Security Officer" }, undefined, () => {});
-  assert.match(card.textContent, /this gate cannot pass/);
-  assert.equal(byTag(card, "button")[0].textContent, "Retry this seat");
+  assert.match(card.textContent, /This sign-off check is not reviewed\. Until the Security Officer answers, it cannot sign off\./);
+  assert.equal(byTag(card, "button")[0].textContent, "Retry this reviewer");
 }
 
 // Gate seat: MUST marks, status words and icons that say the status in words too.
@@ -98,9 +98,9 @@ const gate = {
   holder.append(...parts);
   const rows = byTag(holder, "tr");
   assert.equal(rows.length, 4); // header + 3 rows
-  assert.deepEqual(rows.slice(1).map((r) => r.children[0].textContent), ["O1", "O2", "C1"]);
+  assert.deepEqual(rows.slice(1).map((r) => r.children[0].textContent), ["#1", "#2", "Q1"]);
   const text = holder.textContent;
-  for (const word of ["Blocker", "Condition", "Client to confirm", "3 open", "(C7)", "Security Officer"]) {
+  for (const word of ["Blocker", "Condition", "Ask the client", "3 open", "(S7)", "Security Officer"]) {
     assert.ok(text.includes(word), `missing: ${word}`);
   }
 }
@@ -126,8 +126,8 @@ const gate = {
   ];
   const holder = new FakeNode("div");
   holder.append(...render.boardStats(steps, { able: 2, total: 5 }));
-  assert.match(holder.textContent, /2 seats/);
-  assert.match(holder.textContent, /2 of 5 can proceed/);
+  assert.match(holder.textContent, /2 reviewers/);
+  assert.match(holder.textContent, /2 of 5 reviewers can approve/);
   assert.match(holder.textContent, /9 s · \$0\.02 est\./);
   assert.equal(holder.children.length, 3); // no empty slot when there is no verdict yet
   const withVerdict = new FakeNode("div");
@@ -156,7 +156,7 @@ const gate = {
   assert.deepEqual(byClass(card, "ic").map((n) => n.attrs["aria-label"]), ["Met", "Not answered", "Met"]);
   const buttons = byTag(card, "button");
   assert.equal(buttons.length, 1);
-  assert.equal(buttons[0].textContent, "Retry this seat");
+  assert.equal(buttons[0].textContent, "Retry this reviewer");
   buttons[0].listeners.click();
   assert.equal(retried, true);
 }
@@ -173,7 +173,7 @@ const gate = {
   };
   const card = render.gateCard(blocked, undefined, () => {});
   assert.match(card.textContent, /Blocked/);
-  assert.match(card.textContent, /A must-have it answered Not met blocks anyway/);
+  assert.match(card.textContent, /A required item it answered Not met blocks anyway/);
   assert.equal(byTag(card, "button").length, 0);
 }
 
@@ -210,9 +210,9 @@ const gate = {
   list.append(...render.fixFirst(tracker, seats));
   const items = byTag(list, "li").map((li) => li.textContent);
   assert.deepEqual(items, [
-    "O3 (Security Officer, blocker): Access control",
-    "O2 (CFO, seat below its needed score, needs a Lumen Works decision): Smaller step",
-    "O1 (VP): Peak week",
+    "#3 (Security Officer, blocker): Access control",
+    "#2 (CFO, reviewer below its needed score, needs your decision): Smaller step",
+    "#1 (VP): Peak week",
   ]);
   assert.equal(render.fixFirst([], seats).length, 0);
 }
@@ -221,7 +221,7 @@ const gate = {
 {
   const box = render.verdictSoFar({ code: "not_ready", label: "Not ready yet" }, { able: 2, total: 5 });
   assert.ok(box.className.includes("m-err"));
-  assert.match(box.textContent, /Verdict so far: Not ready yet2 of 5 seats can proceed\./);
+  assert.match(box.textContent, /Verdict so far: Not ready yet2 of 5 reviewers can approve\./);
 }
 
 process.stdout.write("board screen: all checks passed\n");

@@ -1,9 +1,10 @@
 // The page shell: stage list states, the Agent activity rail and short model labels. Every value
 // shown comes from the step records the server measured; AI text goes in as text nodes.
 
+import { ROLES, codeText } from "./labels.js";
 import { h, modelTitle, seconds, shortModel } from "./render.js";
 
-const IDLE_AGENTS = ["Business Analyst", "Solution Architect", "Delivery Manager", "Proposal Manager"];
+const IDLE_AGENTS = ["Business Analyst", "Solution Architect", "Delivery Manager", ROLES.proposal_manager];
 export const ACTIVITY_KEY = "boardroom-twin.activity";
 
 export function stageState(n, current, done) {
@@ -33,7 +34,7 @@ function stepItem(step) {
   const model = h("span", { class: "rail-model", title: modelTitle(step) }, shortModel(step));
   const status = step.status === "not_reviewed" ? "Not reviewed" : step.status === "failed" ? "Failed" : "Done";
   return h("li", {},
-    h("span", { class: "rail-name" }, step.label),
+    h("span", { class: "rail-name" }, codeText(step.label)),
     h("span", { class: "rail-st" }, `${status}, ${seconds(step.duration_ms)}, `, model,
       tools ? `, ${plural(tools, "tool", "tools")}` : ""));
 }

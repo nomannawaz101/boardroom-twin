@@ -62,17 +62,17 @@
       <div class="card how-card">
         <span class="num eyebrow">STEP 1</span>
         <strong>Proposal team drafts</strong>
-        <span>Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Manager hand work to each other</span>
+        <span data-text="step-1">Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Writer hand work to each other</span>
       </div>
       <div class="card how-card">
         <span class="num eyebrow">STEP 2</span>
         <strong>Client board reviews</strong>
-        <span>3 to 5 seats chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
+        <span data-text="step-2">3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
       </div>
       <div class="card how-card">
         <span class="num eyebrow">STEP 3</span>
-        <strong>Bid Manager revises</strong>
-        <span>Up to two rounds. A QA Reviewer blocks invented claims. The board votes again</span>
+        <strong data-text="step-3-title">Revision Editor revises</strong>
+        <span data-text="step-3">Up to two rounds. A Fact Checker blocks invented statements. The board votes again</span>
       </div>
       <div class="card how-card">
         <span class="num eyebrow">STEP 4</span>
@@ -192,7 +192,7 @@
     <ol class="relay" id="relay" aria-label="Agent steps"></ol>
     <section class="card draft-card" id="draft-summary" aria-labelledby="draft-h" hidden></section>
     <details class="card proposal-details" id="proposal-details" hidden>
-      <summary class="proposal-toggle">Read the full draft 1, claim by claim, with tags</summary>
+      <summary class="proposal-toggle" data-text="full-draft">Read the full draft 1, statement by statement, with tags</summary>
       <section class="proposal-card" id="proposal" aria-labelledby="proposal-h" hidden></section>
     </details>
   </main>
@@ -202,7 +202,7 @@
       <div class="stage-intro">
         <span class="num eyebrow">STAGE 3 OF 5 · BOARD ROUND 1</span>
         <h1 id="board-title">The client's board is reviewing draft 1</h1>
-        <p id="board-intro">Code picked the board from the brief. Every seat reviews the draft at the same time, and code turns their answers into votes.</p>
+        <p id="board-intro" data-text="board-intro">Fixed rules picked the board from the brief. Every reviewer reads the draft at the same time, and fixed rules turn their answers into votes.</p>
       </div>
       <div class="stat-chips" id="board-stats"></div>
     </section>
@@ -212,12 +212,12 @@
     <section class="board-block" id="score-block" aria-labelledby="scores-h" hidden>
       <div class="block-head"><h2 id="scores-h">Round 1 · scores</h2><span class="muted small">Ran at the same time · the tick on each bar is the score needed</span></div>
       <div class="seat-grid" id="score-cards"></div>
-      <p class="code-note"><strong>Decided by code, not AI:</strong> score = sum of rating × weight. Below the needed score → Rejected. At or above it with anything still open → Yes, with a condition. Otherwise → Approved.</p>
+      <p class="code-note"><strong>Decided by fixed rules, not AI:</strong> score = sum of rating × weight. Below the needed score → Rejected. At or above it with anything still open → Yes, with a condition. Otherwise → Approved.</p>
     </section>
     <section class="board-block" id="gate-block" aria-labelledby="gates-h" hidden>
-      <div class="block-head"><h2 id="gates-h">Round 1 · gates</h2><span class="muted small">Gatekeepers answer three checklist questions. They do not give a score.</span></div>
+      <div class="block-head"><h2 id="gates-h" data-text="gates-title">Round 1 · sign-off checks</h2><span class="muted small" data-text="gates-intro">Sign-off reviewers answer three checklist questions. They do not give a score.</span></div>
       <div class="seat-grid gates" id="gate-cards"></div>
-      <p class="code-note"><strong>Decided by code, not AI:</strong> "Not met" on a must-have → Blocked. Any "Partly", or "Not met" on another item → Pass, with conditions. All "Met" → Pass.</p>
+      <p class="code-note"><strong>Decided by fixed rules, not AI:</strong> <span data-text="gates-rule">"Not met" on a required item → Blocked. Any "Partly", or "Not met" on another item → Signed off, with conditions. All "Met" → Signed off.</span></p>
     </section>
     <section class="card log-card" id="objections" aria-labelledby="obj-h" hidden></section>
     <section class="card fix-card" id="fix-first" hidden></section>
@@ -227,9 +227,9 @@
   <main class="main" id="view-revisions" hidden>
     <section class="stage-head">
       <div class="stage-intro">
-        <span class="num eyebrow">STAGE 4 OF 5 · UP TO 2 BID MANAGER ROUNDS</span>
-        <h1 id="loop-title">The Bid Manager is answering the objections</h1>
-        <p>Each round: the Bid Manager changes only what was objected to, then the whole board votes again. Code decides when the loop stops.</p>
+        <span class="num eyebrow" data-text="loop-eyebrow">STAGE 4 OF 5 · UP TO 2 REVISION ROUNDS</span>
+        <h1 id="loop-title" data-text="loop-title">The Revision Editor is answering the objections</h1>
+        <p data-text="loop-intro">Each round: the Revision Editor changes only what was objected to, then the whole board votes again. Fixed rules decide when the loop stops.</p>
       </div>
       <div class="stat-chips" id="loop-stats"></div>
     </section>

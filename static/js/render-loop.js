@@ -2,8 +2,11 @@
 // text goes in as text nodes (guard G12). Every number shown was computed by code.
 
 import {
-  button, decisionPill, h, handLine, modelChip, proposal, scoreText, seconds,
+  button, decisionPill, decisionText, h, handLine, modelChip, proposal, scoreText, seconds,
 } from "./render.js";
+import {
+  OUTCOMES, ROLES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
+} from "./labels.js";
 
 const GATE_CLASSES = { pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad" };
 const VERDICT_CLASSES = {
@@ -12,19 +15,19 @@ const VERDICT_CLASSES = {
 };
 const ACTION_WORDS = { replace: "Changed", remove: "Removed", add: "Added", assume: "Assumption" };
 const REFUSAL_WORDS = {
-  locked: "a calculated claim is locked",
-  unknown_claim: "no such claim",
+  locked: "a calculated statement is locked",
+  unknown_claim: "no such statement",
   unknown_objection: "no open objection with that id",
   empty: "no text",
   client_only: "only the client can settle this, so it can only be an assumption",
-  protected: "commercial facts, dates and brief claims can only change through an assumption",
+  protected: "commercial facts, dates and brief statements can only change through an assumption",
   duplicate: "the same assumption is already in the proposal",
 };
 
 function notAnsweredRow(id) {
   return h("div", { class: "change refused" },
-    h("span", { class: "num change-id" }, id),
-    h("span", { class: "muted" }, "Not answered by the Bid Manager."));
+    h("span", { class: "num change-id" }, objectionId(id)),
+    h("span", { class: "muted" }, `Not answered by the ${ROLES.bid_manager}.`));
 }
 
 function plural(count, one, many) {
@@ -37,15 +40,15 @@ export function loopChips(rounds, stop, running) {
   const chips = [];
   rounds.forEach((round, i) => {
     const text = i === 0
-      ? `Board round 1: ${round.progress.able} of ${round.progress.total} can proceed`
-      : `Bid round ${i} → Board round ${round.no}: ${round.progress.able} of ${round.progress.total}`;
+      ? `Board round 1: ${round.progress.able} of ${reviewerCount(round.progress.total)} can approve`
+      : `Revision round ${i} → Board round ${round.no}: ${round.progress.able} of ${round.progress.total}`;
     if (i) chips.push(h("span", { class: "loop-arrow", "aria-hidden": "true" }, "→"));
     chips.push(h("span", { class: "loop-chip" }, text));
   });
   chips.push(h("span", { class: "loop-arrow", "aria-hidden": "true" }, "→"));
   chips.push(stop && stop.stopped
     ? h("span", { class: "loop-chip loop-stop" }, "Stopped by code")
-    : h("span", { class: "loop-chip" }, running ? "Bid Manager working…" : "Next round"));
+    : h("span", { class: "loop-chip" }, running ? `${ROLES.bid_manager} working…` : "Next round"));
   return chips;
 }
 
@@ -54,28 +57,28 @@ export function loopChips(rounds, stop, running) {
 function changeRow(change) {
   if (change.outcome !== "applied") {
     return h("div", { class: "change refused" },
-      h("span", { class: "num change-id" }, change.objection_id),
-      h("span", { class: "muted" }, `Refused by code: ${REFUSAL_WORDS[change.outcome]}${change.claim_id ? ` (${change.claim_id})` : ""}.`));
+      h("span", { class: "num change-id" }, objectionId(change.objection_id)),
+      h("span", { class: "muted" }, `Refused by code: ${REFUSAL_WORDS[change.outcome]}${change.claim_id ? ` (${statementId(change.claim_id)})` : ""}.`));
   }
   const old = change.old_text ? h("del", { class: "old-text" }, change.old_text) : null;
   const next = change.new_text ? h("span", {}, change.new_text) : h("span", { class: "muted" }, "Removed.");
   return h("div", { class: "change" },
-    h("span", { class: "num change-id" }, change.objection_id),
+    h("span", { class: "num change-id" }, objectionId(change.objection_id)),
     h("div", { class: "change-body" },
       h("span", { class: "change-action" }, ACTION_WORDS[change.action]),
       old, next));
 }
 
 function seatNote(seat, tracker) {
-  if (seat.status === "not_reviewed") return "Did not answer; retry the seat.";
-  const open = tracker.filter((t) => t.seat === seat.seat_id && t.status === "open").map((t) => t.id);
+  if (seat.status === "not_reviewed") return `${WORDS.notAnswered} Retry the reviewer.`;
+  const open = tracker.filter((t) => t.seat === seat.seat_id && t.status === "open").map((t) => objectionId(t.id));
   if (seat.condition) return `${seat.condition}${open.length ? ` (${open.join(", ")})` : ""}`;
   return open.length ? `Still open: ${open.join(", ")}` : "Nothing open.";
 }
 
 function voteRow(seat, before, tracker) {
   const score = seat.kind === "gate"
-    ? h("span", { class: "gate-tag" }, "gate")
+    ? h("span", { class: "gate-tag" }, WORDS.signOffShort)
     : `${before && before.score !== null && before.score !== undefined ? scoreText(before.score) : "—"} → ${seat.score === null || seat.score === undefined ? "—" : scoreText(seat.score)}`;
   return h("div", { class: "vote-row" },
     h("strong", {}, seat.title),
@@ -85,19 +88,19 @@ function voteRow(seat, before, tracker) {
 }
 
 export function bidRoundCard(bidRound, step, before, after, tracker, stopped) {
-  const answered = bidRound.answered.length ? `answered ${bidRound.answered.join(", ")}` : "answered nothing";
+  const answered = bidRound.answered.length ? `answered ${bidRound.answered.map(objectionId).join(", ")}` : "answered nothing";
   const previous = Object.fromEntries(before.seats.map((s) => [s.seat_id, s]));
   const open = tracker.filter((t) => t.status === "open");
-  const objections = open.filter((t) => t.kind === "O").map((t) => t.id);
+  const objections = open.filter((t) => t.kind === "O").map((t) => objectionId(t.id));
   const conditions = open.filter((t) => t.kind === "C").length;
   const handBack = stopped || !open.length
     ? null
-    : handLine(`Hands to Bid Manager: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
+    : handLine(`Hands to ${ROLES.bid_manager}: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
   // Two cards per round (design v12): what the Bid Manager changed, then the board's vote on it.
   return h("div", { class: "round-pair" },
     h("article", { class: "card round-card" },
       h("div", { class: "agent-head" },
-        h("strong", {}, `Bid Manager · round ${bidRound.no}`),
+        h("strong", {}, `${ROLES.bid_manager} · round ${bidRound.no}`),
         step ? modelChip(step) : null,
         h("span", { class: "num agent-time" }, `${step ? seconds(step.duration_ms) : ""} · ${answered}`)),
       h("div", { class: "change-list" }, ...bidRound.changes.map(changeRow),
@@ -143,19 +146,19 @@ export function gatesByRound(rounds) {
       const result = round.seats.find((s) => s.seat_id === gate.seat_id);
       if (i) chips.push(h("span", { class: "loop-arrow", "aria-hidden": "true" }, "→"));
       const cls = result && result.outcome ? GATE_CLASSES[result.outcome] : "pill-none";
-      chips.push(h("span", { class: `pill ${cls}`, title: result ? result.decision : "" }, `R${round.no}: ${result ? result.decision : "—"}`));
+      chips.push(h("span", { class: `pill ${cls}`, title: result ? decisionText(result) : "" }, `R${round.no}: ${result ? decisionText(result) : "—"}`));
     });
     return h("div", { class: "gate-round" }, h("span", {}, gate.title), h("div", { class: "chips" }, ...chips));
   });
-  return [h("h2", { class: "sub-h" }, "Gates by round"), ...rows];
+  return [h("h2", { class: "sub-h" }, `${WORDS.signOffTitle} by round`), ...rows];
 }
 
 export function whyStopped(stop) {
   if (!stop || !stop.stopped) return [h("h2", {}, "The loop is still running")];
   return [
     h("h2", {}, "Why the loop stopped"),
-    h("div", { class: "msg m-info" }, h("ul", { class: "why-list" }, ...stop.lines.map((line) => h("li", {}, line)))),
-    h("p", { class: "muted small" }, "Code decides when the loop stops, never an agent: every seat can proceed, the scores stop improving, the round limit is reached, or the cost guard trips."),
+    h("div", { class: "msg m-info" }, h("ul", { class: "why-list" }, ...stop.lines.map((line) => h("li", {}, codeText(line))))),
+    h("p", { class: "muted small" }, "Fixed rules decide when the loop stops, never an agent: every reviewer can approve, the scores stop improving, the round limit is reached, or the cost guard trips."),
   ];
 }
 
@@ -163,12 +166,12 @@ function trackerStatus(item) {
   if (item.status === "fixed") {
     const fixedIn = item.history.find((entry) => entry.state === "resolved");
     const bid = fixedIn ? fixedIn.round - 1 : null;
-    return h("span", { class: "pill pill-good" }, bid ? `Fixed R${bid}` : "Fixed");
+    return h("span", { class: "pill pill-good" }, bid ? STATUS.resolvedIn(bid) : STATUS.resolved);
   }
-  if (item.kind === "C") return h("span", { class: "pill pill-cond" }, "Confirm");
-  if (item.decision) return h("span", { class: "pill pill-bad" }, "Needs a Lumen Works decision");
-  if (item.answered_in.length) return h("span", { class: "pill pill-cond" }, "Answered");
-  return h("span", { class: "pill pill-bad" }, "Open");
+  if (item.kind === "C") return h("span", { class: "pill pill-cond" }, STATUS.askClient);
+  if (item.decision) return h("span", { class: "pill pill-bad" }, STATUS.decision);
+  if (item.answered_in.length) return h("span", { class: "pill pill-cond" }, STATUS.awaiting);
+  return h("span", { class: "pill pill-bad" }, STATUS.open);
 }
 
 export function trackerList(tracker) {
@@ -176,10 +179,10 @@ export function trackerList(tracker) {
   return [
     h("h2", {}, "Objection tracker"),
     h("div", { class: "tracker-list" }, ...ordered.map((t) => h("div", { class: "tracker-row" },
-      h("span", { class: "num tracker-id" }, t.id),
+      h("span", { class: "num tracker-id" }, objectionId(t.id)),
       h("span", { class: "tracker-text" }, t.text),
       h("span", { class: "tracker-status" }, trackerStatus(t))))),
-    h("p", { class: "muted small" }, "An objection counts as fixed only after the seat that raised it has read the new text and agreed. \"Answered\" means the Bid Manager changed the proposal; the seat has not agreed yet."),
+    h("p", { class: "muted small" }, `An objection counts as resolved only after the reviewer who raised it has read the new text and agreed. "${STATUS.awaiting}" means the ${ROLES.bid_manager} changed the proposal; the reviewer has not agreed yet.`),
   ];
 }
 
@@ -202,11 +205,11 @@ export function objectionsTable(tracker, seats, revisions) {
       ? h("div", { class: "what-changed" },
           h("span", { class: `chk-chip ${CHANGE_CHIPS[change.action]}` }, ACTION_WORDS[change.action]),
           h("span", { class: "one-line", title: text }, text))
-      : h("span", { class: "muted" }, "Not changed by the Bid Manager");
+      : h("span", { class: "muted" }, `Not changed by the ${ROLES.bid_manager}`);
     return h("tr", {},
-      h("td", { class: "num" }, h("strong", {}, t.id)),
+      h("td", { class: "num" }, h("strong", {}, objectionId(t.id))),
       h("td", {}, titles[t.seat] || t.seat),
-      h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` ${t.claim_ids.join(", ")}`) : null),
+      h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` ${t.claim_ids.map(statementId).join(", ")}`) : null),
       h("td", {}, what),
       h("td", {}, trackerStatus(t)));
   });
@@ -257,7 +260,7 @@ export function verdictBanner(report, onPrint, onDownload) {
       h("span", { class: "num eyebrow-light" }, "VERDICT"),
       h("h1", { id: "verdict-h" }, report.verdict),
       h("strong", { class: "num verdict-headline" }, report.headline),
-      h("p", {}, report.summary)),
+      h("p", {}, codeText(report.summary))),
     h("div", { class: "verdict-actions no-print" },
       button("Print or save as PDF", "btn btn-light small-btn", onPrint),
       button("Download this run", "btn btn-ghost small-btn", onDownload)));
@@ -265,9 +268,9 @@ export function verdictBanner(report, onPrint, onDownload) {
 
 export function keyNumbers(numbers) {
   return numbers.map((n) => h("div", { class: "card key-number" },
-    h("span", { class: "muted small" }, n.label),
+    h("span", { class: "muted small" }, codeText(n.label)),
     h("strong", { class: "num key-value" }, n.value),
-    n.note ? h("span", { class: "muted small" }, n.note) : null));
+    n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null));
 }
 
 export function changesSince(changes, notAnswered = []) {
@@ -276,12 +279,12 @@ export function changesSince(changes, notAnswered = []) {
         h("span", { class: "num change-id" }, c.objection_id),
         h("span", { class: "change-action" }, `${c.action}, round ${c.round}`),
         h("span", {}, c.text)))
-    : [h("li", { class: "muted" }, "No change was made: the loop stopped before a Bid Manager round.")];
+    : [h("li", { class: "muted" }, `No change was made: the loop stopped before a ${ROLES.bid_manager} round.`)];
   return [
     h("div", { class: "card-title-row" }, h("h2", {}, "What changed since draft 1"),
       h("span", { class: "muted small" }, "Each change answers one objection")),
     h("ol", { class: "changes-list" }, ...rows),
-    notAnswered.length ? h("strong", { class: "small" }, "Not answered by the Bid Manager") : null,
+    notAnswered.length ? h("strong", { class: "small" }, `Not answered by the ${ROLES.bid_manager}`) : null,
     notAnswered.length
       ? h("ol", { class: "changes-list" }, ...notAnswered.map((c) => h("li", { class: "change-line" },
           h("span", { class: "num change-id" }, c.objection_id),
@@ -299,12 +302,12 @@ export function decisionMemo(memo) {
   const rows = memo.map((m) => h("tr", {},
     h("td", {}, h("strong", {}, m.title)),
     h("td", {}, decisionPill(m)),
-    h("td", { class: "num" }, m.score === null || m.score === undefined ? (m.vote ? "—" : "gate") : `${scoreText(m.score)} / ${m.needed.toFixed(1)}`),
+    h("td", { class: "num" }, m.score === null || m.score === undefined ? (m.vote ? "—" : WORDS.signOffShort) : `${scoreText(m.score)} / ${m.needed.toFixed(1)}`),
     h("td", {}, m.reason)));
   return [
     h("div", { class: "log-head" }, h("h2", { id: "memo-h" }, "Board decision memo")),
     h("div", { class: "table-wrap" }, h("table", {},
-      h("thead", {}, h("tr", {}, ...["Seat", "Result", "Score", "Reason"].map((c) => h("th", { scope: "col" }, c)))),
+      h("thead", {}, h("tr", {}, ...["Reviewer", "Result", "Score", "Reason"].map((c) => h("th", { scope: "col" }, c)))),
       h("tbody", {}, ...rows))),
   ];
 }
@@ -313,8 +316,8 @@ export function decisionMemo(memo) {
 // already has, shown only here. An empty list is hidden; so is the box when both are empty.
 export function meetingPrep(confirm, decisions = []) {
   const lists = [
-    confirm.length ? [h("h3", {}, "Confirm with the client"), h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))] : [],
-    decisions.length ? [h("h3", {}, "Decisions for Lumen Works"), h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d)))] : [],
+    confirm.length ? [h("h3", {}, WORDS.confirmWithClient), h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))] : [],
+    decisions.length ? [h("h3", {}, WORDS.decisionsForYou), h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d)))] : [],
   ].flat();
   return [
     h("h2", {}, "Meeting prep"),

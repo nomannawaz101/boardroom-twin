@@ -7,6 +7,7 @@ import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
   loopStats, meetingPrep, objectionsTable, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
+import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount } from "./labels.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
 } from "./render-shell.js";
@@ -107,10 +108,10 @@ function factRows() {
   const mode = facts.mode || "Full";
   return [
     ["Agent roles", facts.agents],
-    ["Board", "3 to 5 seats, chosen from your brief"],
+    ["Board", "3 to 5 reviewers, chosen from your brief"],
     ["Time", "About 2 to 3 minutes for a full run"],
     ["Cost", "≈ $0.16 per run (estimate)"],
-    ["Mode", h("span", {}, h("span", { class: "pill-ok" }, mode), modeNote(mode))],
+    ["Mode", h("span", {}, h("span", { class: "pill-ok" }, MODES[mode] || mode), modeNote(mode))],
   ];
 }
 
@@ -163,7 +164,7 @@ function fitRail() {
 function setMode(mode) {
   const label = MODE_LABELS[mode] || "Full";
   els.modeChip.hidden = false;
-  els.modeChip.textContent = label === "Sample" ? "Sample run" : `${label} mode`;
+  els.modeChip.textContent = MODES[label] || label;
   els.modeChip.className = `mode-chip ${label.toLowerCase()}`;
   facts.mode = label;
   renderRail();
@@ -273,9 +274,9 @@ async function discover(body) {
 
 async function draft() {
   setBusy(true);
-  const working = workingCard(2, "Solution Architect, then Delivery Manager, then Proposal Manager are working. This takes about a minute.");
+  const working = workingCard(2, `Solution Architect, then Delivery Manager, then ${ROLES.proposal_manager} are working. This takes about a minute.`);
   els.relay.append(working);
-  renderRail("Solution Architect, Delivery Manager, Proposal Manager");
+  renderRail(`Solution Architect, Delivery Manager, ${ROLES.proposal_manager}`);
   const result = await callApi("/api/draft", stateForServer());
   working.stop();
   working.remove();
@@ -327,8 +328,8 @@ function countWords(count, one, many) {
 function boardIntro(round) {
   const scoring = round.seats.filter((s) => s.kind === "scoring").length;
   const gates = round.seats.length - scoring;
-  const checked = gates ? ` and ${countWords(gates, "gatekeeper", "gatekeepers")} checked it` : "";
-  return `Code picked the board from the brief. ${countWords(scoring, "executive", "executives")} scored the proposal${checked}, all at the same time. Code turned their answers into votes.`;
+  const checked = gates ? ` and ${countWords(gates, WORDS.signOffReviewer, WORDS.signOffReviewers)} checked it` : "";
+  return `Fixed rules picked the board from the brief. ${countWords(scoring, "executive", "executives")} scored the proposal${checked}, all at the same time. Fixed rules turned their answers into votes.`;
 }
 
 function setBoardLoading() {
@@ -349,9 +350,9 @@ async function board() {
   els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan));
   showView(3);
   const seats = run.data.board_plan.seats.length;
-  const working = workingCard(1, `${countWords(seats, "seat is", "seats are")} reviewing draft 1 at the same time.`);
+  const working = workingCard(1, `${countWords(seats, "reviewer is", "reviewers are")} reviewing draft 1 at the same time.`);
   els.boardStatus.replaceChildren(h("ol", { class: "relay" }, working));
-  renderRail(`${countWords(seats, "board seat", "board seats")}, at the same time`);
+  renderRail(`${reviewerCount(seats)}, at the same time`);
   const result = await callApi("/api/board", stateForServer());
   working.stop();
   setBusy(false);
@@ -382,7 +383,7 @@ function showBoard() {
   els.gateBlock.hidden = gates.length === 0;
   const next = loopStopped()
     ? { label: "Next: the final report →", onClick: showReport, stopped: true }
-    : { label: "Next: the Bid Manager answers the objections →", onClick: startLoop };
+    : { label: `Next: the ${ROLES.bid_manager} answers the objections →`, onClick: startLoop };
   els.objections.replaceChildren(...objectionsLog(run.data.tracker, round.seats, { stopped: next.stopped }));
   els.objections.hidden = false;
   const fix = fixFirst(run.data.tracker, round.seats);
@@ -396,13 +397,13 @@ async function retrySeat(seatId, event) {
   if (run.busy) return;
   const trigger = event.currentTarget;
   trigger.disabled = true;
-  trigger.textContent = "Retrying this seat…";
+  trigger.textContent = WORDS.retryingReviewer;
   setBusy(true);
   const result = await callApi("/api/board/retry", { state: stateForServer(), seat_id: seatId });
   setBusy(false);
   if (result.error) {
     trigger.disabled = false;
-    trigger.textContent = "Retry this seat";
+    trigger.textContent = WORDS.retryReviewer;
     trigger.after(message("m-err", null, result.message));
     return;
   }
@@ -423,9 +424,9 @@ function bidSteps() {
 function loopTitle() {
   const answered = new Set(run.data.revisions.flatMap((r) => r.answered));
   const rounds = run.data.revisions.length;
-  if (!loopStopped()) return "The Bid Manager is answering the objections";
-  if (!rounds) return "Code stopped the loop before a Bid Manager round";
-  return `The Bid Manager answered ${answered.size} ${answered.size === 1 ? "objection" : "objections"} in ${rounds} ${rounds === 1 ? "round" : "rounds"}`;
+  if (!loopStopped()) return `The ${ROLES.bid_manager} is answering the objections`;
+  if (!rounds) return `Fixed rules stopped the loop before a ${ROLES.bid_manager} round`;
+  return `The ${ROLES.bid_manager} answered ${answered.size} ${answered.size === 1 ? "objection" : "objections"} in ${rounds} ${rounds === 1 ? "round" : "rounds"}`;
 }
 
 function renderLoop(running) {
@@ -459,10 +460,10 @@ async function nextRound() {
   }
   setBusy(true);
   const roundNo = run.data.revisions.length + 1;
-  const working = workingCard(roundNo, `Bid Manager round ${roundNo}, then the whole board votes again.`);
+  const working = workingCard(roundNo, `${ROLES.bid_manager} round ${roundNo}, then the whole board votes again.`);
   const holder = h("ol", { class: "relay" }, working);
   els.loopRounds.append(holder);
-  renderRail(`Bid Manager, round ${roundNo}, then the board`);
+  renderRail(`${ROLES.bid_manager}, round ${roundNo}, then the board`);
   const result = await callApi("/api/revise", { state: stateForServer(), round_no: roundNo });
   working.stop();
   setBusy(false);
@@ -537,7 +538,15 @@ function openStage(n) {
   showView(n);
 }
 
+// Static page texts come from the labels file too, so a rename is one edit.
+function applyPageText() {
+  for (const node of document.querySelectorAll("[data-text]")) {
+    if (PAGE_TEXT[node.dataset.text]) node.textContent = PAGE_TEXT[node.dataset.text];
+  }
+}
+
 async function init() {
+  applyPageText();
   els.brief.addEventListener("input", updateCounter);
   els.start.addEventListener("click", startLive);
   $("start-with-brief").addEventListener("click", () => {

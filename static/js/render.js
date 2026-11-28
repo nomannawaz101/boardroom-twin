@@ -1,6 +1,11 @@
 // Builds every card from step records and responses. All AI text goes in as text nodes;
 // no HTML string is ever parsed (guard G12).
 
+import {
+  ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, reviewerCount, statementCount,
+  statementId,
+} from "./labels.js";
+
 const SVG_NS = "http://www.w3.org/2000/svg";
 
 const SECTION_TITLES = {
@@ -110,7 +115,7 @@ export function modelChip(step) {
 }
 
 function codeChip() {
-  return h("span", { class: "m-code" }, "Code, no AI");
+  return h("span", { class: "m-code" }, WORDS.fixedRules);
 }
 
 export function handLine(text) {
@@ -142,13 +147,13 @@ function agentCard(index, step, body) {
     "details", { class: "card agent-block", open: true },
     h("summary", { class: "agent-sum" },
       h("span", { class: "agent-no" }, String(index)),
-      h("strong", { class: "agent-name" }, step.label),
-      h("span", { class: "agent-summary" }, step.summary),
+      h("strong", { class: "agent-name" }, codeText(step.label)),
+      h("span", { class: "agent-summary" }, codeText(step.summary)),
       h("span", { class: "agent-meta" }, modelChip(step), h("span", { class: "num agent-time" }, time))),
     h("div", { class: "agent-in" },
       ...body,
       flagNotes(step),
-      handLine(step.handoff_out)),
+      handLine(codeText(step.handoff_out))),
   );
   return h("li", { "data-agent": step.agent }, block);
 }
@@ -228,7 +233,7 @@ export function analystCard(data, last) {
   );
   const flagRow = h(
     "div", { class: "chips" },
-    h("span", { class: "chips-label" }, "Context flags"),
+    h("span", { class: "chips-label" }, WORDS.keyFacts),
     flagChip("Personal data", yesNo(flags.personal_data)),
     flagChip("Existing systems", yesNo(flags.existing_systems)),
     flagChip("Contract", CONTRACT[flags.contract_type] || "unclear"),
@@ -323,7 +328,7 @@ export function draftSummary(data, onNext) {
   return [
     h("div", { class: "card-title-row" },
       h("h2", { id: "draft-h" }, "Proposal, draft 1"),
-      h("span", { class: "muted small" }, `9 sections · ${data.claims.length} claims`)),
+      h("span", { class: "muted small" }, `9 sections · ${statementCount(data.claims.length)}`)),
     h("strong", { class: "draft-title" }, `Proposal for ${data.case_file.client}`),
     h("dl", { class: "kv" },
       ...facts.map(([label, value, mono]) => h("div", {}, h("dt", {}, label), h("dd", { class: mono ? "num" : null }, value)))),
@@ -344,7 +349,7 @@ export function proposal(claims, title = "Proposal, draft 1", headingId = "propo
   const sections = Object.entries(SECTION_TITLES).map(([id, title], i) => {
     // The server fills every section (code adds a TO CONFIRM line for any gap).
     const items = claims.filter((c) => c.section === id);
-    const list = h("ul", {}, ...items.map((c) => h("li", {}, h("span", { class: "num claim-id" }, c.id), c.text, " ", tagFor(c.origin))));
+    const list = h("ul", {}, ...items.map((c) => h("li", {}, h("span", { class: "num claim-id" }, statementId(c.id)), c.text, " ", tagFor(c.origin))));
     return h("div", { class: "sec" }, h("h3", {}, `${i + 1}. ${title}`), list);
   });
   return [h("h2", { id: headingId }, title), legend, ...sections];
@@ -381,10 +386,10 @@ const DECISION_PILLS = {
 const FILLS = { approved: "fill-good", yes_with_condition: "fill-cond", rejected: "fill-bad" };
 const CHIP_CLASSES = { met: "chip-good", partly: "chip-cond", not_met: "chip-bad", missing: "chip-none" };
 const ITEM_ICONS = {
-  met: ["✓", "ic-m", "Met"],
-  partly: ["~", "ic-p", "Partly"],
-  not_met: ["✕", "ic-n", "Not met"],
-  missing: ["?", "ic-x", "Not answered"],
+  met: ["✓", "ic-m", ITEM_WORDS.met],
+  partly: ["~", "ic-p", ITEM_WORDS.partly],
+  not_met: ["✕", "ic-n", ITEM_WORDS.not_met],
+  missing: ["?", "ic-x", ITEM_WORDS.missing],
 };
 
 function avatar(seatId) {
@@ -397,9 +402,14 @@ export function scoreText(score) {
   return fixed.endsWith("0") ? score.toFixed(1) : fixed;
 }
 
+// The vote or outcome in words; gate outcomes read as sign-offs.
+export function decisionText(result) {
+  return result.outcome && OUTCOMES[result.outcome] ? OUTCOMES[result.outcome] : result.decision;
+}
+
 export function decisionPill(result) {
   const key = result.vote || result.outcome;
-  return h("span", { class: `pill ${DECISION_PILLS[key] || "pill-none"}` }, result.decision);
+  return h("span", { class: `pill ${DECISION_PILLS[key] || "pill-none"}` }, decisionText(result));
 }
 
 function seatHead(result, step) {
@@ -416,7 +426,7 @@ export function boardPlan(plan, round = null) {
   const voted = Object.fromEntries((round ? round.seats : []).map((s) => [s.seat_id, s]));
   const joined = plan.seats.map((s) => h("div", { class: "plan-seat" },
     h("strong", {}, s.title),
-    h("span", { class: "muted" }, s.kind === "scoring" ? "Scores the proposal" : "Passes or blocks it"),
+    h("span", { class: "muted" }, KINDS[s.kind] || KINDS.gate),
     h("span", { class: "why" }, `Why: ${s.why}`),
     voted[s.id] ? decisionPill(voted[s.id]) : null));
   const skipped = plan.skipped.map((s) => h("div", { class: "plan-seat skipped" },
@@ -427,27 +437,27 @@ export function boardPlan(plan, round = null) {
     h("div", { class: "card-title-row" },
       h("div", { class: "stack-8" },
         h("h2", { id: "plan-h" }, "Board for this brief"),
-        h("span", { class: "muted small" }, "Chosen by code from the 5 flags the Business Analyst set.")),
-      h("span", { class: "m-code" }, "Code, no AI")),
+        h("span", { class: "muted small" }, "Chosen by fixed rules from the 5 key facts the Business Analyst set.")),
+      codeChip()),
     h("div", { class: "plan-grid" }, ...joined, ...skipped),
-    h("span", { class: "muted small" }, "Code chooses 3 to 5 seats per brief. Unclear facts make a seat join rather than skip."),
+    h("span", { class: "muted small" }, "Fixed rules choose 3 to 5 reviewers per brief. Unclear facts make a reviewer join rather than skip."),
   ];
 }
 
 function notReviewedText(result) {
   if (result.partial) {
-    return `The ${result.title} did not answer every checklist item, even after retries, so this gate is not reviewed (partial answer). A missing item is never counted as met or not met.`;
+    return `${WORDS.notAnswered} The ${result.title} did not answer every checklist item, even after retries, so this ${WORDS.signOff} is not reviewed (partial answer). A missing item is never counted as met or not met.`;
   }
   return result.kind === "scoring"
-    ? `The ${result.title} couldn't answer, so it is shown as not reviewed. The other seats' votes still count.`
-    : `The ${result.title} couldn't answer, so this gate is not reviewed. Until it answers, this gate cannot pass.`;
+    ? `${WORDS.notAnswered} The ${result.title} is shown as not reviewed. The other reviewers' votes still count.`
+    : `${WORDS.notAnswered} This ${WORDS.signOff} is not reviewed. Until the ${result.title} answers, it cannot sign off.`;
 }
 
 function notReviewedBody(result, onRetry) {
   return [
     h("p", { class: "msg m-warn" }, h("strong", {}, "Not reviewed. "), notReviewedText(result)),
     result.items && result.items.length ? checklist(result.items) : null,
-    button("Retry this seat", "btn btn-outline small-btn retry-seat", onRetry),
+    button(WORDS.retryReviewer, "btn btn-outline small-btn retry-seat", onRetry),
   ];
 }
 
@@ -491,7 +501,7 @@ function checklist(items) {
     return h("div", { class: "chk" },
       h("span", { class: `ic ${cls}`, role: "img", "aria-label": word }, icon),
       h("div", { class: "chk-body" },
-        h("div", {}, h("strong", {}, item.label), item.must ? h("span", { class: "must" }, "MUST") : null),
+        h("div", {}, h("strong", {}, item.label), item.must ? h("span", { class: "must" }, WORDS.required) : null),
         h("span", { class: "chk-reason" }, reason)),
       h("span", { class: `chk-chip ${CHIP_CLASSES[item.status]}` }, word));
   });
@@ -504,7 +514,7 @@ export function gateCard(result, step, onRetry) {
   return h("article", { class: "card seat-card" },
     head,
     checklist(result.items),
-    result.partial ? h("p", { class: "seat-note" }, "Partial answer: an item was still not answered after the retries. A must-have it answered Not met blocks anyway.") : null,
+    result.partial ? h("p", { class: "seat-note" }, "Partial answer: an item was still not answered after the retries. A required item it answered Not met blocks anyway.") : null,
     quoteLine(result));
 }
 
@@ -518,19 +528,19 @@ function byTrackerOrder(a, b) {
 }
 
 function trackerPill(item) {
-  if (item.kind === "C") return h("span", { class: "pill pill-cond" }, "Client to confirm");
+  if (item.kind === "C") return h("span", { class: "pill pill-cond" }, STATUS.askClient);
   return item.severity === "blocker"
-    ? h("span", { class: "pill pill-bad" }, "Blocker")
-    : h("span", { class: "pill pill-cond" }, "Condition");
+    ? h("span", { class: "pill pill-bad" }, STATUS.blocker)
+    : h("span", { class: "pill pill-cond" }, STATUS.condition);
 }
 
 export function objectionsLog(tracker, seats, next = null) {
   const titles = Object.fromEntries(seats.map((s) => [s.seat_id, s.title]));
   const open = tracker.filter((t) => t.status === "open");
   const rows = [...tracker].sort(byTrackerOrder).map((t) => h("tr", {},
-    h("td", { class: "num" }, t.id),
+    h("td", { class: "num" }, objectionId(t.id)),
     h("td", {}, titles[t.seat] || t.seat),
-    h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.join(", ")})`) : null),
+    h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.map(statementId).join(", ")})`) : null),
     h("td", {}, trackerPill(t))));
   const table = rows.length
     ? h("div", { class: "table-wrap" }, h("table", {},
@@ -540,12 +550,12 @@ export function objectionsLog(tracker, seats, next = null) {
   return [
     h("div", { class: "log-head" },
       h("h2", { id: "obj-h" }, "Objections log"),
-      h("span", { class: "muted small" }, `${open.length} open · O items the proposal can fix, C items only the client can confirm`)),
+      h("span", { class: "muted small" }, `${open.length} open · # items the proposal can fix, Q items only the client can answer`)),
     table,
     h("div", { class: "log-foot next-row" },
       next && next.stopped
-        ? h("span", { class: "msg m-info small" }, "Code stopped the loop here: nothing for the Bid Manager to do.")
-        : h("span", { class: "muted small" }, "The Bid Manager answers each objection by its ID, then the board votes again."),
+        ? h("span", { class: "msg m-info small" }, codeText("Code stopped the loop here: nothing for the Bid Manager to do."))
+        : h("span", { class: "muted small" }, codeText("The Bid Manager answers each objection by its ID, then the board votes again.")),
       next && next.onClick ? button(next.label, "btn btn-primary", next.onClick) : null),
   ];
 }
@@ -562,14 +572,14 @@ export function fixFirst(tracker, seats) {
   const open = tracker.filter((t) => t.kind === "O" && t.status === "open")
     .sort((a, b) => rank(a) - rank(b) || byTrackerOrder(a, b));
   if (!open.length) return [];
-  const why = ["blocker", "seat below its needed score", null];
+  const why = ["blocker", "reviewer below its needed score", null];
   return [
     h("h2", {}, "What to fix first"),
-    h("p", { class: "muted small" }, "Ordered by code: blockers first, then objections from seats below their needed score, then the rest."),
+    h("p", { class: "muted small" }, "Ordered by fixed rules: blockers first, then objections from reviewers below their needed score, then the rest."),
     h("ol", { class: "fix-list" }, ...open.map((t) => {
       const seat = bySeat[t.seat] ? bySeat[t.seat].title : t.seat;
-      const notes = [why[rank(t)], t.decision ? "needs a Lumen Works decision" : null].filter(Boolean);
-      return h("li", {}, h("strong", { class: "num" }, t.id), ` (${[seat, ...notes].join(", ")}): `, t.text);
+      const notes = [why[rank(t)], t.decision ? STATUS.decision.toLowerCase() : null].filter(Boolean);
+      return h("li", {}, h("strong", { class: "num" }, objectionId(t.id)), ` (${[seat, ...notes].join(", ")}): `, t.text);
     })),
   ];
 }
@@ -579,7 +589,7 @@ const VERDICT_BOXES = { not_ready: "m-err", review_incomplete: "m-warn", approve
 export function verdictSoFar(verdict, progress) {
   return h("div", { class: `msg ${VERDICT_BOXES[verdict.code] || "m-info"} verdict-so-far` },
     h("strong", {}, `Verdict so far: ${verdict.label}`),
-    h("span", {}, `${progress.able} of ${progress.total} seats can proceed. Code decided it from the seats' answers.`));
+    h("span", {}, `${progress.able} of ${reviewerCount(progress.total)} can approve. Fixed rules decided it from the reviewers' answers.`));
 }
 
 export function boardStats(steps, progress, verdict) {
@@ -588,10 +598,10 @@ export function boardStats(steps, progress, verdict) {
   const spanMs = steps.length ? Math.max(...ends) - Math.min(...starts) : 0;
   const cost = steps.reduce((n, s) => n + s.cost_usd, 0);
   return [
-    h("span", {}, `${steps.length} seats`),
-    h("span", {}, `${progress.able} of ${progress.total} can proceed`),
-    verdict ? h("span", { title: "Decided by code: a known Rejected or Blocked wins; otherwise a seat not reviewed gives Review incomplete." }, `Verdict so far: ${verdict.label}`) : null,
-    h("span", { class: "num", title: "Time from the first seat starting to the last one finishing. Cost is estimated from token counts at list prices; it is not a bill." },
+    h("span", {}, reviewerCount(steps.length)),
+    h("span", {}, `${progress.able} of ${reviewerCount(progress.total)} can approve`),
+    verdict ? h("span", { title: "Decided by fixed rules: a known Rejected or Blocked wins; otherwise a reviewer not reviewed gives Review incomplete." }, `Verdict so far: ${verdict.label}`) : null,
+    h("span", { class: "num", title: "Time from the first reviewer starting to the last one finishing. Cost is estimated from token counts at list prices; it is not a bill." },
       `${Math.round(spanMs / 1000)} s · $${cost.toFixed(2)} est.`),
   ].filter(Boolean); // replaceChildren would print an empty slot as the word "null"
 }
