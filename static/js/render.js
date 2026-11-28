@@ -543,9 +543,9 @@ export function objectionsLog(tracker, seats, next = null) {
       h("span", { class: "muted small" }, `${open.length} open · O items the proposal can fix, C items only the client can confirm`)),
     table,
     h("div", { class: "log-foot next-row" },
-      h("span", { class: "muted small" }, next && next.stopped
-        ? "Code stopped the loop here: nothing for the Bid Manager to do."
-        : "The Bid Manager answers each objection by its ID, then the board votes again."),
+      next && next.stopped
+        ? h("span", { class: "msg m-info small" }, "Code stopped the loop here: nothing for the Bid Manager to do.")
+        : h("span", { class: "muted small" }, "The Bid Manager answers each objection by its ID, then the board votes again."),
       next && next.onClick ? button(next.label, "btn btn-primary", next.onClick) : null),
   ];
 }

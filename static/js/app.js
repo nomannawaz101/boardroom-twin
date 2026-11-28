@@ -118,7 +118,15 @@ function railSteps(stage) {
   const steps = run.data ? run.data.steps : [];
   if (stage === 2) return steps.filter((s) => s.stage <= 2);
   if (stage === 3) return steps.filter((s) => s.stage === 3);
-  if (stage === 4) return steps.slice(loopStart);
+  if (stage === 4) {
+    // Name each Bid Manager call by its round; the seats after it are that round's vote.
+    let round = 0;
+    return steps.slice(loopStart).map((s) => {
+      if (s.agent !== "bid_manager") return { ...s, label: round ? `${s.label}, vote ${round + 1}` : s.label };
+      round += 1;
+      return { ...s, label: `${s.label}, round ${round}` };
+    });
+  }
   return steps;
 }
 

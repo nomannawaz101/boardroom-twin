@@ -154,7 +154,7 @@ export function whyStopped(stop) {
   if (!stop || !stop.stopped) return [h("h2", {}, "The loop is still running")];
   return [
     h("h2", {}, "Why the loop stopped"),
-    h("ul", { class: "why-list" }, ...stop.lines.map((line) => h("li", {}, line))),
+    h("div", { class: "msg m-info" }, h("ul", { class: "why-list" }, ...stop.lines.map((line) => h("li", {}, line)))),
     h("p", { class: "muted small" }, "Code decides when the loop stops, never an agent: every seat can proceed, the scores stop improving, the round limit is reached, or the cost guard trips."),
   ];
 }
