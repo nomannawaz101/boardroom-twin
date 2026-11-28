@@ -116,7 +116,7 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   const memo = holderOf(loop.decisionMemo(report.memo)).textContent;
   assert.match(memo, /Blocked/);
   assert.match(memo, /sign-off/);
-  assert.match(memo, /8\.0 \/ 7\.0/);
+  assert.match(memo, /8\.0 of 10, needs 7\.0/);
   assert.match(holderOf(loop.changesSince(report.changes, [], tracker)).textContent, /Smaller first step #1Changed, round 1Two phases\./);
   const long = [{ id: "O1", text: "A time and materials model does not provide a fixed cost ceiling, which is risky given our tight budget this year." }];
   const cut = byClass(holderOf(loop.changesSince(report.changes, [], long)), "change-obj")[0];
@@ -178,6 +178,7 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
 {
   const numbers = [{ label: "Average score, scoring seats", value: "5.9 → 6.5", note: "" }];
   assert.equal(loop.finalAverage(numbers), "6.5");
+  assert.match(holderOf(loop.keyNumbers(numbers)).textContent, /^Average score of the scoring reviewers \(out of 10\)5\.9 → 6\.5/);
   assert.equal(loop.finalAverage([{ label: "Average score, scoring seats", value: "To confirm" }]), null);
   assert.equal(loop.finalAverage([]), null);
   const report = { verdict_code: "not_ready", verdict: "Not ready yet", headline: "Draft 1 scored 5.9. After 2 revision rounds it scored 6.5.", summary: "", numbers };

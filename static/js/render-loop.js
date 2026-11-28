@@ -5,7 +5,7 @@ import {
   button, decisionPill, decisionText, h, handLine, modelChip, proposal, scoreText, seconds,
 } from "./render.js";
 import {
-  CHANGE_TEXT_MAX, SCORES_MOVE, WEEKDAYS, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
+  CHANGE_TEXT_MAX, SCORES_MOVE, keyLabel, needsText, outOf10, WEEKDAYS, OUTCOMES, ROLES, WORDS as W, trimmed, STATUS, WORDS, codeText, objectionId, reviewerCount, statementId,
 } from "./labels.js";
 
 const GATE_CLASSES = { pass: "pill-good", pass_with_conditions: "pill-cond", blocked: "pill-bad" };
@@ -156,7 +156,7 @@ export function scoresByRound(rounds) {
         h("span", { class: "num" }, label));
     });
     return h("div", { class: "round-seat" },
-      h("div", {}, h("strong", {}, seat.title), h("span", { class: "num muted" }, ` needs ${seat.needed.toFixed(1)}`)),
+      h("div", {}, h("strong", {}, seat.title), h("span", { class: "muted" }, ` ${needsText(seat.needed)}`)),
       ...rows);
   });
   return [h("h2", {}, "Scores by round"), ...blocks,
@@ -301,7 +301,7 @@ export function keyNumbers(numbers) {
       ? [h("strong", { class: "tnum key-value nowrap" }, day[2]), h("span", { class: "small key-day" }, WEEKDAYS[day[1]])]
       : [h("strong", { class: "tnum key-value" }, n.value)];
     return h("div", { class: "card key-number" },
-      h("span", { class: "muted small" }, codeText(n.label)),
+      h("span", { class: "muted small" }, keyLabel(n.label)),
       ...value,
       n.note ? h("span", { class: "muted small" }, codeText(n.note)) : null);
   });
@@ -318,7 +318,7 @@ export function scoreMoves(rounds) {
     return h("li", {}, h("span", {}, seat.title), scoreMove(seat.score, final ? final.score : null));
   });
   return [
-    h("h2", {}, "Scores by reviewer, draft 1 → final"),
+    h("h2", {}, "Scores by reviewer, draft 1 → final (out of 10)"),
     h("ul", { class: "move-list" }, ...rows),
     h("p", { class: "muted small" }, SCORES_MOVE),
   ];
@@ -361,7 +361,7 @@ export function decisionMemo(memo) {
   const rows = memo.map((m) => h("tr", {},
     h("td", {}, h("strong", {}, m.title)),
     h("td", {}, decisionPill(m)),
-    h("td", { class: "num" }, m.score === null || m.score === undefined ? (m.vote ? "—" : WORDS.signOffShort) : `${scoreText(m.score)} / ${m.needed.toFixed(1)}`),
+    h("td", { class: "nowrap" }, m.score === null || m.score === undefined ? (m.vote ? "—" : WORDS.signOffShort) : `${outOf10(scoreText(m.score))}, ${needsText(m.needed).replace(" of 10", "")}`),
     h("td", {}, m.reason)));
   return [
     h("div", { class: "log-head" }, h("h2", { id: "memo-h" }, "Board decision memo")),

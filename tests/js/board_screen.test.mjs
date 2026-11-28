@@ -39,7 +39,8 @@ const gate = {
   const card = render.scoreCard(answered, step, () => {});
   const text = card.textContent;
   assert.match(text, /5\.3/);
-  assert.match(text, /needs 7\.0/);
+  assert.match(text, /5\.3of 10 ·needs 7\.0 of 10/);
+  assert.match(text, /Cost clarity · weight 40%/);
   assert.match(text, /Rejected/);
   assert.match(text, /not rated \(0\)/);
   const ratings = byClass(card, "crit").map((row) => row.children[1].textContent);
@@ -238,7 +239,7 @@ const gate = {
   const table = new FakeNode("section");
   table.append(...render.scoreboard({ seats: [answered, gate] }, tracker));
   const rows = byTag(table, "tr").slice(1).map((r) => r.children.map((c) => c.textContent));
-  assert.deepEqual(rows[0].slice(0, 4), ["CFO", "Scores", "5.3 (7.0)", "Rejected"]);
+  assert.deepEqual(rows[0].slice(0, 4), ["CFO", "Scores", "5.3 of 10 (needs 7.0)", "Rejected"]);
   assert.equal(rows[0][4], `${"x".repeat(80)}…`);
   assert.deepEqual(rows[1], ["Security Officer", "Signs off", "—", "Blocked", "No open objections"]);
 }

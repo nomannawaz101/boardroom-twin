@@ -2,7 +2,7 @@
 // no HTML string is ever parsed (guard G12).
 
 import {
-  BOARD_SUBTITLE, ISSUE_TEXT_MAX, ITEM_WORDS, KIND_SHORT, KINDS, NO_OPEN, trimmed, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
+  BOARD_SUBTITLE, ISSUE_TEXT_MAX, needsText, outOf10, weightText, ITEM_WORDS, KIND_SHORT, KINDS, NO_OPEN, trimmed, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
   statementCount, statementId,
 } from "./labels.js";
 
@@ -481,14 +481,15 @@ export function scoreCard(result, step, onRetry) {
   const head = seatHead(result, step);
   if (result.status === "not_reviewed") return h("article", { class: "card seat-card" }, head, ...notReviewedBody(result, onRetry));
   const criteria = result.criteria.map((c) => h("div", { class: "crit", title: c.reason || null },
-    h("span", {}, `${c.label} ×${c.weight.toFixed(2)}`),
+    h("span", {}, `${c.label} · ${weightText(c.weight)}`),
     h("span", { class: "num" }, c.rating === null ? "not rated (0)" : ratingText(c.rating)),
     c.reason ? h("span", { class: "crit-reason" }, c.reason) : null));
   return h("article", { class: "card seat-card" },
     head,
     h("div", { class: "score-row" },
       h("span", { class: "num score-big" }, scoreText(result.score)),
-      h("span", { class: "num muted" }, `needs ${result.needed.toFixed(1)}`)),
+      h("span", { class: "muted" }, "of 10 ·"),
+      h("span", { class: "muted" }, needsText(result.needed))),
     scoreBar(result),
     h("p", { class: "threshold" }, `The black tick is the score the ${result.title} needs. Below it means Rejected.`),
     quoteLine(result),
@@ -605,7 +606,7 @@ export function scoreboard(round, tracker) {
     const issue = biggestIssue(tracker, s.seat_id);
     const score = s.kind === "gate"
       ? "—"
-      : `${s.score === null || s.score === undefined ? "—" : scoreText(s.score)} (${s.needed.toFixed(1)})`;
+      : `${s.score === null || s.score === undefined ? "—" : outOf10(scoreText(s.score))} (${needsText(s.needed).replace(" of 10", "")})`;
     return h("tr", {},
       h("td", {}, h("strong", {}, s.title)),
       h("td", { class: "nowrap" }, KIND_SHORT[s.kind] || KIND_SHORT.gate),
@@ -615,9 +616,9 @@ export function scoreboard(round, tracker) {
   });
   return [
     h("div", { class: "log-head" }, h("h2", {}, "Board scoreboard"),
-      h("span", { class: "muted small" }, "Score (needed) for reviewers who score; biggest open issue picked by fixed rules")),
+      h("span", { class: "muted small" }, "Scores out of 10, with the score each reviewer needs; biggest open issue picked by fixed rules")),
     h("div", { class: "table-wrap" }, h("table", { class: "scoreboard" },
-      h("thead", {}, h("tr", {}, ...["Reviewer", "Role", "Score (needed)", "Result", "Biggest issue"].map((c) => h("th", { scope: "col" }, c)))),
+      h("thead", {}, h("tr", {}, ...["Reviewer", "Role", "Score", "Result", "Biggest issue"].map((c) => h("th", { scope: "col" }, c)))),
       h("tbody", {}, ...rows))),
   ];
 }

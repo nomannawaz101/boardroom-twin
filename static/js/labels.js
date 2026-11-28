@@ -76,6 +76,28 @@ export const BOARD_SUBTITLE = "Reviewers picked by fixed rules from the key fact
 export const CHANGE_TEXT_MAX = 90;
 export const ISSUE_TEXT_MAX = 80;
 export const NO_OPEN = "No open objections";
+
+// Scores always carry their scale; weights read as percentages.
+export function outOf10(score) {
+  return `${score} of 10`;
+}
+
+export function needsText(needed) {
+  return `needs ${needed.toFixed(1)} of 10`;
+}
+
+export function weightText(weight) {
+  return `weight ${Math.round(weight * 100)}%`;
+}
+
+// Key-number labels as the server writes them, and what the user sees.
+export const KEY_LABELS = {
+  "Average score, scoring seats": "Average score of the scoring reviewers (out of 10)",
+};
+
+export function keyLabel(label) {
+  return KEY_LABELS[label] || codeText(label);
+}
 export const SCORES_MOVE = "Scores can move either way: each reviewer re-reads the whole draft from scratch, and AI ratings vary between reads.";
 export const WEEKDAYS = { Mon: "Monday", Tue: "Tuesday", Wed: "Wednesday", Thu: "Thursday", Fri: "Friday", Sat: "Saturday", Sun: "Sunday" };
 
