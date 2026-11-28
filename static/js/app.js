@@ -8,6 +8,7 @@ import {
   loopStats, meetingPrep, objectionsTable, scoreMoves, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
 import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount, setClientIds, stepName } from "./labels.js";
+import { boardTakeaway, loopTakeaway, reportTakeaway, teamTakeaway } from "./takeaways.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
 } from "./render-shell.js";
@@ -56,6 +57,13 @@ const els = {
   reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportNext: $("report-next"), reportMoves: $("report-moves"), reportPrototype: $("report-prototype"),
   newBrief: $("new-brief"),
 };
+// Each stage's takeaway line: shown when there is something to say, hidden otherwise.
+function setTakeaway(id, text) {
+  const node = $(id);
+  node.textContent = text || "";
+  node.hidden = !text;
+}
+
 const VIEWS = {
   1: $("view-brief"), 2: $("view-team"), 3: $("view-board"), 4: $("view-revisions"), 5: $("view-report"),
 };
@@ -247,6 +255,7 @@ async function startLive() {
   els.stats.replaceChildren();
   els.notices.replaceChildren();
   els.title.textContent = "The proposal team is writing draft 1";
+  setTakeaway("team-takeaway", null);
   showView(2);
   await discover(body);
 }
@@ -313,6 +322,7 @@ function showDraft(result) {
     els.relay.append(cards[i]);
   });
   els.title.textContent = "The proposal team wrote draft 1";
+  setTakeaway("team-takeaway", teamTakeaway(run.data));
   els.stats.replaceChildren(...stats(run.data.steps.filter((s) => s.stage <= 2)));
   els.summary.replaceChildren(...draftSummary(run.data, board));
   els.summary.hidden = false;
@@ -341,6 +351,7 @@ function boardIntro(round) {
 
 function setBoardLoading() {
   els.boardTitle.textContent = "The client's board is reviewing draft 1";
+  setTakeaway("board-takeaway", null);
   els.boardStats.replaceChildren();
   els.scoreBlock.hidden = true;
   els.gateBlock.hidden = true;
@@ -382,6 +393,7 @@ function showBoard() {
   const gates = round.seats.filter((s) => s.kind === "gate");
   els.boardStatus.replaceChildren();
   els.boardTitle.textContent = "The client's board reviewed draft 1";
+  setTakeaway("board-takeaway", boardTakeaway(round));
   els.boardIntro.textContent = boardIntro(round);
   els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress));
   els.boardVerdict.replaceChildren(run.data.verdictLabel ? verdictSoFar(run.data.verdictLabel, round.progress) : "");
@@ -445,6 +457,7 @@ function renderLoop(running) {
   const { rounds, revisions, tracker, stop } = run.data;
   const steps = bidSteps();
   els.loopTitle.textContent = loopTitle();
+  setTakeaway("loop-takeaway", loopStopped() ? loopTakeaway(revisions, tracker, rounds[0].seats) : null);
   els.loopStats.replaceChildren(...loopStats(loopSteps()));
   els.loopChips.replaceChildren(...loopChips(rounds, stop, running));
   // The latest round is open; earlier rounds collapse to their one-line summary.
@@ -508,6 +521,7 @@ function downloadRun() {
 function renderReport() {
   syncLabels();
   const report = run.data.report;
+  setTakeaway("report-takeaway", reportTakeaway(report));
   els.verdictBanner.replaceChildren(verdictBanner(report, () => window.print(), downloadRun));
   els.keyNumbers.replaceChildren(...keyNumbers(report.numbers));
   const moves = scoreMoves(run.data.rounds);

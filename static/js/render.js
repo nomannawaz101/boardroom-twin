@@ -314,7 +314,7 @@ export function message(kind, title, text) {
 
 // --- Draft summary and proposal ---
 
-function teamText(efforts) {
+export function teamText(efforts) {
   if (!efforts || !efforts.length) return "To confirm";
   const engineers = Math.max(...efforts.map((e) => e.engineers));
   const weeks = efforts.reduce((sum, e) => sum + e.weeks, 0);
