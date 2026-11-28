@@ -231,12 +231,13 @@ export function objectionsTable(tracker, seats, revisions) {
     const what = change
       ? h("div", { class: "what-changed" },
           h("span", { class: `chk-chip ${CHANGE_CHIPS[change.action]}` }, ACTION_WORDS[change.action]),
-          h("span", { class: "one-line", title: text }, text))
+          h("span", { class: "one-line clamp2", title: text }, text))
       : h("span", { class: "muted" }, `Not changed by the ${ROLES.bid_manager}`);
     return h("tr", {},
       h("td", { class: "num" }, h("strong", {}, objectionId(t.id))),
       h("td", {}, titles[t.seat] || t.seat),
-      h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` ${t.claim_ids.map(statementId).join(", ")}`) : null),
+      h("td", {}, h("span", { class: "clamp2", title: t.text }, t.text,
+        t.claim_ids.length ? h("span", { class: "num claim-id" }, ` ${t.claim_ids.map(statementId).join(", ")}`) : null)),
       h("td", {}, what),
       h("td", {}, trackerStatus(t)));
   });

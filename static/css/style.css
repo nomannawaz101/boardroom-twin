@@ -365,10 +365,14 @@ a:hover { color: var(--primary-ink); }
 .move-list li { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-top: 1px solid #f2f4f7; font-size: 14px; }
 .scoreboard { min-width: 620px; }
 .scoreboard td:last-child { color: var(--text-2); }
-#loop-objections th:nth-child(1) { width: 48px; }
-#loop-objections th:nth-child(2) { width: 118px; }
-#loop-objections th:nth-child(4) { width: 30%; }
-#loop-objections th:nth-child(5) { width: 128px; }
+#loop-objections th:nth-child(1), .objections-table th:nth-child(1) { width: 40px; }
+#loop-objections th:nth-child(2) { width: 104px; }
+#loop-objections th:nth-child(5) { width: 124px; }
+.objections-table { table-layout: fixed; }
+.objections-table th:nth-child(2) { width: 112px; }
+.objections-table th:nth-child(4) { width: 124px; }
+/* Long text: two lines at most, the full text in the title tooltip. */
+.clamp2 { display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
 #loop-objections .pill { white-space: normal; display: inline-block; }
 .what-changed { max-width: 100%; }
 .log-card th, .log-card td { text-align: left; padding: 10px 12px; border-bottom: 1px solid #eef1f6; font-size: 14px; vertical-align: top; }
@@ -398,8 +402,8 @@ a:hover { color: var(--primary-ink); }
 .loop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; align-items: start; }
 .loop-col { display: flex; flex-direction: column; gap: 14px; min-width: 0; }
 .gate-tag { font-size: 11px; font-weight: 600; color: var(--text-2); background: #f2f4f7; border-radius: 6px; padding: 1px 8px; }
-.what-changed { display: flex; gap: 8px; align-items: baseline; max-width: 340px; min-width: 0; }
-.one-line { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-2); }
+.what-changed { display: flex; flex-direction: column; gap: 4px; align-items: flex-start; min-width: 0; }
+.one-line { min-width: 0; color: var(--text-2); }
 .side-card { padding: 18px; display: flex; flex-direction: column; gap: 10px; }
 .side-card h2 { margin: 0; font-size: 17px; }
 .side-card .sub-h { margin-top: 8px; font-size: 15px; }

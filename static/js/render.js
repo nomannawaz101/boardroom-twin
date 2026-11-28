@@ -545,10 +545,11 @@ export function objectionsLog(tracker, seats, next = null) {
   const rows = [...tracker].sort(byTrackerOrder).map((t) => h("tr", {},
     h("td", { class: "num" }, objectionId(t.id)),
     h("td", {}, titles[t.seat] || t.seat),
-    h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.map(statementId).join(", ")})`) : null),
+    h("td", {}, h("span", { class: "clamp2", title: t.text }, t.text,
+      t.claim_ids.length ? h("span", { class: "num claim-id" }, ` (${t.claim_ids.map(statementId).join(", ")})`) : null)),
     h("td", {}, trackerPill(t))));
   const table = rows.length
-    ? h("div", { class: "table-wrap" }, h("table", {},
+    ? h("div", { class: "table-wrap" }, h("table", { class: "objections-table" },
         h("thead", {}, h("tr", {}, ...["ID", "Raised by", "Challenge", "Status"].map((c) => h("th", { scope: "col" }, c)))),
         h("tbody", {}, ...rows)))
     : h("p", { class: "log-foot muted" }, "No objections were raised.");
