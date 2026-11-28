@@ -354,6 +354,9 @@ a:hover { color: var(--primary-ink); }
 .table-wrap { overflow-x: auto; }
 .log-card table { width: 100%; border-collapse: collapse; min-width: 560px; }
 #loop-objections table { min-width: 680px; table-layout: fixed; }
+.nowrap { white-space: nowrap; }
+.scoreboard { min-width: 620px; }
+.scoreboard td:last-child { color: var(--text-2); }
 #loop-objections th:nth-child(1) { width: 48px; }
 #loop-objections th:nth-child(2) { width: 118px; }
 #loop-objections th:nth-child(4) { width: 30%; }

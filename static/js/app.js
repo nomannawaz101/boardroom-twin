@@ -1,6 +1,6 @@
 import { callApi, getJson } from "./api.js";
 import {
-  analystCard, architectCard, boardPlan, fixFirst, ranTogether, togetherMarker, verdictSoFar, boardStats, button, deliveryCard, draftSummary, gateCard, h,
+  analystCard, architectCard, boardPlan, fixFirst, scoreboard, ranTogether, togetherMarker, verdictSoFar, boardStats, button, deliveryCard, draftSummary, gateCard, h,
   managerCard, message, objectionsLog, proposal, retryCard, scoreCard, stats, workingCard,
 } from "./render.js";
 import {
@@ -47,7 +47,7 @@ const els = {
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
   scoreBlock: $("score-block"), scoreCards: $("score-cards"),
   gateBlock: $("gate-block"), gateCards: $("gate-cards"), objections: $("objections"),
-  boardVerdict: $("board-verdict"), fixFirst: $("fix-first"), boardNext: $("board-next"),
+  boardVerdict: $("board-verdict"), fixFirst: $("fix-first"), boardNext: $("board-next"), scoreboard: $("board-scoreboard"),
   loopTitle: $("loop-title"), loopStats: $("loop-stats"), loopChips: $("loop-chips"),
   loopRounds: $("loop-rounds"), scoresByRound: $("scores-by-round"), whyStopped: $("why-stopped"),
   trackerList: $("tracker-list"), loopNext: $("loop-next"), loopObjections: $("loop-objections"),
@@ -339,6 +339,7 @@ function setBoardLoading() {
   els.gateBlock.hidden = true;
   els.objections.hidden = true;
   els.boardVerdict.replaceChildren();
+  els.scoreboard.hidden = true;
   els.fixFirst.hidden = true;
   els.boardNext.replaceChildren();
 }
@@ -376,6 +377,8 @@ function showBoard() {
   els.boardIntro.textContent = boardIntro(round);
   els.boardStats.replaceChildren(...boardStats(boardSteps(), round.progress, run.data.verdictLabel));
   els.boardVerdict.replaceChildren(run.data.verdictLabel ? verdictSoFar(run.data.verdictLabel, round.progress) : "");
+  els.scoreboard.replaceChildren(...scoreboard(round, run.data.tracker));
+  els.scoreboard.hidden = false;
   els.boardPlan.replaceChildren(...boardPlan(run.data.board_plan, round));
   els.scoreCards.replaceChildren(...scoring.map(card));
   els.gateCards.replaceChildren(...gates.map(card));

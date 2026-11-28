@@ -2,7 +2,7 @@
 // no HTML string is ever parsed (guard G12).
 
 import {
-  BOARD_SUBTITLE, ITEM_WORDS, KINDS, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
+  BOARD_SUBTITLE, ISSUE_TEXT_MAX, ITEM_WORDS, KIND_SHORT, KINDS, NO_OPEN, trimmed, OUTCOMES, STATUS, WORDS, codeText, objectionId, plural, reviewerCount,
   statementCount, statementId,
 } from "./labels.js";
 
@@ -586,6 +586,38 @@ export function fixFirst(tracker, seats) {
       const notes = [why[rank(t)], t.decision ? STATUS.decision.toLowerCase() : null].filter(Boolean);
       return h("li", {}, h("strong", { class: "num" }, objectionId(t.id)), ` (${[seat, ...notes].join(", ")}): `, t.text);
     })),
+  ];
+}
+
+// The reviewer's biggest open issue, chosen by code: a blocker before a condition, an objection
+// the proposal can fix before an item for the client, then the tracker order.
+export function biggestIssue(tracker, seatId) {
+  const rank = (t) => (t.severity === "blocker" ? 0 : 2) + (t.kind === "O" ? 0 : 1);
+  const open = tracker.filter((t) => t.seat === seatId && t.status === "open")
+    .sort((a, b) => rank(a) - rank(b) || byTrackerOrder(a, b));
+  return open.length ? open[0] : null;
+}
+
+// Board scoreboard: one row per reviewer of the latest vote.
+export function scoreboard(round, tracker) {
+  const rows = round.seats.map((s) => {
+    const issue = biggestIssue(tracker, s.seat_id);
+    const score = s.kind === "gate"
+      ? "—"
+      : `${s.score === null || s.score === undefined ? "—" : scoreText(s.score)} (${s.needed.toFixed(1)})`;
+    return h("tr", {},
+      h("td", {}, h("strong", {}, s.title)),
+      h("td", {}, KIND_SHORT[s.kind] || KIND_SHORT.gate),
+      h("td", { class: "num nowrap" }, score),
+      h("td", {}, decisionPill(s)),
+      h("td", issue ? { title: issue.text } : {}, issue ? trimmed(issue.text, ISSUE_TEXT_MAX) : h("span", { class: "muted" }, NO_OPEN)));
+  });
+  return [
+    h("div", { class: "log-head" }, h("h2", {}, "Board scoreboard"),
+      h("span", { class: "muted small" }, "Score (needed) for reviewers who score; biggest open issue picked by fixed rules")),
+    h("div", { class: "table-wrap" }, h("table", { class: "scoreboard" },
+      h("thead", {}, h("tr", {}, ...["Reviewer", "Role", "Score (needed)", "Result", "Biggest issue"].map((c) => h("th", { scope: "col" }, c)))),
+      h("tbody", {}, ...rows))),
   ];
 }
 

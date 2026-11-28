@@ -74,6 +74,8 @@ export const LEGEND_AI = "AI = written by a model. Fixed rules = decided by code
 export const LEGEND_COLOURS = "Red = rejected or blocked. Amber = conditions or to confirm. Green = met or resolved. Purple = AI. Grey = fixed rules.";
 export const BOARD_SUBTITLE = "Reviewers picked by fixed rules from the key facts in the brief.";
 export const CHANGE_TEXT_MAX = 90;
+export const ISSUE_TEXT_MAX = 80;
+export const NO_OPEN = "No open objections";
 
 // Long text cut at a word boundary, with "…"; the full text goes in the title.
 export function trimmed(text, max) {

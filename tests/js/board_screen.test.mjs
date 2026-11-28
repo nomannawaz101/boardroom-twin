@@ -224,4 +224,23 @@ const gate = {
   assert.match(box.textContent, /Verdict so far: Not ready yet2 of 5 reviewers can approve\./);
 }
 
+// Board scoreboard: role, score with the needed score (a dash for sign-off checks), result,
+// and the biggest open issue picked by code.
+{
+  const tracker = [
+    { id: "C1", seat: "cfo", kind: "C", severity: "blocker", text: "Client budget owner", status: "open", claim_ids: [] },
+    { id: "O2", seat: "cfo", kind: "O", severity: "condition", text: "Smaller step", status: "open", claim_ids: [] },
+    { id: "O3", seat: "cfo", kind: "O", severity: "blocker", text: "x".repeat(100), status: "open", claim_ids: [] },
+    { id: "O4", seat: "security", kind: "O", severity: "blocker", text: "Done", status: "fixed", claim_ids: [] },
+  ];
+  assert.equal(render.biggestIssue(tracker, "cfo").id, "O3");
+  assert.equal(render.biggestIssue(tracker, "security"), null);
+  const table = new FakeNode("section");
+  table.append(...render.scoreboard({ seats: [answered, gate] }, tracker));
+  const rows = byTag(table, "tr").slice(1).map((r) => r.children.map((c) => c.textContent));
+  assert.deepEqual(rows[0].slice(0, 4), ["CFO", "Scores", "5.3 (7.0)", "Rejected"]);
+  assert.equal(rows[0][4], `${"x".repeat(80)}…`);
+  assert.deepEqual(rows[1], ["Security Officer", "Signs off", "—", "Blocked", "No open objections"]);
+}
+
 process.stdout.write("board screen: all checks passed\n");
