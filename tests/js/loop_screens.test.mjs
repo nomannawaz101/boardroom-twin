@@ -128,7 +128,8 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(skipped, /Nobody answered this #3round 1Access control: no single sign-on\./);
   const prep = holderOf(loop.meetingPrep(report.confirm_with_client)).textContent;
   assert.match(prep, /arrive in a later build/);
-  assert.match(prep, /Retention rule/);
+  assert.doesNotMatch(prep, /Retention rule/); // the list is in "What to do next" only
+  assert.match(holderOf(loop.whatNext(report.confirm_with_client)).textContent, /Retention rule/);
   const approved = loop.verdictBanner({ ...report, verdict_code: "approved_with_conditions" }, () => {}, () => {});
   assert.ok(approved.className.includes("verdict-good"));
 }
@@ -151,10 +152,10 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
 {
   const decided = [{ id: "O4", seat: "cfo", kind: "O", severity: "blocker", text: "A firm fixed price", status: "open", decision: true, answered_in: [], history: [], claim_ids: [] }];
   assert.match(holderOf(loop.trackerList(decided)).textContent, /#4A firm fixed priceNeeds your decision/);
-  const prep = holderOf(loop.meetingPrep(["Retention rule"], ["A firm fixed price"])).textContent;
-  assert.match(prep, /Decisions for you/);
-  assert.match(prep, /A firm fixed price/);
-  assert.doesNotMatch(holderOf(loop.meetingPrep(["Retention rule"])).textContent, /Decisions for you/);
+  const next = holderOf(loop.whatNext(["Retention rule"], ["A firm fixed price"])).textContent;
+  assert.match(next, /Decisions for you/);
+  assert.match(next, /A firm fixed price/);
+  assert.doesNotMatch(holderOf(loop.whatNext(["Retention rule"])).textContent, /Decisions for you/);
 }
 
 // v12: objections and what changed (E); the tracker item keeps its text whole (I).
@@ -187,14 +188,12 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.match(banner.textContent, /6\.5of 10/);
   assert.equal(byClass(banner, "no-print").length, 1);
   assert.equal(byClass(loop.verdictBanner({ ...report, numbers: [] }, () => {}, () => {}), "score-ring").length, 0);
-  const both = holderOf(loop.meetingPrep(["Retention rule"], ["A firm fixed price"]));
-  assert.equal(byClass(both, "close-box").length, 1);
-  assert.match(both.textContent, /Close these itemsConfirm with the clientRetention ruleDecisions for youA firm fixed price/);
-  const onlyDecision = holderOf(loop.meetingPrep([], ["A firm fixed price"])).textContent;
-  assert.match(onlyDecision, /Nothing is waiting for the client\./);
+  const both = holderOf(loop.whatNext(["Retention rule"], ["A firm fixed price"]));
+  assert.match(both.textContent, /What to do nextConfirm with the clientRetention ruleDecisions for youA firm fixed price/);
+  const onlyDecision = holderOf(loop.whatNext([], ["A firm fixed price"])).textContent;
   assert.doesNotMatch(onlyDecision, /Confirm with the client/);
-  const none = holderOf(loop.meetingPrep([], []));
-  assert.equal(byClass(none, "close-box").length, 0);
+  assert.equal(loop.whatNext([], []).length, 0); // the box is hidden
+  assert.match(holderOf(loop.meetingPrep([])).textContent, /Nothing is waiting for the client\./);
 }
 
 process.stdout.write("loop screens: all checks passed\n");

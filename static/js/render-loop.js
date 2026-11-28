@@ -320,18 +320,22 @@ export function decisionMemo(memo) {
   ];
 }
 
-// Meeting prep with the "Close these items" box (design v12, item G): the two lists the run
-// already has, shown only here. An empty list is hidden; so is the box when both are empty.
-export function meetingPrep(confirm, decisions = []) {
+// "What to do next", right under the verdict: the two lists the run already has, shown only
+// here. An empty list is hidden; the whole box is hidden when both are empty.
+export function whatNext(confirm, decisions = []) {
   const lists = [
-    confirm.length ? [h("h3", {}, WORDS.confirmWithClient), h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))] : [],
-    decisions.length ? [h("h3", {}, WORDS.decisionsForYou), h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d)))] : [],
-  ].flat();
+    confirm.length ? h("div", {}, h("h3", {}, W.confirmWithClient), h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))) : null,
+    decisions.length ? h("div", {}, h("h3", {}, W.decisionsForYou), h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d)))) : null,
+  ].filter(Boolean);
+  if (!lists.length) return [];
+  return [h("h2", { class: "close-title" }, W.whatToDoNext), h("div", { class: "next-cols" }, ...lists)];
+}
+
+export function meetingPrep(confirm) {
   return [
     h("h2", {}, "Meeting prep"),
     h("p", { class: "muted small" }, "The Presales Lead's questions and next steps arrive in a later build."),
     confirm.length ? null : h("p", { class: "muted small" }, "Nothing is waiting for the client."),
-    lists.length ? h("div", { class: "close-box" }, h("strong", { class: "close-title" }, "Close these items"), ...lists) : null,
   ].filter(Boolean);
 }
 

@@ -5,7 +5,7 @@ import {
 } from "./render.js";
 import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
-  loopStats, meetingPrep, objectionsTable, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
+  loopStats, meetingPrep, objectionsTable, whatNext, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
 import { MODES, PAGE_TEXT, ROLES, WORDS, reviewerCount } from "./labels.js";
 import {
@@ -53,7 +53,7 @@ const els = {
   trackerList: $("tracker-list"), loopNext: $("loop-next"), loopObjections: $("loop-objections"),
   reportStatus: $("report-status"), reportBody: $("report-body"), verdictBanner: $("verdict-banner"),
   keyNumbers: $("key-numbers"), reportChanges: $("report-changes"), reportProposal: $("report-proposal"),
-  reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportPrototype: $("report-prototype"),
+  reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportNext: $("report-next"), reportPrototype: $("report-prototype"),
   newBrief: $("new-brief"),
 };
 const VIEWS = {
@@ -502,7 +502,10 @@ function renderReport() {
   els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || [], run.data.tracker));
   els.reportProposal.replaceChildren(...finalProposal(run.data.claims, run.data.draft_no, run.data.case_file.client));
   els.reportMemo.replaceChildren(...decisionMemo(report.memo));
-  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client, report.decisions || []));
+  const next = whatNext(report.confirm_with_client, report.decisions || []);
+  els.reportNext.replaceChildren(...next);
+  els.reportNext.hidden = !next.length;
+  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client));
   els.reportPrototype.replaceChildren(...prototypeCard());
   els.reportBody.hidden = false;
 }

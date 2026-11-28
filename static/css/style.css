@@ -451,7 +451,8 @@ a:hover { color: var(--primary-ink); }
 .memo-card { min-width: 0; }
 .prep-card { min-width: 0; }
 .close-box { background: #fef0d7; border: 1px solid #f3d49b; border-left: 4px solid #d98e1f; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
-.close-title { font-size: 14px; color: var(--warn); }
+.close-title { margin: 0; font-size: 16px; color: var(--warn); }
+.next-cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 4px 28px; }
 .close-box h3 { margin: 8px 0 2px; font-size: 12px; letter-spacing: 0.05em; text-transform: uppercase; color: var(--warn); }
 .close-box .confirm-list { color: #5c3a06; font-size: 13.5px; }
 .confirm-list { margin: 0; padding-left: 20px; font-size: 14px; line-height: 1.6; }
