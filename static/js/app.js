@@ -438,10 +438,11 @@ function renderLoop(running) {
   els.loopTitle.textContent = loopTitle();
   els.loopStats.replaceChildren(...loopStats(loopSteps()));
   els.loopChips.replaceChildren(...loopChips(rounds, stop, running));
+  // The latest round is open; earlier rounds collapse to their one-line summary.
   els.loopRounds.replaceChildren(...revisions.map((rev, i) =>
-    bidRoundCard(rev, steps[i], rounds[i], rounds[i + 1], tracker, loopStopped() && i === revisions.length - 1)));
-  els.scoresByRound.replaceChildren(...scoresByRound(rounds), ...gatesByRound(rounds));
-  els.whyStopped.replaceChildren(...whyStopped(stop));
+    bidRoundCard(rev, steps[i], rounds[i], rounds[i + 1], tracker, loopStopped() && i === revisions.length - 1, i === revisions.length - 1)));
+  els.scoresByRound.replaceChildren(...scoresByRound(rounds));
+  els.whyStopped.replaceChildren(...whyStopped(stop), ...gatesByRound(rounds));
   els.trackerList.replaceChildren(...trackerList(tracker));
   els.loopObjections.replaceChildren(...objectionsTable(tracker, rounds[0].seats, revisions));
   els.loopNext.replaceChildren(loopStopped() ? button("Next: the final report →", "btn btn-primary wide-btn", showReport) : "");

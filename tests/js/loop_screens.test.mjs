@@ -211,4 +211,13 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.equal(byClass(golive, "key-day")[0].textContent, "Monday");
 }
 
+// Revisions length: each round collapses to a one-line summary; the latest stays open.
+{
+  assert.equal(loop.roundSummary(bidRound, roundOne, roundTwo), "Round 1: 2 changes, 2 reviewers up, 0 down");
+  const closed = loop.bidRoundCard(bidRound, step, roundOne, roundTwo, tracker, false, false);
+  assert.equal(closed.tag, "details");
+  assert.equal(closed.attrs.open, undefined);
+  assert.equal(loop.bidRoundCard(bidRound, step, roundOne, roundTwo, tracker, false).attrs.open, "");
+}
+
 process.stdout.write("loop screens: all checks passed\n");

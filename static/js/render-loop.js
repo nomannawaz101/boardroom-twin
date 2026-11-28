@@ -97,7 +97,21 @@ function voteRow(seat, before, tracker) {
     h("span", { class: "vote-note" }, seatNote(seat, tracker)));
 }
 
-export function bidRoundCard(bidRound, step, before, after, tracker, stopped) {
+// One line for a collapsed round: changes applied, and how many scoring reviewers moved.
+export function roundSummary(bidRound, before, after) {
+  const applied = bidRound.changes.filter((c) => c.outcome === "applied").length;
+  let up = 0;
+  let down = 0;
+  for (const seat of after.seats.filter((s) => s.kind === "scoring")) {
+    const prior = before.seats.find((s) => s.seat_id === seat.seat_id);
+    if (!prior || prior.score === null || prior.score === undefined || seat.score === null || seat.score === undefined) continue;
+    if (seat.score > prior.score) up += 1;
+    if (seat.score < prior.score) down += 1;
+  }
+  return `Round ${bidRound.no}: ${plural(applied, "change", "changes")}, ${reviewerCount(up)} up, ${down} down`;
+}
+
+export function bidRoundCard(bidRound, step, before, after, tracker, stopped, expanded = true) {
   const answered = bidRound.answered.length ? `answered ${bidRound.answered.map(objectionId).join(", ")}` : "answered nothing";
   const previous = Object.fromEntries(before.seats.map((s) => [s.seat_id, s]));
   const open = tracker.filter((t) => t.status === "open");
@@ -106,8 +120,10 @@ export function bidRoundCard(bidRound, step, before, after, tracker, stopped) {
   const handBack = stopped || !open.length
     ? null
     : handLine(`Hands to ${ROLES.bid_manager}: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
-  // Two cards per round (design v12): what the Bid Manager changed, then the board's vote on it.
-  return h("div", { class: "round-pair" },
+  // Two cards per round (design v12): what the Revision Editor changed, then the board's vote on
+  // it, in one block that collapses to a one-line summary.
+  return h("details", { class: "round-pair", open: expanded },
+    h("summary", { class: "round-summary" }, roundSummary(bidRound, before, after)),
     h("article", { class: "card round-card" },
       h("div", { class: "agent-head" },
         h("strong", {}, `${ROLES.bid_manager} · round ${bidRound.no}`),
