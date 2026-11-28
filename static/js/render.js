@@ -91,9 +91,22 @@ function yesNo(value) {
 
 // The badge is decided by code on the server from the model that answered (after any
 // fallback): a tier name only for that model family, otherwise the model's own name.
+const MODEL_LABEL_MAX = 14;
+
+// A short label that never wraps: the badge the server chose, or the model's own name cut to
+// fit. The full name is always in the tooltip.
+export function shortModel(step) {
+  const name = String(step.badge || step.model || "").replace(/^models\//, "");
+  return name.length > MODEL_LABEL_MAX ? `${name.slice(0, MODEL_LABEL_MAX - 1)}…` : name;
+}
+
+export function modelTitle(step) {
+  return `Answered by ${step.model} (${step.tier} tier)`;
+}
+
 export function modelChip(step) {
   const family = step.badge === "Haiku" || (step.badge !== "Sonnet" && step.tier === "haiku") ? "m-haiku" : "m-sonnet";
-  return h("span", { class: family, title: `Answered by ${step.model} (${step.tier} tier)` }, step.badge || step.model);
+  return h("span", { class: family, title: modelTitle(step) }, shortModel(step));
 }
 
 function codeChip() {

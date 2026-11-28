@@ -8,6 +8,9 @@ import {
   loopStats, meetingPrep, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
 import {
+  idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
+} from "./render-shell.js";
+import {
   BRIEF_MAX_CHARS, addBoard, addDraft, addRetriedSeat, addRevision, hasBoard, hasDraft, hasReport,
   loopStopped, run, setReport, startRun, stateForServer,
 } from "./state.js";
@@ -35,10 +38,10 @@ const els = {
   nav: $("stage-nav"),
   client: $("client"), country: $("country"), brief: $("brief"), counter: $("brief-counter"),
   confirmed: $("confirmed"), start: $("start-live"), startMessage: $("start-message"),
-  samples: $("sample-row"), modeChip: $("mode-chip"), brandSub: $("brand-sub"),
+  samples: $("sample-row"), modeChip: $("mode-chip"), clientChip: $("client-chip"),
+  toggle: $("activity-toggle"), railDetails: $("rail-details"), railBody: $("rail-body"), railChip: $("rail-chip"),
   relay: $("relay"), summary: $("draft-summary"), proposal: $("proposal"),
   stats: $("team-stats"), notices: $("team-notices"), title: $("team-title"),
-  factAgents: $("fact-agents"), factMode: $("fact-mode"),
   boardTitle: $("board-title"), boardIntro: $("board-intro"), boardStats: $("board-stats"),
   boardPlan: $("board-plan"), boardStatus: $("board-status"),
   scoreBlock: $("score-block"), scoreCards: $("score-cards"),
@@ -56,6 +59,11 @@ const VIEWS = {
 };
 // Steps made before the loop started, so the loop's own calls can be counted.
 let loopStart = 0;
+let currentStage = 1;
+// The Brief screen's "This run" facts: placeholders until /api/health answers.
+const facts = { agents: "14", mode: null };
+let railParts = [];
+const NARROW = "(max-width: 1100px)";
 
 // --- Views and stage bar ---
 
@@ -69,23 +77,78 @@ function stageDone(n) {
   return Boolean(done[n]);
 }
 
-function brandLine(stage) {
-  if (stage === 1 || !run.data) return "by Lumen Works";
-  const where = { 2: "draft 1", 3: "board round 1", 4: "revisions", 5: "final report" }[stage];
-  return `${run.data.case_file.client} · ${where}`;
+function clientLine(stage) {
+  if (!run.data) return "";
+  const where = { 1: "", 2: "draft 1", 3: "board round 1", 4: "revisions", 5: "final report" }[stage];
+  return where ? `${run.data.case_file.client} · ${where}` : run.data.case_file.client;
 }
 
 function showView(stage) {
+  currentStage = stage;
   for (const [n, view] of Object.entries(VIEWS)) view.hidden = Number(n) !== stage;
   for (const step of els.nav.querySelectorAll(".step")) {
     const n = Number(step.dataset.stage);
     step.disabled = !stageOpen(n);
+    step.classList.toggle("done", stageDone(n));
     if (n === stage) step.setAttribute("aria-current", "step");
     else step.removeAttribute("aria-current");
-    step.lastChild.textContent = step.lastChild.textContent.replace(" ✓", "") + (stageDone(n) ? " ✓" : "");
+    step.querySelector(".step-state").textContent = stageState(n, stage, stageDone(n));
   }
-  els.brandSub.textContent = brandLine(stage);
+  els.clientChip.textContent = clientLine(stage);
+  els.clientChip.hidden = !run.data;
+  renderRail();
   window.scrollTo({ top: 0 });
+}
+
+// --- Agent activity rail ---
+
+function factRows() {
+  const mode = facts.mode || "Full";
+  return [
+    ["Agent roles", facts.agents],
+    ["Board", "3 to 5 seats, chosen from your brief"],
+    ["Time", "About 2 to 3 minutes for a full run"],
+    ["Cost", "≈ $0.16 per run (estimate)"],
+    ["Mode", h("span", {}, h("span", { class: "pill-ok" }, mode), modeNote(mode))],
+  ];
+}
+
+function railSteps(stage) {
+  const steps = run.data ? run.data.steps : [];
+  if (stage === 2) return steps.filter((s) => s.stage <= 2);
+  if (stage === 3) return steps.filter((s) => s.stage === 3);
+  if (stage === 4) return steps.slice(loopStart);
+  return steps;
+}
+
+// Redrawn on every view change and around every request; `running` names the work in progress.
+function renderRail(running = null) {
+  if (railParts.stop) railParts.stop();
+  const stage = currentStage;
+  const steps = railSteps(stage);
+  if (stage === 1 || !run.data) railParts = idleRail(factRows());
+  else if (stage === 5 && hasReport() && !running) railParts = runSummary(steps);
+  else railParts = stageRail(stage === 5 ? [] : steps, { parallel: stage === 3, running });
+  els.railBody.replaceChildren(...railParts);
+  els.railChip.textContent = railChip(stage === 1 ? [] : steps, running);
+}
+
+function storage() {
+  try {
+    return window.localStorage;
+  } catch {
+    return null;
+  }
+}
+
+function setActivity(on) {
+  document.body.classList.toggle("rail-off", !on);
+  els.toggle.textContent = `Agent activity: ${on ? "On" : "Off"}`;
+  els.toggle.setAttribute("aria-pressed", String(on));
+}
+
+function fitRail() {
+  els.railDetails.open = !window.matchMedia(NARROW).matches;
 }
 
 function setMode(mode) {
@@ -93,7 +156,8 @@ function setMode(mode) {
   els.modeChip.hidden = false;
   els.modeChip.textContent = label === "Sample" ? "Sample run" : `${label} mode`;
   els.modeChip.className = `mode-chip ${label.toLowerCase()}`;
-  els.factMode.replaceChildren(h("span", { class: "pill-ok" }, label), modeNote(label));
+  facts.mode = label;
+  renderRail();
 }
 
 // --- Brief form ---
@@ -173,9 +237,11 @@ async function discover(body) {
   setBusy(true);
   const working = workingCard(1, "Business Analyst is reading the brief. Code checked it first.");
   els.relay.replaceChildren(working);
+  renderRail("Business Analyst");
   const result = await callApi("/api/discover", body);
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error && INPUT_ERRORS.has(result.error)) {
     showView(1);
     showStartMessage(message("m-err", ERROR_TITLES[result.error], result.message));
@@ -199,10 +265,12 @@ async function draft() {
   setBusy(true);
   const working = workingCard(2, "Solution Architect, then Delivery Manager, then Proposal Manager are working. This takes about a minute.");
   els.relay.append(working);
+  renderRail("Solution Architect, Delivery Manager, Proposal Manager");
   const result = await callApi("/api/draft", stateForServer());
   working.stop();
   working.remove();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.relay.append(retryCard(2, result.message, () => {
       els.relay.lastChild.remove();
@@ -264,9 +332,11 @@ async function board() {
   const seats = run.data.board_plan.seats.length;
   const working = workingCard(1, `${countWords(seats, "seat is", "seats are")} reviewing draft 1 at the same time.`);
   els.boardStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  renderRail(`${countWords(seats, "board seat", "board seats")}, at the same time`);
   const result = await callApi("/api/board", stateForServer());
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.boardStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, board, () => showView(2))));
     return;
@@ -366,9 +436,11 @@ async function nextRound() {
   const working = workingCard(roundNo, `Bid Manager round ${roundNo}, then the whole board votes again.`);
   const holder = h("ol", { class: "relay" }, working);
   els.loopRounds.append(holder);
+  renderRail(`Bid Manager, round ${roundNo}, then the board`);
   const result = await callApi("/api/revise", { state: stateForServer(), round_no: roundNo });
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.loopChips.replaceChildren(...loopChips(run.data.rounds, run.data.stop, false));
     holder.replaceChildren(retryCard(roundNo, result.message, () => { holder.remove(); nextRound(); }, () => showView(3)));
@@ -416,9 +488,11 @@ async function showReport() {
   els.reportBody.hidden = true;
   const working = workingCard(1, "Code is assembling the final report.");
   els.reportStatus.replaceChildren(h("ol", { class: "relay" }, working));
+  renderRail("Code assembles the report");
   const result = await callApi("/api/report", stateForServer());
   working.stop();
   setBusy(false);
+  renderRail();
   if (result.error) {
     els.reportStatus.replaceChildren(h("ol", { class: "relay" }, retryCard(1, result.message, showReport, () => showView(4))));
     return;
@@ -444,13 +518,22 @@ async function init() {
   for (const step of els.nav.querySelectorAll(".step")) {
     step.addEventListener("click", () => openStage(Number(step.dataset.stage)));
   }
+  setActivity(readActivity(storage()));
+  els.toggle.addEventListener("click", () => {
+    const on = document.body.classList.contains("rail-off");
+    setActivity(on);
+    writeActivity(storage(), on);
+  });
+  fitRail();
+  window.matchMedia(NARROW).addEventListener("change", fitRail);
   showView(1);
   updateCounter();
   const health = await getJson("/api/health");
   if (health) {
     Object.assign(configured, health.models);
     setMode(health.mode);
-    els.factAgents.textContent = `${health.agents}, with ${health.tools} tools so far`;
+    facts.agents = `${health.agents}, with ${health.tools} tools so far`;
+    renderRail();
   }
   await loadSamples();
 }
