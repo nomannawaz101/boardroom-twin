@@ -1,0 +1,212 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Client board</title><style>
+body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color:#101828;background:#F4F5F7}
+*{box-sizing:border-box}
+.top{background:#101828;color:#fff;display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:12px 24px}
+.brand{font-weight:700;font-size:16px}
+.chip{font-size:12px;border:1px solid #475467;border-radius:999px;padding:3px 10px;color:#D0D5DD}
+.sp{flex:1 1 0}
+.tbtn{background:transparent;color:#fff;border:1px solid #667085;border-radius:8px;padding:8px 12px;font-size:13px;min-height:44px;cursor:pointer}
+.body{display:flex;flex-wrap:wrap;gap:20px;padding:20px 24px;align-items:flex-start}
+.nav{flex:0 0 200px;display:flex;flex-direction:column;gap:4px}
+.navh{font-size:12px;color:#475467;text-transform:uppercase;letter-spacing:.06em;padding:4px 10px}
+.ni{display:flex;align-items:center;gap:10px;padding:10px;border-radius:8px;color:#101828;text-decoration:none;font-size:14px;min-height:44px}
+.ni.act{background:#fff;border:1px solid #E4E7EC;font-weight:600}
+.ni small{margin-left:auto;font-size:11px;color:#475467}
+.dot{width:10px;height:10px;border-radius:50%;background:#98A2B3;flex:none}
+.done .dot{background:#0B6B3A}.act .dot{background:#4B32B8}
+.main{flex:999 1 560px;min-width:0;display:flex;flex-direction:column;gap:16px}
+.rail{flex:0 0 280px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px}
+.rail h3{margin:0 0 4px;font-size:14px}
+.rail p{margin:0 0 12px;font-size:12px;color:#475467}
+.rail ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.rail li{display:flex;flex-direction:column;gap:2px;font-size:13px;padding-bottom:10px;border-bottom:1px solid #F2F4F7}
+.rail li .st{font-size:12px;color:#475467}
+.card{background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:20px}
+h1{margin:0;font-size:24px}h2{margin:0 0 4px;font-size:16px}
+.mut{color:#475467;font-size:14px;margin:0}
+.verdict{display:flex;flex-wrap:wrap;align-items:center;gap:12px;background:#FDECEA;border:1px solid #F4C7C2;border-radius:12px;padding:16px 20px}
+.verdict b{font-size:18px;color:#B42318}
+.seats{display:flex;flex-wrap:wrap;gap:16px}
+.seat{flex:1 1 300px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.seat header{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.seat header b{font-size:15px}
+.pill{font-size:12px;font-weight:600;border-radius:999px;padding:3px 10px;white-space:nowrap}
+.ok{background:#E3F4EA;color:#0B6B3A}.no{background:#FDECEA;color:#B42318}.cond{background:#FEF0D7;color:#8A4B06}
+.score{display:flex;align-items:baseline;gap:8px}
+.score .n{font-size:30px;font-weight:700;font-family:ui-monospace,Consolas,monospace}
+.score .need{font-size:12px;color:#475467}
+.bar{height:6px;background:#EAECF0;border-radius:3px;position:relative}
+.bar i{display:block;height:6px;border-radius:3px;background:#4B32B8}
+.bar u{position:absolute;top:-3px;width:2px;height:12px;background:#101828}
+.q{font-size:14px;margin:0;line-height:1.45;font-style:italic}
+.seat details summary{cursor:pointer;color:#4B32B8;font-size:13px;min-height:32px;text-decoration:underline}
+.rt{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-bottom:1px solid #F2F4F7}
+.rt span:last-child{font-family:ui-monospace,Consolas,monospace;font-weight:700}
+.why2{font-size:12px;color:#475467;margin:0}
+.rule{background:#F9FAFB;border:1px solid #E4E7EC;border-radius:10px;padding:12px 14px;font-size:13px;line-height:1.5}
+.gates{display:flex;flex-wrap:wrap;gap:16px}
+.gate{flex:1 1 320px;background:#fff;border:1px solid #E4E7EC;border-radius:12px;padding:16px 18px;display:flex;flex-direction:column;gap:8px}
+.gate header{display:flex;flex-wrap:wrap;justify-content:space-between;gap:8px;align-items:center}
+.ck{display:flex;gap:8px;font-size:13px;line-height:1.4}
+.ck .m{flex:0 0 18px;font-weight:700}
+.ck .must{font-size:10px;font-weight:700;background:#101828;color:#fff;border-radius:4px;padding:1px 5px;margin-left:6px}
+.mt{color:#0B6B3A}.pt{color:#8A4B06}.nt{color:#B42318}
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:14px;min-width:520px}
+th{text-align:left;font-size:12px;color:#475467;padding:8px;border-bottom:1px solid #E4E7EC}
+td{padding:10px 8px;border-bottom:1px solid #F2F4F7;vertical-align:top}
+.comp{display:flex;flex-direction:column;gap:6px;font-size:13px}
+.comp div{display:flex;flex-wrap:wrap;gap:6px 12px;padding:6px 0;border-bottom:1px solid #F2F4F7}
+.comp b{flex:0 0 190px}.comp span{flex:1 1 220px;color:#475467}
+.fix ol{margin:10px 0 0;padding-left:20px;font-size:14px;line-height:1.6}
+.go{background:#4B32B8;color:#fff;border:0;border-radius:8px;padding:12px 20px;font-size:15px;font-weight:600;min-height:48px}
+.hand{font-size:13px;color:#475467}
+</style></head><body>
+<div style="width:100%;min-height:2300px;display:flex;flex-direction:column">
+<header class="top">
+<span class="brand">Boardroom Twin</span>
+<span class="chip">Simulation, not a prediction</span>
+<span class="chip">Northwind Insurance · Claim status page</span>
+<span class="chip">Sample run</span>
+<span class="sp"></span>
+<button class="tbtn" type="button" >Agent activity: On</button>
+</header>
+<div class="body">
+<nav class="nav" aria-label="Stages">
+<div class="navh">Stages</div>
+<a class="ni done" href="1-brief.html"><span class="dot"></span>Brief<small>Done</small></a>
+<a class="ni done" href="2-proposal-team.html"><span class="dot"></span>Proposal team<small>Done</small></a>
+<a class="ni act" href="3-client-board.html"><span class="dot"></span>Client board<small>Now</small></a>
+<a class="ni" href="4-revisions.html"><span class="dot"></span>Revisions<small>Next</small></a>
+<a class="ni" href="5-report.html"><span class="dot"></span>Report<small>Next</small></a>
+</nav>
+<main class="main">
+<div>
+<p class="mut" style="font-size:12px">STAGE 3 OF 5 · BOARD ROUND 1</p>
+<h1>The client's board reviewed draft 1</h1>
+<p class="mut" style="margin-top:6px">Code picked the board from the brief. Three executives scored the proposal and two gatekeepers checked it, all at the same time. Code turned their answers into votes.</p>
+</div>
+<div class="verdict" role="status">
+<b>Verdict so far: Not ready yet</b>
+<span class="mut">Two seats are below the score they need, and the Security Officer is blocking.</span>
+</div>
+
+<section class="card">
+<h2>Board for this brief <span class="pill" style="background:#EAECF0;color:#344054;font-size:11px">Code, no AI</span></h2>
+<p class="mut" style="margin-bottom:10px">Chosen by code from the 5 flags the Business Analyst set. The "Why" on each seat comes from the brief.</p>
+<div class="comp">
+<div><b>CFO · scores · always invited</b><span>Why: every deal has a budget holder</span></div>
+<div><b>VP, Claims Operations · scores · always invited</b><span>Why: owns the problem; title taken from the brief</span></div>
+<div><b>Enterprise Architect · scores · joined</b><span>Why: the brief touches the existing claims system</span></div>
+<div><b>Procurement &amp; Contracts · gate · joined</b><span>Why: a vendor contract at $600 per day, time and materials</span></div>
+<div style="border:0"><b>Security Officer · gate · joined</b><span>Why: customers look up their own claim data</span></div>
+</div>
+<p class="why2" style="margin-top:6px">Other briefs get 3 to 5 seats. A brief with no personal data would not invite the Security Officer.</p>
+</section>
+
+<section aria-label="Scoring seats" style="display:flex;flex-direction:column;gap:10px">
+<div><h2>Round 1 · scores</h2><p class="mut" style="font-size:13px">Ran at the same time. The tick on each bar is the score needed.</p></div>
+<div class="seats">
+<article class="seat">
+<header><b>CFO</b><span class="pill no">Rejected</span></header>
+<div class="score"><span class="n">5.30</span><span class="need">needs 7.0</span></div>
+<div class="bar" aria-hidden="true"><i style="width:53%"></i><u style="left:70%"></u></div>
+<p class="q">"$24,000 in one go is hard this year. Is there a smaller first step?"</p>
+<details><summary>Ratings and reasons</summary>
+<div class="rt"><span>Cost clarity ×0.40</span><span>7</span></div>
+<div class="rt"><span>Value ×0.35</span><span>5</span></div>
+<div class="rt"><span>Budget fit ×0.25</span><span>3</span></div>
+</details>
+</article>
+<article class="seat">
+<header><b>Enterprise Architect</b><span class="pill no">Rejected</span></header>
+<div class="score"><span class="n">6.20</span><span class="need">needs 8.0</span></div>
+<div class="bar" aria-hidden="true"><i style="width:62%"></i><u style="left:80%"></u></div>
+<p class="q">"After last month's outage, show me the claims system is protected, and how we roll back."</p>
+<details><summary>Ratings and reasons</summary>
+<div class="rt"><span>Fit with our systems ×0.40</span><span>7</span></div>
+<div class="rt"><span>Risk and recovery plan ×0.35</span><span>4</span></div>
+<div class="rt"><span>Maintainability ×0.25</span><span>8</span></div>
+</details>
+</article>
+<article class="seat">
+<header><b>VP, Claims Operations</b><span class="pill cond">Yes, with a condition</span></header>
+<div class="score"><span class="n">7.10</span><span class="need">needs 7.0</span></div>
+<div class="bar" aria-hidden="true"><i style="width:71%"></i><u style="left:70%"></u></div>
+<p class="q">"Customers will love it, but not a go-live in our busiest January week."</p>
+<details><summary>Ratings and reasons</summary>
+<div class="rt"><span>Customer benefit ×0.40</span><span>9</span></div>
+<div class="rt"><span>Timing ×0.35</span><span>5</span></div>
+<div class="rt"><span>Disruption ×0.25</span><span>7</span></div>
+</details>
+</article>
+</div>
+<div class="rule"><b>Decided by code, not AI:</b> score = sum of rating × weight. Below the needed score → Rejected. Above it, with a condition attached → Yes, with a condition.</div>
+</section>
+
+<section aria-label="Gates" style="display:flex;flex-direction:column;gap:10px">
+<div><h2>Round 1 · gates</h2><p class="mut" style="font-size:13px">Gatekeepers answer three checklist questions. They do not give a score.</p></div>
+<div class="gates">
+<article class="gate">
+<header><b>Procurement &amp; Contracts</b><span class="pill cond">Pass, with conditions</span></header>
+<div class="ck"><span class="m mt">&#10003;</span><span>Pricing model stated<span class="must">MUST</span><br>Time and materials at $600 per engineer-day</span></div>
+<div class="ck"><span class="m pt">~</span><span>Change control<span class="must">MUST</span><br>Partly: no process if the scope grows</span></div>
+<div class="ck"><span class="m pt">~</span><span>Acceptance and payment terms<br>Partly: no milestones or sign-off steps</span></div>
+<p class="q">"Fine on price. Show me how changes and sign-off work."</p>
+</article>
+<article class="gate">
+<header><b>Security Officer</b><span class="pill no">Blocked</span></header>
+<div class="ck"><span class="m pt">~</span><span>Data protection<span class="must">MUST</span><br>Partly: the copy holds customer claim data; its protection is not described</span></div>
+<div class="ck"><span class="m nt">&#10005;</span><span>Access control<span class="must">MUST</span><br>Not met: who may see a claim is not described</span></div>
+<div class="ck"><span class="m pt">~</span><span>Fit with the client's data rules<br>Partly: the client's retention rule is unknown</span></div>
+<p class="q">"I can't pass a page that shows claim data without saying who can see it."</p>
+</article>
+</div>
+<div class="rule"><b>Decided by code, not AI:</b> "Not met" on a must-have → Blocked. Any "Partly" → a condition to fix. All "Met" → Pass. A blocked gate caps the final verdict at "Not ready yet".</div>
+</section>
+
+<section class="card">
+<h2>Objections log</h2>
+<p class="mut" style="margin-bottom:8px">6 open · the Bid Manager must answer each one</p>
+<div class="tw"><table>
+<thead><tr><th>ID</th><th>Raised by</th><th>Objection</th><th>Status</th></tr></thead>
+<tbody>
+<tr><td>O1</td><td>CFO</td><td>No smaller first step for a tight budget year</td><td><span class="pill cond">Open</span></td></tr>
+<tr><td>O2</td><td>Enterprise Architect</td><td>Claims system must be protected from extra load</td><td><span class="pill cond">Open</span></td></tr>
+<tr><td>O3</td><td>Enterprise Architect</td><td>No rollback plan</td><td><span class="pill cond">Open</span></td></tr>
+<tr><td>O4</td><td>VP, Claims Operations</td><td>Go-live lands in the January claim peak (condition)</td><td><span class="pill cond">Condition</span></td></tr>
+<tr><td>O5</td><td>Procurement &amp; Contracts</td><td>No change control or acceptance terms (condition)</td><td><span class="pill cond">Condition</span></td></tr>
+<tr><td>O6</td><td>Security Officer</td><td>No access control or data protection for personal claim data</td><td><span class="pill no">Blocker</span></td></tr>
+</tbody></table></div>
+<p class="hand" style="margin-top:10px">Hands the 6 objections, each with its ID, to the Bid Manager.</p>
+</section>
+
+<section class="card fix">
+<h2>What to fix first</h2>
+<p class="mut">The blocker first, because it caps the verdict.</p>
+<ol>
+<li>O6 (Security Officer, blocker): describe who can see a claim and how it is protected.</li>
+<li>O3 and O2 (Enterprise Architect): rollback plan and protection of the claims system.</li>
+<li>O1 (CFO): a smaller first step for the budget.</li>
+</ol>
+</section>
+<div><button class="go" type="button">Next: the Bid Manager answers the objections &rarr;</button></div>
+</main>
+
+<aside class="rail" aria-label="Agent activity">
+<h3>Agent activity</h3>
+<p>Measured while the run happened.</p>
+<ol>
+<li>CFO<span class="st">Done, 8.1 s, Sonnet</span></li>
+<li>Enterprise Architect<span class="st">Done, 9.0 s, Sonnet</span></li>
+<li>VP, Claims Operations<span class="st">Done, 7.7 s, Sonnet</span></li>
+<li>Procurement &amp; Contracts<span class="st">Done, 4.2 s, Haiku</span></li>
+<li>Security Officer<span class="st">Done, 4.6 s, Haiku</span></li>
+<li>Board picker, scoring, verdict<span class="st">Code, no model</span></li>
+</ol>
+<p style="margin-top:12px">Stage: 9 s · about $0.02 (estimate from tokens)</p>
+</aside>
+
+</div>
+</div>
+</body></html>
