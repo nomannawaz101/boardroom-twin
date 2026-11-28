@@ -66,6 +66,12 @@ def test_the_average_compares_the_same_reviewers_in_both_rounds() -> None:
     assert headline(rounds, 2) == "Draft 1 scored 6.5. After 2 revision rounds it scored 7.5."
 
 
+def test_no_reviewer_in_both_rounds_shows_a_dash_not_a_number() -> None:
+    rounds = [board(1, {"cfo": 6.0, "vp": None}), board(2, {"cfo": None, "vp": 8.0})]
+    number = score_number(rounds)
+    assert (number.value, number.note) == ("—", "No reviewer answered in both rounds")
+
+
 def test_when_every_reviewer_answered_both_rounds_there_is_no_note() -> None:
     rounds = [board(1, {"cfo": 6.0, "vp": 7.0}), board(2, {"cfo": 7.0, "vp": 8.0})]
     number = score_number(rounds)

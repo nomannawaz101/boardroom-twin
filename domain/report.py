@@ -17,6 +17,8 @@ ACTION_WORDS = {"replace": "Changed", "remove": "Removed", "add": "Added", "assu
 NO_STOP = StopDecision(stopped=False, reasons=[], lines=[])
 
 NOT_ANSWERED = "Not answered by the Bid Manager"
+AVERAGE_LABEL = "Average score, scoring seats"
+NO_COMMON_REVIEWER = "No reviewer answered in both rounds"
 
 
 def score_text(score: float | None) -> str:
@@ -79,11 +81,13 @@ def summary(latest: BoardRound, client: str, confirm: list[str]) -> str:
 def score_number(rounds: list[BoardRound]) -> KeyNumber:
     first, last, both, seated = like_for_like(rounds)
     titles = [s.title for s in rounds[-1].seats if s.kind == "scoring"]
+    if len(rounds) > 1 and both == 0:
+        return KeyNumber(label=AVERAGE_LABEL, value=score_text(None), note=NO_COMMON_REVIEWER)
     value = score_text(first) if len(rounds) == 1 else f"{score_text(first)} → {score_text(last)}"
     note = ", ".join(titles)
     if len(rounds) > 1 and both < seated:
         note += f" ({both} of {seated} reviewers answered in both rounds)"
-    return KeyNumber(label="Average score, scoring seats", value=value, note=note)
+    return KeyNumber(label=AVERAGE_LABEL, value=value, note=note)
 
 
 def fixed_number(tracker: list[TrackerItem]) -> KeyNumber:
