@@ -4,6 +4,7 @@ Every number here comes from code: the seats' scores, the tracker, the cost calc
 working-day schedule. The verdict follows section 4.7.
 """
 
+import config
 from domain.claims import format_date, format_money, normalize_text
 from domain.loop import average_score, final_verdict
 from domain.tracker import checklist_text
@@ -26,8 +27,31 @@ def plural(count: int, word: str) -> str:
     return f"{count} {word}" if count == 1 else f"{count} {word}s"
 
 
+def answered_scores(board_round: BoardRound) -> dict[str, float]:
+    return {
+        s.seat_id: s.score for s in board_round.seats if s.kind == "scoring" and s.score is not None
+    }
+
+
+def mean(scores: list[float]) -> float | None:
+    return round(sum(scores) / len(scores), config.SCORE_DECIMALS) if scores else None
+
+
+def like_for_like(rounds: list[BoardRound]) -> tuple[float | None, float | None, int, int]:
+    """Draft 1 and final averages over the same scoring seats: those that answered in both
+    rounds. Returns both averages, how many seats that is, and how many scoring seats sat."""
+    first, last = answered_scores(rounds[0]), answered_scores(rounds[-1])
+    if len(rounds) == 1:
+        return average_score(rounds[0]), None, len(first), len(first)
+    both = [seat for seat in first if seat in last]
+    seated = {s.seat_id for r in (rounds[0], rounds[-1]) for s in r.seats if s.kind == "scoring"}
+    before = mean([first[s] for s in both])
+    after = mean([last[s] for s in both])
+    return before, after, len(both), len(seated)
+
+
 def headline(rounds: list[BoardRound], revisions: int) -> str:
-    first, last = average_score(rounds[0]), average_score(rounds[-1])
+    first, last, _, _ = like_for_like(rounds)
     if revisions == 0:
         return f"Draft 1 scored {score_text(first)}. No revision round was run."
     return (
@@ -53,10 +77,13 @@ def summary(latest: BoardRound, client: str, confirm: list[str]) -> str:
 
 
 def score_number(rounds: list[BoardRound]) -> KeyNumber:
-    first, last = average_score(rounds[0]), average_score(rounds[-1])
+    first, last, both, seated = like_for_like(rounds)
     titles = [s.title for s in rounds[-1].seats if s.kind == "scoring"]
     value = score_text(first) if len(rounds) == 1 else f"{score_text(first)} → {score_text(last)}"
-    return KeyNumber(label="Average score, scoring seats", value=value, note=", ".join(titles))
+    note = ", ".join(titles)
+    if len(rounds) > 1 and both < seated:
+        note += f" ({both} of {seated} reviewers answered in both rounds)"
+    return KeyNumber(label="Average score, scoring seats", value=value, note=note)
 
 
 def fixed_number(tracker: list[TrackerItem]) -> KeyNumber:
