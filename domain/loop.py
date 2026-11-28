@@ -11,6 +11,7 @@ The loop never forces approval.
 """
 
 import config
+from domain.tracker import unaddressed_blockers
 from schemas.board import BoardRound, Verdict, VerdictCode
 from schemas.revision import StopDecision, StopReason
 from schemas.state import TrackerItem
@@ -63,14 +64,20 @@ def no_gain(previous: BoardRound, latest: BoardRound) -> bool:
 
 
 def stop_decision(
-    rounds: list[BoardRound], bid_rounds_done: int, max_bid_rounds: int, run_cost: float
+    rounds: list[BoardRound],
+    bid_rounds_done: int,
+    max_bid_rounds: int,
+    run_cost: float,
+    tracker: list[TrackerItem] | None = None,
 ) -> StopDecision:
-    """Code stops the loop when any rule holds and names every rule that holds."""
+    """Code stops the loop when any rule holds and names every rule that holds. "No gain"
+    waits while an open blocker or must-have gate item has never had an applied change."""
     latest = rounds[-1]
     reasons: list[StopReason] = []
     if latest.progress.able == latest.progress.total:
         reasons.append("all_proceed")
-    if len(rounds) >= 2 and no_gain(rounds[-2], latest):
+    waiting = bool(unaddressed_blockers(tracker or []))
+    if len(rounds) >= 2 and no_gain(rounds[-2], latest) and not waiting:
         reasons.append("no_gain")
     if bid_rounds_done >= max_bid_rounds:
         reasons.append("max_rounds")

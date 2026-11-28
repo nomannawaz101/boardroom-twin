@@ -3,21 +3,29 @@ objection unnoticed, and client-only items and assumptions appear once."""
 
 import pytest
 
-from agents.bid_manager import REFUSALS, describe, merge_steps, missing_ids, order_open
+from agents.bid_manager import (
+    REFUSALS,
+    describe,
+    merge_steps,
+    missing_ids,
+    order_open,
+    refusal_notes,
+)
 from domain.claims import (
     HOLIDAYS_NOT_CHECKED,
     apply_change,
     assemble_claims,
+    honest_commercial_model,
     normalize_text,
     states_commercial_fact,
 )
-from domain.report import not_answered, open_conditions, seat_reason
+from domain.report import decisions, not_answered, open_conditions, seat_reason
 from domain.revision import apply_bid_changes
-from domain.tracker import ItemDraft, add_items
+from domain.tracker import ItemDraft, add_items, flag_decisions
 from schemas.answers import Change
 from schemas.board import ChecklistResult, SeatResult
 from schemas.claims import ASSUMPTION_PREFIX, Claim, DraftClaim
-from schemas.revision import BidRound
+from schemas.revision import AppliedChange, BidRound
 from schemas.state import RunState, TrackerItem
 from schemas.step import StepRecord
 
@@ -112,8 +120,15 @@ def test_missing_objections_are_listed_blockers_first() -> None:
         item("O4"),
     ]
     assert [t.id for t in order_open(open_items)] == ["O2", "C1", "O4", "O1", "O3"]
-    answered = [change("replace", "C2", "x").model_copy(update={"objection_id": "O2"})]
-    assert missing_ids(open_items, answered) == ["O4", "O1", "O3"]  # C items need no answer
+    answered = [applied("O2", "applied"), applied("O4", "protected")]
+    # A refused change answers nothing; C items need no answer.
+    assert missing_ids(open_items, answered) == ["O4", "O1", "O3"]
+
+
+def applied(objection_id: str, outcome: str) -> AppliedChange:
+    return AppliedChange.model_validate(
+        {"objection_id": objection_id, "action": "add", "outcome": outcome}
+    )
 
 
 def step(start: int, duration: int, cost: float, status: str = "ok") -> StepRecord:
@@ -269,3 +284,189 @@ def test_without_a_section_the_objections_claim_decides() -> None:
         CLAIMS, tracker, [change("add", None, "The feed has a fallback file.")], 1
     )
     assert applied[0].outcome == "applied" and claims[-1].section == "risks"
+
+
+# --- Follow-up 2 ---
+
+OWN_TERMS = [
+    "Scope changes are handled through a written change request that states the effect on "
+    "engineer-days and cost, and is agreed before work starts.",
+    "Personal data is encrypted in transit and at rest, and access to a claim requires the "
+    "claim number plus a secure link.",
+    "The data feed may be late, so the page shows when it was last updated.",
+    "Acceptance: the client signs off each phase before the next one starts.",
+]
+
+
+@pytest.mark.parametrize("text", OWN_TERMS)
+def test_our_own_terms_are_not_commercial_facts(text: str) -> None:
+    assert not states_commercial_fact(text)
+    assert apply_change(CLAIMS, change("add", None, text)).refused is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "A not-to-exceed ceiling.",
+        "Two more engineers.",
+        "Ten working days.",
+        "Starts 7 Dec.",
+        "Go-live on December 18.",
+        "A day rate of 550.",
+        "A 10% discount.",
+    ],
+)
+def test_new_figures_and_terms_are_still_commercial_facts(text: str) -> None:
+    assert states_commercial_fact(text)
+
+
+def answer(objection_id: str, action: str, claim_id: str | None, text: str) -> Change:
+    return change(action, claim_id, text).model_copy(update={"objection_id": objection_id})
+
+
+def test_an_add_ignores_the_claim_id_and_keeps_the_refused_text() -> None:
+    tracker = [item("O2", seat="procurement")]
+    sent = answer("O2", "add", "C5", "A fixed price of $24,000.")
+    claims, applied_now, marked = apply_bid_changes(CLAIMS, tracker, [sent], 1)
+    assert claims == CLAIMS and applied_now[0].outcome == "protected"
+    assert applied_now[0].old_text is None
+    assert applied_now[0].proposed_text == "A fixed price of $24,000."
+    assert marked[0].answered_in == []  # refused: not answered
+    fine = answer("O2", "add", "C5", "Changes go through a written change request.")
+    added, done, marked = apply_bid_changes(CLAIMS, tracker, [fine], 1)
+    assert done[0].outcome == "applied" and done[0].claim_id == "C6"
+    assert added[-1].section == "proposed_solution"  # not C5's locked cost section
+    assert marked[0].answered_in == [1]
+
+
+def test_the_retry_says_why_each_change_was_refused_and_how_to_fix_it() -> None:
+    changes = [
+        AppliedChange.model_validate(
+            {
+                "objection_id": "O2",
+                "action": "add",
+                "claim_id": "C7",
+                "proposed_text": "Fixed price.",
+                "outcome": "protected",
+            }
+        ),
+        AppliedChange.model_validate({"objection_id": "O3", "action": "add", "outcome": "empty"}),
+        applied("O1", "applied"),
+    ]
+    notes = refusal_notes(changes, ["O2", "O3"])
+    assert [(n["objection_id"], n["claim_id"], n["text"]) for n in notes] == [
+        ("O2", None, "Fixed price."),
+        ("O3", None, ""),
+    ]
+    assert notes[0]["why_refused"] == REFUSALS["protected"]
+    assert "commitment" in str(notes[0]["how_to_fix"])
+    assert "text" in str(notes[1]["how_to_fix"])
+
+
+@pytest.mark.parametrize(
+    ("section", "text", "origin"),
+    [
+        ("assumptions", "The client runs a test environment.", "assumption"),
+        ("scope", "Confirm with the client: who joins the pilot.", "assumption"),
+        ("scope", "The page shows claim status only.", "proposal"),
+    ],
+)
+def test_assumptions_always_carry_the_to_confirm_tag(section: str, text: str, origin: str) -> None:
+    drafted = assemble_claims([DraftClaim(section=section, text=text, origin="proposal")], None)
+    assert drafted[0].origin == origin
+    added = apply_change(CLAIMS, change("add", None, text, section=section)).claims[-1]
+    assert added.origin == origin
+    if section != "assumptions":  # a replace keeps the claim's own section
+        assert apply_change(CLAIMS, change("replace", "C2", text)).claims[1].origin == origin
+
+
+def o_draft(
+    text: str, seat: str = "cfo", claim: str = "C8", severity: str = "condition"
+) -> ItemDraft:
+    return ItemDraft(seat=seat, kind="O", severity=severity, text=text, claim_ids=(claim,))
+
+
+def test_a_repeated_objection_on_the_same_claim_keeps_its_id() -> None:
+    first = add_items([], [o_draft("The time and materials model leaves our budget exposed.")], 1)
+    again = add_items(
+        first,
+        [o_draft("Time and materials still leaves the budget exposed.", severity="blocker")],
+        2,
+    )
+    assert [(t.id, t.severity, t.raised_round) for t in again] == [("O1", "blocker", 1)]
+    assert again[0].text.startswith("Time and materials still")
+    other_claim = add_items(first, [o_draft("The budget stays exposed.", claim="C9")], 2)
+    other_seat = add_items(first, [o_draft("The budget stays exposed.", seat="vp_director")], 2)
+    other_point = add_items(first, [o_draft("The rollout has no rollback plan at all.")], 2)
+    assert [len(x) for x in (other_claim, other_seat, other_point)] == [2, 2, 2]
+
+
+def test_a_gate_line_raised_again_keeps_its_id() -> None:
+    def line(text: str) -> ItemDraft:
+        return ItemDraft(
+            seat="procurement",
+            kind="O",
+            severity="blocker",
+            text=text,
+            item_id="change_control",
+            must=True,
+        )
+
+    tracker = add_items([], [line("Change control: no change process.")], 1)
+    again = add_items(tracker, [line("Change control: still no change process.")], 2)
+    assert [(t.id, t.must, t.text) for t in again] == [
+        ("O1", True, "Change control: still no change process.")
+    ]
+
+
+CAP_CLAIM = "The commercial model is time and materials with a cap."
+
+
+@pytest.mark.parametrize(
+    ("brief", "contract", "expected", "origin"),
+    [
+        (
+            "Billed time-and-materials at $600 per engineer-day.",
+            "tm",
+            "The commercial model is time and materials.",
+            "derived",
+        ),
+        ("A fixed-price change.", "fixed", "The commercial model is fixed price.", "derived"),
+        (
+            "No contract details.",
+            None,
+            ASSUMPTION_PREFIX + "the commercial model (fixed price or time and materials).",
+            "assumption",
+        ),
+        ("Time and materials with a cap of $30,000.", "tm", CAP_CLAIM, "proposal"),
+    ],
+)
+def test_an_invented_cap_becomes_the_plain_contract_type(
+    brief: str, contract: str | None, expected: str, origin: str
+) -> None:
+    claims = [
+        Claim(id="C1", section="team_cost", text=CAP_CLAIM, origin="proposal"),
+        Claim(id="C2", section="scope", text="The page shows claim status.", origin="proposal"),
+    ]
+    honest = honest_commercial_model(claims, contract, brief)
+    assert (honest[0].text, honest[0].origin) == (expected, origin)
+    assert honest[1] == claims[1]
+
+
+@pytest.mark.parametrize(
+    ("text", "contract", "decision"),
+    [
+        ("We need a firm fixed price before we sign.", "tm", True),
+        ("Add a not-to-exceed cap on the total.", "tm", True),
+        ("The fixed price has no breakdown by phase.", "fixed", False),
+        ("Change control is missing.", "tm", False),
+        ("Lower the day rate for phase 2.", "fixed", True),
+    ],
+)
+def test_terms_changes_are_decisions_for_lumen_works(
+    text: str, contract: str, decision: bool
+) -> None:
+    flagged = flag_decisions([item("O1", text=text)], contract)
+    assert flagged[0].decision is decision
+    assert decisions(flagged) == ([text] if decision else [])
+    assert missing_ids(flagged, []) == ([] if decision else ["O1"])

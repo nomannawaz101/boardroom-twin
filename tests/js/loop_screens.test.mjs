@@ -143,4 +143,14 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.doesNotMatch(plain, /Not answered/);
 }
 
+// Follow-up 2: a terms change is a decision for Lumen Works, in the tracker and the report.
+{
+  const decided = [{ id: "O4", seat: "cfo", kind: "O", severity: "blocker", text: "A firm fixed price", status: "open", decision: true, answered_in: [], history: [], claim_ids: [] }];
+  assert.match(holderOf(loop.trackerList(decided)).textContent, /O4A firm fixed priceNeeds a Lumen Works decision/);
+  const prep = holderOf(loop.meetingPrep(["Retention rule"], ["A firm fixed price"])).textContent;
+  assert.match(prep, /Decisions for Lumen Works/);
+  assert.match(prep, /A firm fixed price/);
+  assert.doesNotMatch(holderOf(loop.meetingPrep(["Retention rule"])).textContent, /Decisions for Lumen Works/);
+}
+
 process.stdout.write("loop screens: all checks passed\n");

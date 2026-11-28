@@ -5,6 +5,7 @@ import pytest
 import config
 from domain.loop import average_score, max_bid_rounds, stop_decision
 from schemas.board import BoardRound, Progress, SeatResult
+from schemas.state import TrackerItem
 
 
 def board(no: int, scores: list[float], able: int, total: int = 3) -> BoardRound:
@@ -77,3 +78,33 @@ def test_every_reason_that_holds_is_named_in_words() -> None:
     decision = stop_decision([board(1, [5.0], 1), board(2, [8.0], 3)], 2, 2, 0.0)
     assert decision.stopped and decision.reasons == ["all_proceed", "max_rounds"]
     assert decision.lines[0] == "Every seat on the board can proceed."
+
+
+def blocker(answered: list[int], **fields: object) -> TrackerItem:
+    base = {"id": "O1", "seat": "s0", "kind": "O", "text": "t", "raised_round": 1}
+    return TrackerItem.model_validate(base | {"answered_in": answered} | fields)
+
+
+@pytest.mark.parametrize(
+    ("item", "stops"),
+    [
+        (blocker([]), False),  # a blocker no applied change has answered: run the next round
+        (blocker([], severity="condition", must=True), False),  # a must-have gate line
+        (blocker([1]), True),  # answered once: "no gain" applies
+        (blocker([], severity="condition"), True),  # a plain condition does not hold the loop
+        (blocker([], decision=True), True),  # a Lumen Works decision: no change can settle it
+        (blocker([], status="fixed"), True),
+    ],
+)
+def test_no_gain_waits_for_every_open_blocker_to_be_answered(
+    item: TrackerItem, stops: bool
+) -> None:
+    rounds = [board(1, [5.0], 1), board(2, [5.1], 1)]
+    decision = stop_decision(rounds, 1, 2, 0.0, [item])
+    assert decision.stopped is stops
+    assert ("no_gain" in decision.reasons) is stops
+
+
+def test_the_round_limit_still_stops_with_a_blocker_unanswered() -> None:
+    rounds = [board(1, [5.0], 1), board(2, [5.1], 1), board(3, [5.1], 1)]
+    assert stop_decision(rounds, 2, 2, 0.0, [blocker([])]).reasons == ["max_rounds"]

@@ -41,7 +41,8 @@ def apply_bid_changes(
         if refusal is not None:
             applied.append(record(change, None, None, refusal))
             continue
-        before = find_claim(current, change.claim_id)
+        edits = change.action in ("replace", "remove")
+        before = find_claim(current, change.claim_id) if edits else None
         result = apply_change(
             current, change, objection_section(current, open_now[change.objection_id])
         )
@@ -80,6 +81,7 @@ def record(
         if before is not None and change.action in ("replace", "remove")
         else None,
         new_text=after.text if after is not None else None,
+        proposed_text=change.text or None if outcome != "applied" else None,
         outcome=outcome,
     )
 

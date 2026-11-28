@@ -9,7 +9,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from agents import delivery_manager, proposal_manager, solution_architect
-from domain.claims import assemble_claims
+from domain.claims import assemble_claims, honest_commercial_model
 from domain.cost import choose_efforts, choose_rate, estimate_cost, weeks_to_days
 from domain.errors import StepFailed
 from domain.timeline import choose_start, plan_schedule
@@ -80,9 +80,10 @@ async def draft(state: RunState, runtime: Runtime, today: date) -> DraftResponse
     pm = await proposal_manager.run(case_file, design, estimate, schedule, efforts, runtime)
     written = require(pm, state.run_id)
     tool_results = [call.result for call in dm.step.tool_calls] + code_results(estimate, schedule)
-    claims, retagged = checked_claims(
-        assemble_claims(written.claims, estimate, schedule, efforts), brief, tool_results, efforts
-    )
+    contract = case_file.flags.contract_type if case_file.flags else None
+    assembled = assemble_claims(written.claims, estimate, schedule, efforts)
+    honest = honest_commercial_model(assembled, contract, brief)
+    claims, retagged = checked_claims(honest, brief, tool_results, efforts)
 
     return DraftResponse(
         design=design,

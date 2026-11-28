@@ -26,6 +26,7 @@ class AppliedChange(BaseModel):
     claim_id: str | None = None  # the claim changed, or the new claim's id
     old_text: str | None = None
     new_text: str | None = None
+    proposed_text: str | None = None  # what a refused change asked for, so the refusal is visible
     outcome: ChangeOutcome
 
 
@@ -79,3 +80,4 @@ class Report(BaseModel):
     confirm_with_client: list[str]
     stop: StopDecision
     not_answered: list[ReportChange] = []  # still open, never answered by the Bid Manager
+    decisions: list[str] = []  # open objections that ask to change our commercial terms

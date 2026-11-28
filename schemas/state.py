@@ -34,6 +34,8 @@ class TrackerItem(BaseModel):
     claim_ids: list[str] = []
     text: str
     resolve_hint: str = ""  # what the seat says would resolve it; the Bid Manager reads this
+    must: bool = False  # from a must-have gate checklist line
+    decision: bool = False  # asks to change our commercial terms: a Lumen Works decision
     status: Literal["open", "fixed"] = "open"
     answered_in: list[int] = []  # Bid Manager rounds that answered it ("answered", never "fixed")
     raised_round: int

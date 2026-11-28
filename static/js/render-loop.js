@@ -160,6 +160,7 @@ function trackerStatus(item) {
     return h("span", { class: "pill pill-good" }, bid ? `Fixed R${bid}` : "Fixed");
   }
   if (item.kind === "C") return h("span", { class: "pill pill-cond" }, "Confirm");
+  if (item.decision) return h("span", { class: "pill pill-bad" }, "Needs a Lumen Works decision");
   if (item.answered_in.length) return h("span", { class: "pill pill-cond" }, "Answered");
   return h("span", { class: "pill pill-bad" }, "Open");
 }
@@ -244,7 +245,7 @@ export function decisionMemo(memo) {
   ];
 }
 
-export function meetingPrep(confirm) {
+export function meetingPrep(confirm, decisions = []) {
   return [
     h("h2", {}, "Meeting prep"),
     h("p", { class: "muted small" }, "The Presales Lead's questions and next steps arrive in a later build."),
@@ -252,7 +253,9 @@ export function meetingPrep(confirm) {
     confirm.length
       ? h("ol", { class: "confirm-list" }, ...confirm.map((c) => h("li", {}, c)))
       : h("p", { class: "muted small" }, "Nothing is waiting for the client."),
-  ];
+    decisions.length ? h("strong", { class: "small" }, "Decisions for Lumen Works") : null,
+    decisions.length ? h("ol", { class: "confirm-list" }, ...decisions.map((d) => h("li", {}, d))) : null,
+  ].filter(Boolean);
 }
 
 export function prototypeCard() {

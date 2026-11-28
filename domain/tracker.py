@@ -6,9 +6,11 @@ become tracker items too. Unknown claim ids from a model are dropped from the it
 Items start open; Phase 4 marks one fixed only when the seat that raised it re-reads and agrees.
 """
 
+import re
 from dataclasses import dataclass
 from typing import Literal
 
+import config
 from domain.claims import normalize_text
 from schemas.answers import GateObjection, PreviousState, ScoringObjection
 from schemas.board import ChecklistResult
@@ -18,6 +20,20 @@ from schemas.state import HistoryEntry, TrackerItem
 Kind = Literal["O", "C"]
 Severity = Literal["blocker", "condition"]
 STATUS_WORDS = {"not_met": "not met", "partly": "partly met"}
+# An objection that asks to change our commercial terms: a cap or ceiling, a discount, a lower
+# rate or price, or the other contract type. Only Lumen Works can decide that.
+TERMS_CHANGE = re.compile(
+    r"\b(?:cap|capped|ceiling)\b|not[- ]to[- ]exceed|\bdiscount"
+    r"|\b(?:lower|reduce[ds]?|cut)\s+(?:the\s+)?(?:day\s+)?(?:rate|price|fee)",
+    re.IGNORECASE,
+)
+OTHER_CONTRACT = {
+    "tm": re.compile(r"fixed[- ]price|firm price|fixed fee", re.IGNORECASE),
+    "fixed": re.compile(r"time[- ]and[- ]materials|\bt&m\b", re.IGNORECASE),
+}
+EITHER_CONTRACT = re.compile(
+    r"fixed[- ]price|firm price|fixed fee|time[- ]and[- ]materials|\bt&m\b", re.IGNORECASE
+)
 
 
 @dataclass(frozen=True)
@@ -31,6 +47,7 @@ class ItemDraft:
     item_id: str | None = None
     claim_ids: tuple[str, ...] = ()
     resolve_hint: str = ""
+    must: bool = False
 
 
 def next_tracker_id(tracker: list[TrackerItem], kind: Kind) -> str:
@@ -38,38 +55,63 @@ def next_tracker_id(tracker: list[TrackerItem], kind: Kind) -> str:
     return f"{kind}{max(numbers, default=0) + 1}"
 
 
-def same_client_item(tracker: list[TrackerItem], draft: ItemDraft) -> TrackerItem | None:
-    """An open client-only item this draft repeats: the same seat on the same claim, or the
-    same text (lower case, no punctuation) from any seat."""
-    if draft.kind != "C":
-        return None
-    wanted = normalize_text(draft.text)
+def content_words(text: str) -> set[str]:
+    return {w for w in normalize_text(text).split() if len(w) >= config.CONTENT_WORD_MIN}
+
+
+def similar_text(first: str, second: str) -> bool:
+    """Most content words of the shorter text appear in the other."""
+    a, b = content_words(first), content_words(second)
+    if not a or not b:
+        return normalize_text(first) == normalize_text(second)
+    return len(a & b) / min(len(a), len(b)) >= config.SIMILAR_TEXT_OVERLAP
+
+
+def same_target(item: TrackerItem, draft: ItemDraft) -> bool:
+    same_claim = bool(draft.claim_ids) and item.claim_ids == list(draft.claim_ids)
+    same_line = draft.item_id is not None and item.item_id == draft.item_id
+    return same_claim or same_line
+
+
+def repeated_item(tracker: list[TrackerItem], draft: ItemDraft) -> TrackerItem | None:
+    """An open item this draft repeats. Client-only: the same seat on the same claim, or the
+    same text (lower case, no punctuation) from any seat. Fixable: the same seat on the same
+    claim or checklist line, with similar text."""
     for item in tracker:
-        if item.kind != "C" or item.status != "open":
+        if item.kind != draft.kind or item.status != "open":
             continue
-        same_claim = (
-            item.seat == draft.seat and draft.claim_ids and item.claim_ids == list(draft.claim_ids)
-        )
-        if same_claim or normalize_text(item.text) == wanted:
+        own = item.seat == draft.seat and same_target(item, draft)
+        if draft.kind == "C" and (own or normalize_text(item.text) == normalize_text(draft.text)):
+            return item
+        if draft.kind == "O" and own and similar_text(item.text, draft.text):
             return item
     return None
+
+
+def updated_item(item: TrackerItem, draft: ItemDraft) -> TrackerItem:
+    """The seat's newer wording, keeping the id; a blocker stays a blocker."""
+    severity = "blocker" if "blocker" in (item.severity, draft.severity) else "condition"
+    return item.model_copy(
+        update={
+            "text": draft.text,
+            "resolve_hint": draft.resolve_hint or item.resolve_hint,
+            "severity": severity,
+            "must": item.must or draft.must,
+        }
+    )
 
 
 def add_items(
     tracker: list[TrackerItem], drafts: list[ItemDraft], round_no: int
 ) -> list[TrackerItem]:
-    """Append items in order, each with the next free id of its kind. A client-only item raised
-    again updates the existing item (same id) instead of opening a new one."""
+    """Append items in order, each with the next free id of its kind. An item raised again
+    updates the existing item (same id) instead of opening a new one."""
     added = list(tracker)
     for draft in drafts:
-        repeat = same_client_item(added, draft)
+        repeat = repeated_item(added, draft)
         if repeat is not None:
             if repeat.seat == draft.seat:
-                update = {
-                    "text": draft.text,
-                    "resolve_hint": draft.resolve_hint or repeat.resolve_hint,
-                }
-                added = [t.model_copy(update=update) if t.id == repeat.id else t for t in added]
+                added = [updated_item(t, draft) if t.id == repeat.id else t for t in added]
             continue
         added.append(
             TrackerItem(
@@ -81,10 +123,45 @@ def add_items(
                 claim_ids=list(draft.claim_ids),
                 text=draft.text,
                 resolve_hint=draft.resolve_hint,
+                must=draft.must,
                 raised_round=round_no,
             )
         )
     return added
+
+
+def asks_terms_change(item: TrackerItem, contract_type: str | None) -> bool:
+    text = f"{item.text} {item.resolve_hint}"
+    other = OTHER_CONTRACT.get(contract_type or "", EITHER_CONTRACT)
+    return bool(TERMS_CHANGE.search(text) or other.search(text))
+
+
+def flag_decisions(tracker: list[TrackerItem], contract_type: str | None) -> list[TrackerItem]:
+    """Open fixable objections that ask to change our commercial terms become decisions for
+    Lumen Works: the Bid Manager must not change the contract model to answer them."""
+    return [
+        t.model_copy(update={"decision": True})
+        if t.kind == "O"
+        and t.status == "open"
+        and not t.decision
+        and asks_terms_change(t, contract_type)
+        else t
+        for t in tracker
+    ]
+
+
+def unaddressed_blockers(tracker: list[TrackerItem]) -> list[str]:
+    """Open fixable blockers and must-have gate items no applied change has answered yet.
+    Decisions for Lumen Works are left out: no proposal change can settle them."""
+    return [
+        t.id
+        for t in tracker
+        if t.kind == "O"
+        and t.status == "open"
+        and not t.decision
+        and (t.severity == "blocker" or t.must)
+        and not t.answered_in
+    ]
 
 
 def kind_of(needs_client: bool) -> Kind:
@@ -136,6 +213,7 @@ def gate_drafts(
                 text=text or checklist_text(item),
                 item_id=item.id,
                 resolve_hint=hint or checklist_hint(item),
+                must=item.must,
             )
         )
     return drafts

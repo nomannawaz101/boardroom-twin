@@ -263,7 +263,9 @@ def harbor_round_one(scripted: Scripted) -> dict[str, Any]:
     )
 
 
-def harbor_revote(cfo_rating: float) -> list[FakeStep]:
+def harbor_revote(cfo_rating: float, answer_all: dict[str, Any] | None = None) -> list[FakeStep]:
+    """The Bid Manager answers O1 only, so its retry (adding nothing) follows; or, given the
+    round's state, it answers every open objection and no retry is needed."""
     bid = {
         "changes": [
             {
@@ -279,9 +281,17 @@ def harbor_revote(cfo_rating: float) -> list[FakeStep]:
         "objections": [],
         "previous": [{"id": "O1", "state": "partly"}],
     }
+    if answer_all is not None:
+        bid = {
+            "changes": [
+                {"objection_id": t["id"], "action": "add", "text": "A smaller first step."}
+                for t in answer_all["tracker"]
+                if t["kind"] == "O" and t["status"] == "open"
+            ]
+        }
     return [
         reply_json(bid),
-        reply_json(NO_MORE),
+        *([] if answer_all is not None else [reply_json(NO_MORE)]),
         reply_json(cfo),
         reply_json(VP | {"objections": []}),
         reply_json(PROCUREMENT | {"objections": []}),
@@ -308,7 +318,7 @@ def test_never_more_than_three_board_votes(scripted: Scripted) -> None:
 
 def test_a_round_that_improves_nothing_stops_the_loop(scripted: Scripted) -> None:
     current = harbor_round_one(scripted)
-    body = revise(scripted, current, 1, harbor_revote(5.3))
+    body = revise(scripted, current, 1, harbor_revote(5.3, answer_all=current))
     assert body["stop"]["reasons"] == ["no_gain"]
     assert "improved nothing" in body["stop"]["lines"][0]
 
@@ -498,7 +508,7 @@ def test_a_skipped_objection_gets_one_retry_then_shows_as_not_answered(
 ) -> None:
     open_fixable = [t for t in round_one["tracker"] if t["kind"] == "O"]
     blockers_first = sorted(open_fixable, key=lambda t: t["severity"] != "blocker")
-    left_out = [t["id"] for t in blockers_first if t["id"] not in ("O1", "O2", "O3")]
+    left_out = [t["id"] for t in blockers_first if t["id"] not in ("O1", "O3")]
     body = revise(
         scripted,
         round_one,
@@ -507,6 +517,8 @@ def test_a_skipped_objection_gets_one_retry_then_shows_as_not_answered(
     )
     retry_user = scripted.model.requests[1].messages[1]["content"]
     assert f'"answer_these_now": {json.dumps(left_out)}' in retry_user
+    assert '"refused_changes": [{"objection_id": "O2"' in retry_user
+    assert "Lumen Works offers a fixed price" in retry_user and '"how_to_fix"' in retry_user
     outcomes = [(c["objection_id"], c["outcome"]) for c in body["bid_round"]["changes"]]
     assert outcomes == [
         ("O1", "applied"),
@@ -514,7 +526,7 @@ def test_a_skipped_objection_gets_one_retry_then_shows_as_not_answered(
         ("O2", "protected"),
         ("O4", "applied"),
     ]
-    still_missing = [i for i in left_out if i != "O4"]
+    still_missing = [i for i in left_out if i != "O4"]  # O2's change was refused
     assert body["bid_round"]["not_answered"] == still_missing
     added = next(c for c in body["claims"] if c["text"] == "Staff sign in.")
     assert added["section"] == "risks"
@@ -528,7 +540,8 @@ def test_a_skipped_objection_gets_one_retry_then_shows_as_not_answered(
 def test_a_full_answer_needs_no_retry(scripted: Scripted, round_one: dict[str, Any]) -> None:
     every = {
         "changes": [
-            *BID_ROUND_ONE["changes"],
+            *BID_ROUND_ONE["changes"][:2],
+            {"objection_id": "O2", "action": "add", "text": "Go-live avoids the January peak."},
             *(
                 {"objection_id": f"O{n}", "action": "add", "text": f"Point {n}."}
                 for n in range(4, 8)

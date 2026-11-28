@@ -22,7 +22,7 @@ from domain.board_round import (
 )
 from domain.errors import InputBlocked, StepFailed
 from domain.loop import final_verdict, max_bid_rounds, stop_decision
-from domain.tracker import open_items
+from domain.tracker import flag_decisions, open_items
 from llm.client import AgentResult, Runtime
 from schemas.answers import GateSeatAnswer, ScoringSeatAnswer
 from schemas.board import BoardPlan, BoardRound, PlannedSeat, SeatResult
@@ -116,7 +116,7 @@ async def vote(
         steps.append(described(state.run_id, agent, result, draft))
     if answered_count(results) < MIN_SEATS_ANSWERED:
         raise StepFailed(TOO_FEW)
-    return build_round(round_no, results), tracker, steps
+    return build_round(round_no, results), flag_decisions(tracker, contract_type(state)), steps
 
 
 def run_cost(steps: list[StepRecord]) -> float:
@@ -124,10 +124,19 @@ def run_cost(steps: list[StepRecord]) -> float:
 
 
 def decide_stop(
-    state: RunState, rounds: list[BoardRound], bid_rounds_done: int, new_steps: list[StepRecord]
+    state: RunState,
+    rounds: list[BoardRound],
+    bid_rounds_done: int,
+    new_steps: list[StepRecord],
+    tracker: list[TrackerItem],
 ) -> StopDecision:
     limit = max_bid_rounds(lite=state.mode == "lite")
-    return stop_decision(rounds, bid_rounds_done, limit, run_cost([*state.steps, *new_steps]))
+    cost = run_cost([*state.steps, *new_steps])
+    return stop_decision(rounds, bid_rounds_done, limit, cost, tracker)
+
+
+def contract_type(state: RunState) -> str | None:
+    return state.flags.contract_type if state.flags else None
 
 
 async def review(state: RunState, runtime: Runtime) -> BoardResponse:
@@ -139,7 +148,7 @@ async def review(state: RunState, runtime: Runtime) -> BoardResponse:
         round=board_round,
         tracker=tracker,
         verdict=final_verdict(board_round, tracker),
-        stop=decide_stop(state, [board_round], 0, steps),
+        stop=decide_stop(state, [board_round], 0, steps, tracker),
         steps=steps,
     )
 
@@ -158,6 +167,7 @@ async def retry_seat(state: RunState, seat_id: str, runtime: Runtime) -> BoardRe
     agent = await board_seat.run(seat, review_for(seat, case_file, draft, state.tracker), runtime)
     claim_ids = {c.id for c in state.claims}
     result, tracker = assess(seat, agent, claim_ids, state.tracker, latest.no)
+    tracker = flag_decisions(tracker, contract_type(state))
     step = described(state.run_id, agent, result, draft)
     board_round = replace_seat(latest, result)
     rounds = [*state.rounds[:-1], board_round]
@@ -165,6 +175,6 @@ async def retry_seat(state: RunState, seat_id: str, runtime: Runtime) -> BoardRe
         round=board_round,
         tracker=tracker,
         verdict=final_verdict(board_round, tracker),
-        stop=decide_stop(state, rounds, len(state.revisions), [step]),
+        stop=decide_stop(state, rounds, len(state.revisions), [step], tracker),
         steps=[step],
     )

@@ -160,6 +160,8 @@ MIN_SEATS_ANSWERED = 2  # fewer seats answering stops the run with a Retry card 
 # --- Revision loop (plan section 4.6). ---
 MAX_BID_ROUNDS = 2  # so at most 3 board votes
 LITE_MAX_BID_ROUNDS = 1
+SIMILAR_TEXT_OVERLAP = 0.5  # share of the shorter text's content words two objections share
+CONTENT_WORD_MIN = 4  # shorter words do not count when comparing objection texts
 MIN_GAIN = 0.2  # a round that raises the average scoring-seat score less, and no seat, stops
 RUN_COST_CAP_USD = 0.25  # soft per-run guard (plan section 9.4); the gateway budget is the hard one
 

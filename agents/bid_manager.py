@@ -10,7 +10,7 @@ from agents.registry import passed_line, received_line
 from config import CLAIM_MAX_WORDS
 from domain.revision import answered_ids
 from llm.client import AgentResult, Runtime, run_agent
-from schemas.answers import BidManagerAnswer, Change
+from schemas.answers import BidManagerAnswer
 from schemas.board import BoardPlan
 from schemas.case_file import CaseFile
 from schemas.claims import Claim
@@ -35,10 +35,44 @@ def order_open(open_items: list[TrackerItem]) -> list[TrackerItem]:
     return sorted(open_items, key=lambda t: t.severity != "blocker")
 
 
-def missing_ids(open_items: list[TrackerItem], changes: list[Change]) -> list[str]:
-    """Open fixable objections no change names, blockers first."""
-    named = {c.objection_id for c in changes}
-    return [t.id for t in order_open(open_items) if t.kind == "O" and t.id not in named]
+# Why code refused a change and how to fix it, for the retry.
+FIXES = {
+    "locked": "Leave the calculated claim alone; add a new statement instead.",
+    "unknown_claim": 'Use a claim id from the proposal, or use "add" for a new statement.',
+    "protected": "Do not set contract terms, prices, rates, team size or dates. Write our own "
+    'commitment without new figures, or "assume" a fact only the client knows.',
+    "empty": 'Write the sentence in "text".',
+    "unknown_objection": "Use an open objection id from the inputs.",
+    "client_only": 'Answer an objection whose id starts with C only with "assume".',
+    "duplicate": "That assumption is already in the proposal; write a commitment instead.",
+}
+
+
+def missing_ids(open_items: list[TrackerItem], changes: list[AppliedChange]) -> list[str]:
+    """Open fixable objections without an applied change, blockers first. A refused change
+    does not answer anything. Decisions for Lumen Works are not the Bid Manager's to answer."""
+    answered = {c.objection_id for c in changes if c.outcome == "applied"}
+    return [
+        t.id
+        for t in order_open(open_items)
+        if t.kind == "O" and not t.decision and t.id not in answered
+    ]
+
+
+def refusal_notes(changes: list[AppliedChange], missing: list[str]) -> list[dict[str, object]]:
+    """For the retry: each refused change on a missing objection, why, and how to fix it."""
+    return [
+        {
+            "objection_id": c.objection_id,
+            "action": c.action,
+            "claim_id": c.claim_id if c.action in ("replace", "remove") else None,
+            "text": c.proposed_text or "",
+            "why_refused": REFUSALS[c.outcome],
+            "how_to_fix": FIXES[c.outcome],
+        }
+        for c in changes
+        if c.outcome != "applied" and c.objection_id in missing
+    ]
 
 
 def merge_steps(first: StepRecord, retry: StepRecord) -> StepRecord:
@@ -69,6 +103,7 @@ def objection_lines(open_items: list[TrackerItem], plan: BoardPlan) -> list[dict
             "text": t.text,
             "resolve_hint": t.resolve_hint,
             "claim_ids": t.claim_ids,
+            "lumen_works_decision": t.decision,
         }
         for t in open_items
     ]
@@ -81,8 +116,10 @@ async def run(
     plan: BoardPlan,
     runtime: Runtime,
     missing: list[str] | None = None,
+    refused: list[dict[str, object]] | None = None,
 ) -> AgentResult[BidManagerAnswer]:
-    """`missing` names the objections a first answer left out: the retry answers those."""
+    """`missing` names the objections a first answer left unanswered, `refused` the changes
+    code refused for them, with why and how to fix: the retry answers those."""
     payload: dict[str, object] = {
         "open_objections": objection_lines(open_items, plan),
         "proposal": [
@@ -96,6 +133,8 @@ async def run(
     }
     if missing:
         payload["answer_these_now"] = missing
+    if refused:
+        payload["refused_changes"] = refused
     system = system_prompt(AGENT_ID, max_words=CLAIM_MAX_WORDS)
     return await run_agent(
         AGENT_ID, system, inputs_block(payload), BidManagerAnswer, runtime=runtime

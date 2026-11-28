@@ -400,7 +400,7 @@ function renderReport() {
   els.reportChanges.replaceChildren(...changesSince(report.changes, report.not_answered || []));
   els.reportProposal.replaceChildren(...finalProposal(run.data.claims, run.data.draft_no, run.data.case_file.client));
   els.reportMemo.replaceChildren(...decisionMemo(report.memo));
-  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client));
+  els.reportPrep.replaceChildren(...meetingPrep(report.confirm_with_client, report.decisions || []));
   els.reportPrototype.replaceChildren(...prototypeCard());
   els.reportBody.hidden = false;
 }

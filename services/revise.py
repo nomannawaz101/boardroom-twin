@@ -31,7 +31,7 @@ def check_round(state: RunState, round_no: int) -> None:
         raise InputBlocked(WRONG_ROUND)
     if state.stop is not None and state.stop.stopped:
         raise InputBlocked(STOPPED)
-    if decide_stop(state, state.rounds, len(state.revisions), []).stopped:
+    if decide_stop(state, state.rounds, len(state.revisions), [], state.tracker).stopped:
         raise InputBlocked(STOPPED)
 
 
@@ -60,18 +60,24 @@ async def revise(state: RunState, round_no: int, runtime: Runtime) -> RevisionRe
     log_step(state.run_id, manager.step)
     if manager.answer is None:
         raise StepFailed()
-    answer, step = list(manager.answer.changes), manager.step
-    missing = bid_manager.missing_ids(open_now, answer)
-    if missing:  # one retry naming the objections it left out, blockers first
+    step = manager.step
+    claims, changes, tracker = apply_bid_changes(
+        state.claims, state.tracker, manager.answer.changes, round_no
+    )
+    missing = bid_manager.missing_ids(open_now, changes)
+    if missing:  # one retry: the unanswered objections, blockers first, and why code refused
+        notes = bid_manager.refusal_notes(changes, missing)
         retry = await bid_manager.run(
-            open_now, state.claims, case_file, plan, runtime, missing=missing
+            open_now, claims, case_file, plan, runtime, missing=missing, refused=notes
         )
         log_step(state.run_id, retry.step)
         extra = retry.answer.changes if retry.answer is not None else []
-        answer += [c for c in extra if c.objection_id in missing]
+        claims, more, tracker = apply_bid_changes(
+            claims, tracker, [c for c in extra if c.objection_id in missing], round_no
+        )
+        changes = [*changes, *more]
         step = bid_manager.merge_steps(step, retry.step)
-        missing = bid_manager.missing_ids(open_now, answer)
-    claims, changes, tracker = apply_bid_changes(state.claims, state.tracker, answer, round_no)
+        missing = bid_manager.missing_ids(open_now, changes)
     claims = guard_changed(claims, changes, brief, state)
     draft = Draft(claims=claims, draft_no=state.draft_no + 1, changes=changes)
     board_round, tracker, seat_steps = await vote(state, draft, tracker, round_no + 1, runtime)
@@ -89,6 +95,6 @@ async def revise(state: RunState, round_no: int, runtime: Runtime) -> RevisionRe
         draft_no=draft.draft_no,
         tracker=tracker,
         verdict=final_verdict(board_round, tracker),
-        stop=decide_stop(state, [*state.rounds, board_round], round_no, steps),
+        stop=decide_stop(state, [*state.rounds, board_round], round_no, steps, tracker),
         steps=steps,
     )

@@ -138,6 +138,11 @@ def memo(latest: BoardRound, tracker: list[TrackerItem]) -> list[MemoRow]:
     ]
 
 
+def decisions(tracker: list[TrackerItem]) -> list[str]:
+    """Open objections that ask to change our commercial terms: Lumen Works decides."""
+    return [t.text for t in tracker if t.kind == "O" and t.status == "open" and t.decision]
+
+
 def not_answered(state: RunState) -> list[ReportChange]:
     """Objections the Bid Manager left out in a round and that are still open, each once with
     the last round that left it out."""
@@ -175,4 +180,5 @@ def build_report(state: RunState) -> Report:
         confirm_with_client=confirm,
         stop=state.stop or NO_STOP,
         not_answered=not_answered(state),
+        decisions=decisions(tracker),
     )
