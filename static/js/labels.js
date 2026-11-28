@@ -92,6 +92,7 @@ export function trimmed(text, max) {
 // Static page texts, filled into every [data-text] element when the page starts.
 export const PAGE_TEXT = {
   "legend-ai": LEGEND_AI,
+  "legend-colours": LEGEND_COLOURS,
   "hero-title": "Know what the client's board will challenge, before the meeting.",
   "step-1": `Business Analyst, Solution Architect, Delivery Manager, Risk & Compliance Analyst and ${ROLES.proposal_manager} hand work to each other`,
   "step-2": "3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time",

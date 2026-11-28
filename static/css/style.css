@@ -463,6 +463,7 @@ a:hover { color: var(--primary-ink); }
 .change-obj { color: var(--text-3); }
 .change-obj .change-id { margin-left: 4px; }
 .legend-line { margin: 0; font-size: 12.5px; color: var(--text-2); }
+.colour-legend { border-top: 1px solid var(--border); padding-top: 12px; }
 .memo-card { min-width: 0; }
 .prep-card { min-width: 0; }
 .close-box { background: #fef0d7; border: 1px solid #f3d49b; border-left: 4px solid #d98e1f; border-radius: 10px; padding: 14px 16px; display: flex; flex-direction: column; gap: 4px; }
