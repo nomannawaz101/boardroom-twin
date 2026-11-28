@@ -514,6 +514,10 @@ function openStage(n) {
 async function init() {
   els.brief.addEventListener("input", updateCounter);
   els.start.addEventListener("click", startLive);
+  $("start-with-brief").addEventListener("click", () => {
+    $("brief-card").scrollIntoView({ behavior: "smooth", block: "start" });
+    els.brief.focus({ preventScroll: true });
+  });
   els.newBrief.addEventListener("click", () => showView(1));
   for (const step of els.nav.querySelectorAll(".step")) {
     step.addEventListener("click", () => openStage(Number(step.dataset.stage)));

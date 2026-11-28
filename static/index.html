@@ -45,9 +45,17 @@
 
     <div class="views">
   <main class="main" id="view-brief">
-    <section class="hero">
-      <h1>Rehearse your proposal in front of the client's board, before you send it.</h1>
+    <section class="hero" aria-labelledby="hero-h">
+      <h1 id="hero-h">Rehearse your proposal in front of the client's board, before you send it.</h1>
       <p>A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
+      <div class="hero-actions">
+        <button type="button" class="btn hero-main" disabled aria-describedby="sample-note">
+          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+          Watch the sample run
+        </button>
+        <button type="button" class="btn hero-second" id="start-with-brief">Start with this brief</button>
+      </div>
+      <span class="hero-note" id="sample-note">The recorded sample run arrives in a later build.</span>
     </section>
 
     <section class="how" aria-label="How it works">
@@ -73,8 +81,8 @@
       </div>
     </section>
 
-    <div class="two-col">
-      <section class="card brief-card" aria-labelledby="brief-h">
+    <div class="brief-stack">
+      <section class="card brief-card" id="brief-card" aria-labelledby="brief-h">
         <div class="card-title-row">
           <h2 id="brief-h">Client brief</h2>
           <span class="muted small">Paste text or pick a sample</span>
@@ -141,24 +149,33 @@
 
         <div class="codechk" aria-label="Checks that run before any AI call">
           <span class="strong">Code checks before any AI call:</span>
-          <span><b aria-hidden="true">✓</b> real-data scan</span><span><b aria-hidden="true">✓</b> hidden-instruction scan</span><span><b aria-hidden="true">✓</b> "is this a client brief?"</span>
+          <span class="check-pill"><b aria-hidden="true">✓</b> real-data scan</span><span class="check-pill"><b aria-hidden="true">✓</b> hidden-instruction scan</span><span class="check-pill"><b aria-hidden="true">✓</b> "is this a client brief?"</span>
+          <span class="m-code">Code, before AI</span>
           <span class="muted full">Text inside a document is treated as data, never as instructions.</span>
         </div>
 
         <p class="privacy">Boardroom Twin is designed for fictional or publicly available information only. Automated checks find some common patterns of sensitive information but cannot guarantee complete detection. Do not submit confidential, customer or internal company information. The app does not intentionally save or log brief content.</p>
       </section>
 
-      <aside class="card start-card" aria-labelledby="start-h">
+      <section class="card start-card" aria-labelledby="start-h">
         <h2 id="start-h">Start</h2>
-        <button type="button" class="btn btn-primary" disabled aria-describedby="sample-note">
-          <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
-          Watch the sample run
-        </button>
-        <span class="muted small tight" id="sample-note">The recorded sample run arrives in a later build.</span>
-        <div class="rule"></div>
-        <button type="button" class="btn btn-outline" id="start-live">Start a live run with my brief</button>
+        <div class="start-row">
+          <button type="button" class="btn btn-outline" disabled aria-describedby="sample-note-2">
+            <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
+            Watch the sample run
+          </button>
+          <span class="muted small" id="sample-note-2">The recorded sample run arrives in a later build.</span>
+        </div>
+        <div class="pass-row">
+          <div class="pass-field">
+            <label class="label" for="passcode">Passcode for live runs</label>
+            <input class="field" id="passcode" type="password" autocomplete="off" disabled aria-describedby="passcode-note">
+          </div>
+          <button type="button" class="btn btn-primary" id="start-live">Start a live run with my brief</button>
+        </div>
+        <span class="hint" id="passcode-note">Passcodes for live runs arrive in a later build. Live runs need none for now.</span>
         <div id="start-message" role="alert"></div>
-      </aside>
+      </section>
     </div>
   </main>
 
