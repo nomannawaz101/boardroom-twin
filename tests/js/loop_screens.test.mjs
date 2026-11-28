@@ -153,4 +153,20 @@ const step = { agent: "bid_manager", tier: "sonnet", model: "claude-sonnet-5-5",
   assert.doesNotMatch(holderOf(loop.meetingPrep(["Retention rule"])).textContent, /Decisions for Lumen Works/);
 }
 
+// v12: objections and what changed (E); the tracker item keeps its text whole (I).
+{
+  const revisions = [
+    { ...bidRound, changes: [...bidRound.changes, { objection_id: "O1", action: "add", claim_id: "C9", old_text: null, new_text: "A later, longer answer.", outcome: "applied" }] },
+  ];
+  const table = holderOf(loop.objectionsTable(tracker, roundOne.seats, revisions));
+  const rows = byTag(table, "tr").slice(1).map((r) => r.children.map((c) => c.textContent));
+  assert.deepEqual(rows[0], ["O1", "CFO", "Smaller first step", "AddedA later, longer answer.", "Fixed R1"]);
+  assert.equal(rows[1][3], "Not changed by the Bid Manager"); // O2's change was refused
+  assert.equal(rows[3][3], "AssumptionConfirm with the client: the retention rule.");
+  assert.equal(byClass(table, "one-line")[0].attrs.title, "A later, longer answer.");
+  const decided = [{ id: "O4", seat: "cfo", kind: "O", severity: "blocker", text: "A firm fixed price", status: "open", decision: true, answered_in: [], history: [], claim_ids: [] }];
+  const item = byClass(holderOf(loop.trackerList(decided)), "tracker-row")[0];
+  assert.deepEqual(item.children.map((c) => c.className), ["num tracker-id", "tracker-text", "tracker-status"]);
+}
+
 process.stdout.write("loop screens: all checks passed\n");

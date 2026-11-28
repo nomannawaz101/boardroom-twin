@@ -75,7 +75,7 @@ function seatNote(seat, tracker) {
 
 function voteRow(seat, before, tracker) {
   const score = seat.kind === "gate"
-    ? "gate"
+    ? h("span", { class: "gate-tag" }, "gate")
     : `${before && before.score !== null && before.score !== undefined ? scoreText(before.score) : "—"} → ${seat.score === null || seat.score === undefined ? "—" : scoreText(seat.score)}`;
   return h("div", { class: "vote-row" },
     h("strong", {}, seat.title),
@@ -93,15 +93,21 @@ export function bidRoundCard(bidRound, step, before, after, tracker, stopped) {
   const handBack = stopped || !open.length
     ? null
     : handLine(`Hands to Bid Manager: ${objections.length ? `the open objections (${objections.join(", ")})` : "no open objections"}${conditions ? ` and ${plural(conditions, "condition", "conditions")}` : ""}.`);
-  return h("article", { class: "card round-card" },
-    h("div", { class: "agent-head" },
-      h("strong", {}, `Bid Manager · round ${bidRound.no}`),
-      step ? modelChip(step) : null,
-      h("span", { class: "num agent-time" }, `${step ? seconds(step.duration_ms) : ""} · ${answered}`)),
-    h("div", { class: "change-list" }, ...bidRound.changes.map(changeRow),
-      ...(bidRound.not_answered || []).map(notAnsweredRow)),
-    h("div", { class: "vote-list" }, ...after.seats.map((s) => voteRow(s, previous[s.seat_id], tracker))),
-    handBack);
+  // Two cards per round (design v12): what the Bid Manager changed, then the board's vote on it.
+  return h("div", { class: "round-pair" },
+    h("article", { class: "card round-card" },
+      h("div", { class: "agent-head" },
+        h("strong", {}, `Bid Manager · round ${bidRound.no}`),
+        step ? modelChip(step) : null,
+        h("span", { class: "num agent-time" }, `${step ? seconds(step.duration_ms) : ""} · ${answered}`)),
+      h("div", { class: "change-list" }, ...bidRound.changes.map(changeRow),
+        ...(bidRound.not_answered || []).map(notAnsweredRow))),
+    h("article", { class: "card round-card" },
+      h("div", { class: "agent-head" },
+        h("strong", {}, `Board vote · round ${after.no}`),
+        h("span", { class: "muted small" }, `The whole board read draft ${bidRound.draft_no}.`)),
+      h("div", { class: "vote-list" }, ...after.seats.map((s) => voteRow(s, previous[s.seat_id], tracker))),
+      handBack));
 }
 
 // --- Side column: scores by round, gates by round, why the loop stopped, the tracker ---
@@ -170,8 +176,47 @@ export function trackerList(tracker) {
   return [
     h("h2", {}, "Objection tracker"),
     h("div", { class: "tracker-list" }, ...ordered.map((t) => h("div", { class: "tracker-row" },
-      h("span", { class: "num" }, t.id), h("span", {}, t.text), trackerStatus(t)))),
+      h("span", { class: "num tracker-id" }, t.id),
+      h("span", { class: "tracker-text" }, t.text),
+      h("span", { class: "tracker-status" }, trackerStatus(t))))),
     h("p", { class: "muted small" }, "An objection counts as fixed only after the seat that raised it has read the new text and agreed. \"Answered\" means the Bid Manager changed the proposal; the seat has not agreed yet."),
+  ];
+}
+
+// The latest change code applied for an objection, across every Bid Manager round.
+function lastChange(revisions, id) {
+  const applied = revisions.flatMap((r) => r.changes)
+    .filter((c) => c.objection_id === id && c.outcome === "applied");
+  return applied.length ? applied[applied.length - 1] : null;
+}
+
+const CHANGE_CHIPS = { add: "chip-good", replace: "chip-good", assume: "chip-cond", remove: "chip-none" };
+
+export function objectionsTable(tracker, seats, revisions) {
+  const titles = Object.fromEntries(seats.map((s) => [s.seat_id, s.title]));
+  const ordered = [...tracker].sort((a, b) => (a.kind !== b.kind ? (a.kind === "O" ? -1 : 1) : Number(a.id.slice(1)) - Number(b.id.slice(1))));
+  const rows = ordered.map((t) => {
+    const change = lastChange(revisions, t.id);
+    const text = change ? change.new_text || "Removed." : "";
+    const what = change
+      ? h("div", { class: "what-changed" },
+          h("span", { class: `chk-chip ${CHANGE_CHIPS[change.action]}` }, ACTION_WORDS[change.action]),
+          h("span", { class: "one-line", title: text }, text))
+      : h("span", { class: "muted" }, "Not changed by the Bid Manager");
+    return h("tr", {},
+      h("td", { class: "num" }, h("strong", {}, t.id)),
+      h("td", {}, titles[t.seat] || t.seat),
+      h("td", {}, t.text, t.claim_ids.length ? h("span", { class: "num claim-id" }, ` ${t.claim_ids.join(", ")}`) : null),
+      h("td", {}, what),
+      h("td", {}, trackerStatus(t)));
+  });
+  return [
+    h("div", { class: "log-head" },
+      h("h2", {}, "Objections and what changed"),
+      h("span", { class: "muted small" }, "The latest change code applied for each objection; full text in the tooltip.")),
+    h("div", { class: "table-wrap" }, h("table", {},
+      h("thead", {}, h("tr", {}, ...["ID", "Raised by", "Challenge", "What changed", "Status"].map((c) => h("th", { scope: "col" }, c)))),
+      h("tbody", {}, ...rows))),
   ];
 }
 

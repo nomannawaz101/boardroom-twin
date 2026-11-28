@@ -5,7 +5,7 @@ import {
 } from "./render.js";
 import {
   bidRoundCard, changesSince, decisionMemo, finalProposal, gatesByRound, keyNumbers, loopChips,
-  loopStats, meetingPrep, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
+  loopStats, meetingPrep, objectionsTable, prototypeCard, scoresByRound, trackerList, verdictBanner, whyStopped,
 } from "./render-loop.js";
 import {
   idleRail, railChip, readActivity, runSummary, stageRail, stageState, writeActivity,
@@ -49,7 +49,7 @@ const els = {
   boardVerdict: $("board-verdict"), fixFirst: $("fix-first"), boardNext: $("board-next"),
   loopTitle: $("loop-title"), loopStats: $("loop-stats"), loopChips: $("loop-chips"),
   loopRounds: $("loop-rounds"), scoresByRound: $("scores-by-round"), whyStopped: $("why-stopped"),
-  trackerList: $("tracker-list"), loopNext: $("loop-next"),
+  trackerList: $("tracker-list"), loopNext: $("loop-next"), loopObjections: $("loop-objections"),
   reportStatus: $("report-status"), reportBody: $("report-body"), verdictBanner: $("verdict-banner"),
   keyNumbers: $("key-numbers"), reportChanges: $("report-changes"), reportProposal: $("report-proposal"),
   reportMemo: $("report-memo"), reportPrep: $("report-prep"), reportPrototype: $("report-prototype"),
@@ -431,6 +431,7 @@ function renderLoop(running) {
   els.scoresByRound.replaceChildren(...scoresByRound(rounds), ...gatesByRound(rounds));
   els.whyStopped.replaceChildren(...whyStopped(stop));
   els.trackerList.replaceChildren(...trackerList(tracker));
+  els.loopObjections.replaceChildren(...objectionsTable(tracker, rounds[0].seats, revisions));
   els.loopNext.replaceChildren(loopStopped() ? button("Next: the final report →", "btn btn-primary wide-btn", showReport) : "");
 }
 
