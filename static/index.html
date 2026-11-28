@@ -47,7 +47,7 @@
   <main class="main" id="view-brief">
     <section class="hero" aria-labelledby="hero-h">
       <h1 id="hero-h" data-text="hero-title">Know what the client's board will challenge, before the meeting.</h1>
-      <p>A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and gatekeepers who can block it. A Bid Manager fixes what they object to, up to two rounds.</p>
+      <p data-text="hero-text">A proposal team of AI agents writes the proposal. An AI copy of the client's evaluation board reviews it: executives who score it, and sign-off reviewers who can block it. A Revision Editor fixes what they object to, up to two rounds.</p>
       <div class="hero-actions">
         <button type="button" class="btn hero-main" disabled aria-describedby="sample-note">
           <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"></path></svg>
@@ -57,29 +57,18 @@
       </div>
       <span class="hero-note" id="sample-note">The recorded sample run arrives in a later build.</span>
     </section>
+    <p class="intro-line" data-text="intro">You are the bid team at Lumen Works, a fictional services firm. Paste a client brief or try a sample.</p>
     <p class="legend-line" data-text="legend-ai">AI = written by a model. Fixed rules = decided by code, the same every time.</p>
 
-    <section class="how" aria-label="How it works">
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 1</span>
-        <strong>Proposal team drafts</strong>
-        <span data-text="step-1">Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Writer hand work to each other</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 2</span>
-        <strong>Client board reviews</strong>
-        <span data-text="step-2">3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 3</span>
-        <strong data-text="step-3-title">Revision Editor revises</strong>
-        <span data-text="step-3">Up to two rounds. A Fact Checker blocks invented statements. The board votes again</span>
-      </div>
-      <div class="card how-card">
-        <span class="num eyebrow">STEP 4</span>
-        <strong>Board-ready report</strong>
-        <span>Proposal, board decision memo, meeting prep, optional prototype</span>
-      </div>
+    <section class="how" aria-labelledby="how-h">
+      <h2 class="how-h" id="how-h">How it works</h2>
+      <ol class="how-steps">
+        <li><span class="how-no">1</span><div><strong data-text="how-1">Brief</strong><span data-text="how-1-sub">Paste a client brief or pick a sample. Code checks it before any AI call.</span></div></li>
+        <li><span class="how-no">2</span><div><strong data-text="how-2">The team drafts the proposal</strong><span data-text="step-1">Business Analyst, Solution Architect, Delivery Manager, Risk &amp; Compliance Analyst and Proposal Writer hand work to each other</span></div></li>
+        <li><span class="how-no">3</span><div><strong data-text="how-3">The client's board challenges it</strong><span data-text="step-2">3 to 5 reviewers chosen from your brief. CFO, VP or Director, Enterprise Architect, Procurement and Security vote at the same time</span></div></li>
+        <li><span class="how-no">4</span><div><strong data-text="how-4">The Revision Editor answers each objection</strong><span data-text="step-3">Up to two rounds. A Fact Checker blocks invented statements. The board votes again</span></div></li>
+        <li><span class="how-no">5</span><div><strong data-text="how-5">You get a report you can act on</strong><span data-text="how-5-sub">Proposal, board decision memo, meeting prep, optional prototype</span></div></li>
+      </ol>
     </section>
 
     <div class="brief-stack">
